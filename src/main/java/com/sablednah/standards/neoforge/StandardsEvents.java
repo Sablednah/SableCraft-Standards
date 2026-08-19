@@ -1,0 +1,254 @@
+package com.sablednah.standards.neoforge;
+
+import com.sablednah.standards.Standards;
+import com.sablednah.standards.StandardsConfig;
+import com.sablednah.standards.api.economy.Economy;
+import com.sablednah.standards.core.Waypoint;
+
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.level.GameType;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+
+/**
+ * Game-bus handlers: player lifecycle, keeping the switches applied, and driving teleport warmups.
+ *
+ * <p>Most of this file exists because <b>Minecraft does not keep a player's abilities for us.</b>
+ * Respawning, changing dimension and changing game mode all rebuild the ability flags from the
+ * game mode, so a player who was flying stops flying and never gets told why. Every essentials
+ * package eventually grows these handlers; putting them in from the start is cheaper than
+ * discovering them one bug report at a time.</p>
+ */
+public final class StandardsEvents {
+
+    @SubscribeEvent
+    static void onServerStarting(ServerAboutToStartEvent event) {
+        // messages.yml: written with the full catalogue on first run, merged thereafter.
+        Lang.load();
+    }
+
+    @SubscribeEvent
+    static void onServerTick(ServerTickEvent.Post event) {
+        Teleports.tick(event.getServer());
+        TeleportRequests.tick(event.getServer());
+        Afk.tick(event.getServer());
+    }
+
+    // --- lifecycle ---
+
+    @SubscribeEvent
+    static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+
+        // The name cache is what makes /eco give <offline player> and /baltop rows possible.
+        StandardsData.get(player.level().getServer()).rememberName(player);
+        if (StandardsConfig.ENABLE_ECONOMY.get() && Economy.isAvailable()) {
+            Economy.createAccount(player.getUUID());
+        }
+        applySwitches(player);
+        Vanish.onLogin(player);
+        if (StandardsConfig.ENABLE_MAIL.get()) {
+            com.sablednah.standards.neoforge.commands.MailCommands.announceOnLogin(player);
+        }
+    }
+
+    @SubscribeEvent
+    static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        Teleports.forget(event.getEntity().getUUID());
+        if (event.getEntity() instanceof ServerPlayer leaving) {
+            // Where they stood, for /tpoffline. Written once, on the way out.
+            StandardsData.get(leaving.level().getServer()).rememberLogout(leaving);
+        }
+        // Their open requests go with them. Leaving them would let someone accept a request from
+        // a player who logged off ten minutes ago and teleport to wherever they happened to be.
+        TeleportRequests.closeAllInvolving(event.getEntity().getUUID());
+        com.sablednah.standards.neoforge.commands.MessageCommands.forget(
+                event.getEntity().getUUID());
+        Afk.forget(event.getEntity().getUUID());
+        if (event.getEntity() instanceof ServerPlayer player) {
+            Vanish.onLogout(player);
+        }
+    }
+
+    /**
+     * Mobs do not notice someone who is not there.
+     *
+     * <p>The entity tracker hides a vanished player from other <em>players</em>; it says nothing
+     * about mob AI, which happily keeps pathing toward an invisible staff member. A zombie
+     * following nothing across a build is the tell that gives a half-built vanish away.</p>
+     */
+    @SubscribeEvent
+    static void onChangeTarget(net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent event) {
+        if (event.getNewAboutToBeSetTarget() instanceof ServerPlayer target && Vanish.isVanished(target)) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    static void onRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            applySwitches(player);
+        }
+    }
+
+    @SubscribeEvent
+    static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            applySwitches(player);
+        }
+    }
+
+    /**
+     * A game-mode change rebuilds the ability flags wholesale, so the switches have to be put
+     * back afterwards — and after, not during: the event fires before the change is applied, so
+     * writing abilities here would simply be overwritten a moment later.
+     */
+    @SubscribeEvent
+    static void onGameModeChange(PlayerEvent.PlayerChangeGameModeEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        GameType next = event.getNewGameMode();
+        player.level().getServer().execute(() -> {
+            if (player.isRemoved()) return;
+            // Creative and spectator fly on their own terms; re-asserting ours would fight the
+            // game mode rather than serve the player.
+            if (next != GameType.CREATIVE && next != GameType.SPECTATOR) {
+                applySwitches(player);
+            }
+        });
+    }
+
+    /** Our flight grant, held as an attribute modifier so it can be removed without collateral. */
+    private static final Identifier FLIGHT_MODIFIER =
+            Identifier.fromNamespaceAndPath(Standards.MODID, "fly_command");
+
+    /**
+     * Put the player's saved switches back into effect.
+     *
+     * <h2>Why flight is an attribute and not a flag</h2>
+     *
+     * <p>The obvious implementation is {@code abilities.mayfly = true}, and NeoForge has
+     * deprecated exactly that: it is a single boolean that any number of mods want to own, so
+     * whoever writes {@code false} last takes flight away from everyone else's feature. The
+     * replacement is {@code NeoForgeMod.CREATIVE_FLIGHT}, a boolean attribute where each grant is
+     * a modifier with its own id — ours goes on and comes off without touching anybody else's.</p>
+     *
+     * <p><b>But the attribute alone is not enough here</b>, and this is the part worth writing
+     * down: {@code ClientboundPlayerAbilitiesPacket} is built from {@code abilities.mayfly}
+     * directly, so a <em>vanilla</em> client is never told about the attribute. The server would
+     * happily accept it flying while its own client refuses to leave the ground — the mod's
+     * central promise broken in the quietest possible way. So the attribute stays the source of
+     * truth and {@code mayfly} is written as a derived cache of it, purely so the packet carries
+     * the right answer.</p>
+     */
+    @SuppressWarnings("deprecation") // mayfly: deliberately mirrored, see above
+    public static void applySwitches(ServerPlayer player) {
+        PlayerState state = StandardsAttachments.of(player);
+        boolean creativeish = player.isCreative() || player.isSpectator();
+
+        AttributeInstance flight = player.getAttribute(NeoForgeMod.CREATIVE_FLIGHT);
+        if (flight != null) {
+            flight.removeModifier(FLIGHT_MODIFIER);
+            if (state.fly()) {
+                // Transient: our copy of the truth is the attachment, re-applied on every login,
+                // respawn and dimension change. A saved modifier would just be a second one to
+                // keep in sync.
+                flight.addTransientModifier(new AttributeModifier(
+                        FLIGHT_MODIFIER, 1.0D, AttributeModifier.Operation.ADD_VALUE));
+            }
+        }
+
+        var abilities = player.getAbilities();
+        boolean mayFly = creativeish
+                || (flight != null && flight.getValue() > 0.0D)
+                || abilities.instabuild;
+        abilities.mayfly = mayFly;
+        if (!mayFly) {
+            // Otherwise /fly off leaves them airborne until they happen to touch a block.
+            abilities.flying = false;
+        }
+
+        // Vanilla's defaults, scaled. Written every time because respawn and game-mode changes
+        // rebuild the whole Abilities object from scratch.
+        abilities.setWalkingSpeed(0.1F * state.walkSpeed());
+        abilities.setFlyingSpeed(0.05F * state.flySpeed());
+
+        if (state.god()) {
+            abilities.invulnerable = true;
+        } else if (!creativeish) {
+            abilities.invulnerable = false;
+        }
+        player.onUpdateAbilities();
+    }
+
+    // --- god mode ---
+
+    /**
+     * {@code abilities.invulnerable} covers most damage but not all of it — starvation, the void
+     * and {@code /kill} route around it — so god mode also vetoes the damage event outright.
+     * High priority so it settles before anything that reacts to damage having landed.
+     */
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    static void onIncomingDamage(LivingIncomingDamageEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (StandardsAttachments.of(player).god()) {
+            event.setCanceled(true);
+            return;
+        }
+        Teleports.onDamaged(player);
+    }
+
+    /**
+     * A muted player's chat does not reach anyone.
+     *
+     * <p>Cancelled rather than silently swallowed: they are told how long is left and why, every
+     * time they try. A mute that gives no feedback just reads as broken chat, and the player
+     * spends the next ten minutes asking staff why nobody can hear them — in a channel that also
+     * does not work.</p>
+     */
+    @SubscribeEvent
+    static void onChat(net.neoforged.neoforge.event.ServerChatEvent event) {
+        ServerPlayer player = event.getPlayer();
+        Afk.onActivity(player);
+        var server = player.level().getServer();
+        if (server == null) return;
+        // Decoration happens after the mute check below, so a muted player's message is stopped
+        // rather than formatted and then thrown away.
+        Mutes.get(server).active(player.getUUID()).ifPresent(mute -> {
+            event.setCanceled(true);
+            long left = mute.remaining(System.currentTimeMillis());
+            Feedback.chat(player, mute.permanent()
+                    ? Lang.fmt("msg.mod.mute_blocked_perm", "reason", mute.reason())
+                    : Lang.fmt("msg.mod.mute_blocked",
+                            "duration", com.sablednah.standards.core.Duration.describe(left),
+                            "reason", mute.reason()));
+        });
+        if (event.isCanceled()) return;
+
+        ChatFormatter.format(player, event.getRawText()).ifPresent(event::setMessage);
+    }
+
+    // --- /back on death ---
+
+    /**
+     * Record where a player died so {@code /back} can return them to it. Gated on a permission
+     * that is not granted by default: on a server where death is meant to cost something, handing
+     * the way back to the corpse to everyone silently removes the cost.
+     */
+    @SubscribeEvent
+    static void onDeath(net.neoforged.neoforge.event.entity.living.LivingDeathEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (!StandardsConfig.BACK_ON_DEATH.get()) return;
+        if (!StandardsPermissions.has(player, StandardsPermissions.BACK_ON_DEATH)) return;
+        StandardsAttachments.of(player).pushBack(Waypoint.of(player), true);
+    }
+
+    private StandardsEvents() {}
+}

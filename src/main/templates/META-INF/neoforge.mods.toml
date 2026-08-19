@@ -1,0 +1,42 @@
+# Standards — neoforge.mods.toml (values are expanded from gradle.properties at build time).
+# Never edit the generated copy under build/; edit this template and gradle.properties.
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/Sablednah/SableCraft-Standards/issues"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description='''
+${mod_description}
+'''
+displayURL="https://github.com/Sablednah/SableCraft-Standards"
+# TODO: artwork. Add src/main/resources/standards.png and put logoFile back —
+# naming a file that does not exist is worse than having no logo.
+
+# The mod's only mixin: /vanish answers vanilla's own visibility question rather than fighting
+# the entity tracker with packets. See ServerPlayerVanishMixin for why, and check it first on a
+# Minecraft update.
+[[mixins]]
+config="standards.mixins.json"
+
+# Standards is server-authoritative: every command works for an unmodified vanilla client.
+# The optional client half only adds convenience (a balance HUD, richer prompts) for players
+# who happen to have the mod installed.
+
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="[${neo_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
