@@ -10,6 +10,7 @@ import com.sablednah.standards.api.chat.Chat;
 import com.sablednah.standards.api.chat.NameDecorator;
 import com.sablednah.standards.api.economy.Economy;
 import com.sablednah.standards.core.Duration;
+import com.sablednah.standards.neoforge.InventoryView;
 import com.sablednah.standards.core.Money;
 import com.sablednah.standards.core.Toggle;
 import com.sablednah.standards.core.Waypoint;
@@ -65,6 +66,7 @@ public final class SelfTest {
         checkTeleportRequests();
         checkDurations();
         checkChatDecorators();
+        checkInventoryViewMapping();
         checkLedger(server);
         checkWaypointRoundTrip(server);
 
@@ -332,6 +334,52 @@ public final class SelfTest {
         // The worked example from the design, end to end.
         check("assembles the intended line",
                 String.join("", prefixes).equals("[FACTION][PARTY]Lord"));
+    }
+
+    /**
+     * The {@code /invsee} slot mapping — the one place in the mod where being wrong costs items.
+     *
+     * <p>Asserted rather than eyeballed because the first version destroyed anything dropped into
+     * a dead slot, and only two people with a stack of diamonds found it. Pure arithmetic on the
+     * mapping, so it costs nothing to check on every boot.</p>
+     */
+    private void checkInventoryViewMapping() {
+        var server = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
+        if (server == null || server.getPlayerList().getPlayers().isEmpty()) {
+            // Needs a real player's inventory to map; skipped on an empty dev server rather than
+            // faked, since a fake would be testing the fake.
+            return;
+        }
+        var view = new InventoryView(server.getPlayerList().getPlayers().getFirst());
+
+        check("view is a full six rows", view.getContainerSize() == InventoryView.SIZE);
+
+        // Main storage, hotbar and armour are live; the divider and tail are not.
+        boolean storageLive = true;
+        for (int i = 0; i < 36; i++) storageLive &= view.isLive(i);
+        check("all 36 storage and hotbar slots are live", storageLive);
+
+        boolean dividerDead = true;
+        for (int i = 36; i <= 44; i++) dividerDead &= !view.isLive(i);
+        check("the divider row is entirely dead", dividerDead);
+
+        // The bottom row, asserted against the agreed layout: H C L B X O X S A
+        check("helmet, chestplate, leggings, boots are live",
+                view.isLive(45) && view.isLive(46) && view.isLive(47) && view.isLive(48));
+        check("the two spacers are dead", !view.isLive(49) && !view.isLive(51));
+        check("off hand is live", view.isLive(50));
+        check("saddle and animal armour are live", view.isLive(52) && view.isLive(53));
+
+        // Every dead slot must show something, or it is an invisible hole again.
+        boolean deadSlotsVisible = true;
+        for (int i = 0; i < InventoryView.SIZE; i++) {
+            if (!view.isLive(i) && view.getItem(i).isEmpty()) deadSlotsVisible = false;
+        }
+        check("every dead slot is visibly filled", deadSlotsVisible);
+
+        // And the other direction: a dead slot must refuse to give anything up.
+        check("a dead slot yields nothing on removal",
+                view.removeItem(40, 64).isEmpty() && view.removeItemNoUpdate(40).isEmpty());
     }
 
     /** The ledger, through the public facade — the same door other mods come in by. */

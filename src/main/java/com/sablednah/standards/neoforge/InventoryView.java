@@ -1,51 +1,137 @@
 package com.sablednah.standards.neoforge;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /**
  * A live six-row chest view onto another player's inventory, for {@code /invsee}.
  *
- * <p>Live, not a copy: a moderator taking a stolen item out of this must actually take it out of
- * the player, and a copy would silently duplicate items instead — the worst possible bug in a
- * moderation tool.</p>
+ * <p>Live, not a copy: an item a moderator takes must actually leave the player, because a copy
+ * would silently duplicate it — the worst possible bug in a moderation tool.</p>
  *
- * <p>A chest of six rows is 54 slots and a player inventory is 42, so the sizes do not line up and
- * {@code ChestMenu.sixRows} would refuse the container outright. This maps them deliberately:</p>
+ * <p>A chest of six rows is 54 slots and a player inventory is 43, so they do not line up. The
+ * layout is deliberate rather than a straight run, so the sections are readable at a glance:</p>
  *
  * <pre>
- *   chest  0-26  -> inventory  9-35   main inventory, laid out as the player sees it
- *   chest 27-35  -> inventory  0-8    hotbar, on its own row underneath
- *   chest 36-44  -> (blank)           a visual gap
- *   chest 45-50  -> inventory 36-41   armour and offhand
- *   chest 51-53  -> (blank)
+ *   chest  0-26  -> inventory  9-35   main storage, as the player sees it
+ *   chest 27-35  -> inventory  0-8    hotbar, on its own row
+ *   chest 36-44  -> DEAD             a labelled divider row
+ *   chest 45-53  -> the equipment row, position by position:
+ *                     H C L B X O X S A
+ *                     helmet(39) chestplate(38) leggings(37) boots(36) spacer
+ *                     off hand(40) spacer saddle(42) animal armour(41)
  * </pre>
  *
- * <p>The gap is worth the two wasted rows: hotbar and armour landing in a readable arrangement is
- * the difference between a tool a moderator can use at a glance and a wall of 42 squares.</p>
+ * <h2>Equipment slots accept anything, on purpose</h2>
+ *
+ * <p>Vanilla's armour slots restrict by item type; these do not, and that is a settled decision
+ * rather than an omission — <b>do not add a config to "fix" it.</b> The guard that matters is
+ * against <em>accidents</em>, and that is handled by shift-click never reaching the equipment row
+ * (see {@link #STORAGE_SLOTS}). Putting something odd on a player therefore takes a deliberate,
+ * targeted click, which is exactly the bar a staff tool should set.</p>
+ *
+ * <p>Enforcing item types would cost more than it saves: modded armour that equips through its own
+ * mechanism may not satisfy vanilla's {@code getEquipmentSlotForItem} check, and a moderation tool
+ * that refuses to hand a player back their own chestplate is worse than one that permits a silly
+ * hat. Vanilla agrees, incidentally — any block is legitimately wearable in the head slot.</p>
+ *
+ * <h2>Dead slots are filled, not empty — and that is a bug fix</h2>
+ *
+ * <p>The first version left them empty and relied on {@link #setItem} ignoring writes there. That
+ * <b>destroyed items</b>: the client has already taken the stack off the cursor by the time the
+ * server sees it, so discarding the write means it is gone. Reported by two people testing, with
+ * screenshots.</p>
+ *
+ * <p>The container-level guard could not work either, because vanilla's {@code Slot.mayPlace}
+ * returns {@code true} unconditionally and never consults {@link Container#canPlaceItem} — so a
+ * plain {@code ChestMenu} physically cannot refuse a placement. The fix therefore needs
+ * {@link InventoryViewMenu}, which uses slots that really do refuse, and these filler panes, so
+ * the dead space is visible instead of being a hole items fall into.</p>
  */
 public final class InventoryView implements Container {
 
     public static final int ROWS = 6;
-    private static final int SIZE = ROWS * 9;
-    /** Blank, non-interactive filler. */
+    public static final int SIZE = ROWS * 9;
+    /**
+     * The storage half: main inventory and hotbar, chest slots 0-35.
+     *
+     * <p>Shift-click may only ever land here. Everything below is equipment, and an item shoved
+     * into someone's saddle slot because their backpack happened to be full is not a thing anyone
+     * asked for — vanilla avoids it by chests simply not having equipment slots.</p>
+     */
+    public static final int STORAGE_SLOTS = 36;
+    /** Not backed by anything in the player. */
     private static final int NONE = -1;
 
     private final Inventory target;
     private final int[] mapping = new int[SIZE];
+    private final ItemStack[] filler = new ItemStack[SIZE];
 
     public InventoryView(ServerPlayer target) {
         this.target = target.getInventory();
         java.util.Arrays.fill(mapping, NONE);
-        for (int i = 0; i < 27; i++) mapping[i] = i + 9;          // main
-        for (int i = 0; i < 9; i++) mapping[27 + i] = i;           // hotbar
-        int equipment = this.target.getContainerSize() - 36;       // however many vanilla exposes
-        for (int i = 0; i < equipment && 45 + i < SIZE; i++) {
-            mapping[45 + i] = 36 + i;                              // armour, offhand
+
+        for (int i = 0; i < 27; i++) mapping[i] = i + 9;      // main storage
+        for (int i = 0; i < 9; i++) mapping[27 + i] = i;       // hotbar
+
+        // The bottom row, written out position by position so it can be read against the layout
+        // rather than derived from arithmetic:
+        //
+        //     H C L B X O X S A
+        //     helmet, chestplate, leggings, boots, spacer,
+        //     off hand, spacer, saddle, animal armour
+        //
+        // The two spacers are punctuation, not padding. Four slots together read as a set, one
+        // alone reads as its own thing, and a moderator infers "armour" and "off hand" without a
+        // label — grouping explains the layout better than naming ever does. (Owner's own read on
+        // seeing it: "i see 4 slots - i can infer its armour - and 1 slot alone is offhand".)
+        //
+        // Saddle and animal armour get permanent places rather than appearing only when occupied.
+        // They are slots a player can hold something in but never sees, so a moderation tool that
+        // hid them would be exactly the wrong tool — an empty slot that is visibly empty beats one
+        // that might or might not be there.
+        int[] bottomRow = {39, 38, 37, 36, NONE, 40, NONE, 42, 41};
+        String[] bottomLabels = {
+            "Helmet", "Chestplate", "Leggings", "Boots", null,
+            "Off hand", null, "Saddle", "Animal armour"
+        };
+        for (int i = 0; i < bottomRow.length; i++) {
+            if (bottomRow[i] != NONE && bottomRow[i] < this.target.getContainerSize()) {
+                mapping[45 + i] = bottomRow[i];
+            }
         }
+
+        for (int slot = 0; slot < SIZE; slot++) {
+            if (mapping[slot] != NONE) continue;
+            filler[slot] = pane("Unused");
+        }
+
+        // The divider row sits directly above the bottom row, so each pane names what is beneath
+        // it — the layout explains itself on hover instead of in documentation nobody reads.
+        for (int i = 0; i < bottomLabels.length; i++) {
+            filler[36 + i] = pane(bottomLabels[i] == null
+                    ? "Hotbar above"
+                    : bottomLabels[i] + " below");
+        }
+    }
+
+    private static ItemStack pane(String label) {
+        ItemStack stack = new ItemStack(Items.GRAY_STAINED_GLASS_PANE);
+        stack.set(DataComponents.CUSTOM_NAME,
+                Component.literal(label).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        return stack;
+    }
+
+    /** Is this chest slot backed by a real inventory slot? Drives the menu's slot behaviour. */
+    public boolean isLive(int slot) {
+        return slot >= 0 && slot < SIZE && mapping[slot] != NONE;
     }
 
     private int real(int slot) {
@@ -60,7 +146,7 @@ public final class InventoryView implements Container {
     @Override
     public boolean isEmpty() {
         for (int i = 0; i < SIZE; i++) {
-            if (!getItem(i).isEmpty()) return false;
+            if (isLive(i) && !getItem(i).isEmpty()) return false;
         }
         return true;
     }
@@ -68,7 +154,7 @@ public final class InventoryView implements Container {
     @Override
     public ItemStack getItem(int slot) {
         int real = real(slot);
-        return real == NONE ? ItemStack.EMPTY : target.getItem(real);
+        return real == NONE ? filler[slot] : target.getItem(real);
     }
 
     @Override
@@ -86,8 +172,8 @@ public final class InventoryView implements Container {
     @Override
     public void setItem(int slot, ItemStack stack) {
         int real = real(slot);
-        // Silently dropping a write into a blank slot is correct here: the alternative is an item
-        // vanishing from the moderator's cursor into a slot that does not exist.
+        // Unreachable now that the menu's slots refuse dead positions, and left refusing rather
+        // than silently swallowing: this exact path is what destroyed items before.
         if (real != NONE) target.setItem(real, stack);
     }
 
@@ -103,7 +189,7 @@ public final class InventoryView implements Container {
 
     @Override
     public void clearContent() {
-        // Deliberately not wired: clearing someone's inventory is /clear's job, not a side effect
+        // Deliberately not wired: emptying someone's inventory is /clear's job, not a side effect
         // of a viewing tool.
     }
 }

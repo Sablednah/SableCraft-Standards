@@ -154,9 +154,21 @@ public final class TpaCommands {
         }
         Optional<Request> found = TeleportRequests.incoming(me.getUUID(), from);
         if (found.isEmpty()) {
-            Feedback.chat(me, fromName.isPresent()
-                    ? Lang.fmt("msg.tpa.none_from", "name", fromName.get())
-                    : Lang.get("msg.tpa.none_incoming"));
+            if (fromName.isPresent()) {
+                Feedback.chat(me, Lang.fmt("msg.tpa.none_from", "name", fromName.get()));
+                return 0;
+            }
+            // Nothing to answer — but if they have an outgoing request, they are the one being
+            // waited on, and saying only "no requests" leaves them stuck. Most common on
+            // /tpahere, where the person who typed it is NOT the person who accepts.
+            Optional<Request> mine = TeleportRequests.outgoing(me.getUUID(), Optional.empty());
+            if (mine.isPresent()) {
+                ServerPlayer other = server.getPlayerList().getPlayer(mine.get().target());
+                Feedback.chat(me, Lang.fmt("msg.tpa.none_incoming_but_outgoing",
+                        "player", other != null ? other.getName().getString() : "?"));
+            } else {
+                Feedback.chat(me, Lang.get("msg.tpa.none_incoming"));
+            }
             return 0;
         }
         Request request = found.get();
@@ -241,20 +253,23 @@ public final class TpaCommands {
             return 0;
         }
 
-        // Both ends, immediately — this is the five seconds of silence the feature is built to
-        // close. The acceptor learns the traveller is coming; the traveller learns they were
-        // accepted, which is the half nothing else tells them.
+        // Both ends, immediately — this is the five seconds of silence the feature exists to close.
+        //
+        // Addressed by ROLE (who travels, who waits), never by who typed the command. Those
+        // coincide for /tpa and invert for /tpahere, and writing it the other way round meant the
+        // acceptor of a /tpahere was told about themselves twice while the requester — the person
+        // who asked in the first place — was told nothing at all. Found by two people trying it.
         if (attempt.queued()) {
-            Feedback.chat(acceptor, Lang.fmt("msg.tpa.accepted_by_you_wait",
+            Feedback.chat(host, Lang.fmt("msg.tpa.accepted_by_you_wait",
                     "player", travellerName, "sec", attempt.secondsLeft()));
-            Feedback.chat(traveller, Lang.fmt("msg.tpa.accepted_you_wait",
-                    "player", requesterTravels ? hostName : travellerName,
-                    "sec", attempt.secondsLeft()));
+            Feedback.chat(traveller, Lang.fmt(
+                    requesterTravels ? "msg.tpa.accepted_you_wait" : "msg.tpa.accepted_here_wait",
+                    "player", hostName, "sec", attempt.secondsLeft()));
         } else {
-            Feedback.chat(acceptor, Lang.fmt("msg.tpa.accepted_by_you", "player", travellerName));
-            if (traveller != acceptor) {
-                Feedback.chat(traveller, Lang.fmt("msg.tpa.accepted_you_go", "player", hostName));
-            }
+            Feedback.chat(host, Lang.fmt("msg.tpa.accepted_by_you", "player", travellerName));
+            Feedback.chat(traveller, Lang.fmt(
+                    requesterTravels ? "msg.tpa.accepted_you_go" : "msg.tpa.accepted_here_go",
+                    "player", hostName));
         }
         return 1;
     }
@@ -266,7 +281,22 @@ public final class TpaCommands {
         MinecraftServer server = me.level().getServer();
         Optional<Request> found = TeleportRequests.outgoing(me.getUUID(), Optional.empty());
         if (found.isEmpty()) {
-            Feedback.chat(me, Lang.get("msg.tpa.none_outgoing"));
+            // The trap this exists for: tab-completing /tpa offers 'tpacancel' BEFORE 'tpaccept'
+            // (alphabetically 'a' < 'c'), so someone meaning to accept lands here instead and is
+            // told, unhelpfully, that they have nothing to cancel.
+            var waiting = TeleportRequests.allIncoming(me.getUUID());
+            if (!waiting.isEmpty()) {
+                ServerPlayer asker = server.getPlayerList().getPlayer(waiting.getFirst().requester());
+                Feedback.chatWithButtons(me,
+                        Lang.fmt("msg.tpa.none_outgoing_but_incoming",
+                                "count", waiting.size(),
+                                "player", asker != null ? asker.getName().getString() : "?"),
+                        Feedback.button(Lang.get("msg.tpa.button_accept"),
+                                "/tpaccept" + (asker != null ? " " + asker.getName().getString() : ""),
+                                Lang.get("msg.tpa.button_accept_generic")));
+            } else {
+                Feedback.chat(me, Lang.get("msg.tpa.none_outgoing"));
+            }
             return 0;
         }
         Request request = found.get();

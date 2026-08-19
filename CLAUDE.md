@@ -313,6 +313,78 @@ unzip -oq ../build/moddev/artifacts/neoforge-21.11.42-sources.jar 'net/neoforged
   `AttributeInstance.removeModifier(Identifier)` and `addTransientModifier(...)`.
 - `CompoundTag` getters return `Optional`.
 
+## Two-player testing on Windows + WSL
+
+`SelfTest` cannot prove the things that need two humans — `/tpa`'s narration, whether `/vanish`
+actually hides, the `/invsee` slot mapping. Those need two clients against the dev server, and
+getting there costs an hour of environment problems the first time. All five are solved in the
+repo now; this is why.
+
+**Launch clients from Windows, not WSL.** `./gradlew runClientBuddy` from WSL goes through WSLg and
+the window frequently never appears. `TestClient.cmd` runs them natively on Windows using
+CurseForge's bundled JDK 21:
+
+```
+.\TestClient.cmd            -> TestBuddy   (runClientBuddy, runBuddy/)
+.\TestClient.cmd main       -> Sablednah   (runClientMain,  runMain/)
+```
+
+**Each Windows client needs its own build directory**, via `-PwinClient=<name>` →
+`build-win-<name>/`. Without it the client's `:createMinecraftArtifacts` tries to replace
+`build/moddev/artifacts/neoforge-*.jar` while the running dev server holds it open, and fails with
+`Unable to delete file` / `AccessDeniedException`. A separate `--project-cache-dir` is *not*
+enough — that separates lock files, not build outputs. Both are set in `TestClient.cmd`.
+
+**⚠ On `/mnt/d`, Linux does NOT get Linux file semantics.** The usual rule is that Linux can unlink
+a file another process has open and Windows cannot — but drvfs goes through Windows file APIs, so
+Windows locking applies **in both directions**. A file held open by a Windows process cannot be
+replaced from WSL either. This is the single most confusing part of the whole setup.
+
+**Windows gradle daemons outlive the build and keep holding the jar.** A failed Windows-side run
+leaves daemons up for hours. `cmd.exe /c "cd /d <repo> && gradlew.bat --stop"` clears them, and is
+safe — it only stops build daemons.
+
+**Test the operation, not a proxy.** Probing with `open(path, 'r+b')` reports success while a
+rename over the same file is still denied, because the holder's sharing mode permits writes but not
+delete. Probe with an actual `mv there && mv back`.
+
+**Your real modpack instance cannot join the dev server.** It carries LegendQuest, ZombieMod,
+CityWorld and the FTB mods; NeoForge refuses when required-mod lists disagree ("bad network
+protocol"). Either use a dev client, or keep a stripped CurseForge instance whose `mods/` matches
+`run/mods/` exactly.
+
+**Offline UUIDs are case-sensitive.** `online-mode=false` derives the UUID from
+`OfflinePlayer:<name>` verbatim, so `Sablednah` and `sablednah` are different players and an
+`ops.json` entry for one does not op the other. Put both spellings in. (Standards itself is immune
+— it keys everything by UUID and uses names only for lookup and display.)
+
+**`spawn-protection` makes a non-op look like broken permissions.** They cannot break blocks near
+spawn, with no message explaining why. Set it to `0` on the dev server; on a live server, tell
+players it exists.
+
+**✔ LuckPerms honours our default resolvers — verified, not assumed.** The worry was that
+installing it would answer "undefined → false" and silently strip ordinary players of every
+everyone-by-default node. It does not: a non-op with no grants ran `/homes` and got our own
+"no homes yet" message. That is proof rather than inference — a failed `requires()` hides the
+command entirely and yields "Unknown or incomplete command", so seeing *our* text means the
+permission resolved true. Re-check this on a LuckPerms major version bump.
+
+**RCON is worth enabling on the dev server.** Gradle cannot pipe stdin to the server console, so
+without it every `op`/`deop`/config change costs a two-minute restart. `enable-rcon=true`,
+`rcon.port=25575` in `run/server.properties`, plus the small client in the session scratchpad.
+Caveat: **LuckPerms' command output never reaches RCON** — it replies to the sender and swallows it
+— so `lp` commands work but you cannot read their answers that way.
+
+**⚠ `/execute as <player> run <cmd>` does NOT test that player's permissions.** `requires()` is
+evaluated at *parse* time against whoever typed it, and `execute` only swaps the source at
+execution. So running a Standards command as a non-op from the console succeeds regardless of
+their nodes — verified: `execute as TestBuddy run fly on` set `mayfly: 1b` on a non-op.
+
+That is a genuinely useful mechanism rather than a hole (vanilla `/execute` is op-gated anyway):
+**it is how another mod can invoke a Standards command on a player's behalf without granting them
+the node** — one live answer to the LegendQuest integration question. But it means permission
+boundaries can only be tested by the player actually typing the command.
+
 ## Gotchas already paid for
 
 - **Static initialisation order.** A `static final` collection declared *after* the fields that

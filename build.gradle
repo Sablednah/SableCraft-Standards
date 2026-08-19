@@ -14,6 +14,20 @@ tasks.named('wrapper', Wrapper).configure {
 // standards-0.1.0.jar are indistinguishable in a mods folder or on a releases page. The version
 // INSIDE neoforge.mods.toml stays a plain ${mod_version} — the template reads the property, not
 // this, so the loader never sees the suffix. (Lesson borrowed from CityWorld's 26.1 port.)
+// The Windows-side dev clients build into their OWN directory.
+//
+// Without this they share build/ with the WSL-side dev server, which holds
+// build/moddev/artifacts/neoforge-*.jar open on its classpath — and Windows cannot delete a file
+// another process has open, so the client's :createMinecraftArtifacts fails with
+// "Unable to delete file ...neoforge-21.11.42.jar". One directory per client, because the two
+// clients run at the same time and would otherwise collide with each other instead.
+//
+// The expensive part (NeoForm decompiling Minecraft) lives in ~/.gradle and is still shared, so
+// this costs disk, not time.  Used by TestClient.cmd; see there.
+if (project.hasProperty('winClient')) {
+    layout.buildDirectory = layout.projectDirectory.dir("build-win-${project.winClient}")
+}
+
 version = "${mod_version}+mc${minecraft_version}"
 group = mod_group_id
 
@@ -65,6 +79,22 @@ neoForge {
             // Own game dir: sharing run/ with a live dev server means both fight over
             // logs/latest.log on drvfs.
             gameDirectory = file('runBuddy')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        // Your own dev client, for two-player testing against the dev server. Separate from
+        // 'client' because that one uses run/ as its game directory — which the dev server is
+        // already using, and the two then fight over logs/latest.log on drvfs.
+        //
+        // Why not just join from your real CurseForge instance? Because that instance carries
+        // LegendQuest, ZombieMod, CityWorld and the FTB mods, and NeoForge refuses a connection
+        // when the required-mod lists disagree — "bad network protocol". A dev client matches the
+        // dev server exactly.
+        clientMain {
+            client()
+            programArguments.addAll '--username', 'Sablednah',
+                    '--quickPlayMultiplayer', "127.0.0.1:${project.dev_server_port}".toString()
+            gameDirectory = file('runMain')
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 

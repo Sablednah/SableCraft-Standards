@@ -14,6 +14,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.sablednah.standards.core.Duration;
 import com.sablednah.standards.neoforge.Feedback;
 import com.sablednah.standards.neoforge.InventoryView;
+import com.sablednah.standards.neoforge.InventoryViewMenu;
 import com.sablednah.standards.neoforge.Lang;
 import com.sablednah.standards.neoforge.Mutes;
 import com.sablednah.standards.neoforge.StandardsData;
@@ -28,7 +29,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.UserBanListEntry;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.inventory.ChestMenu;
 
 /**
  * The three moderation commands Standards ships, and no more.
@@ -182,8 +182,10 @@ public final class ModerationCommands {
             return 0;
         }
         InventoryView view = new InventoryView(target);
+        // Not ChestMenu: its slots accept items into positions the player inventory does not
+        // reach, and those items were destroyed. See InventoryViewMenu.
         viewer.openMenu(new SimpleMenuProvider(
-                (id, inventory, p) -> ChestMenu.sixRows(id, inventory, view),
+                (id, inventory, p) -> new InventoryViewMenu(id, inventory, view),
                 Component.literal(Lang.fmt("msg.mod.invsee_title",
                         "player", target.getName().getString()).replace('&', '§'))));
         return 1;

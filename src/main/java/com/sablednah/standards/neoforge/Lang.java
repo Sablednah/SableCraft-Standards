@@ -249,6 +249,14 @@ public final class Lang {
         def("msg.tpa.none_incoming", "&7No open {term.tpa}s.");
         def("msg.tpa.none_from", "&cNo open {term.tpa} from &f{name}&c.");
         def("msg.tpa.none_outgoing", "&7You have no {term.tpa}s waiting for an answer.");
+        // Dead ends turned into signposts. /tpa tab-completes to tpacancel before tpaccept, and
+        // on /tpahere the person who asked is not the person who accepts — both land someone in
+        // the wrong command with nothing useful to do next.
+        def("msg.tpa.none_outgoing_but_incoming", "&7Nothing to cancel — but &f{count}&7 "
+                + "{term.tpa}(s) are waiting for YOUR answer, from &f{player}&7.");
+        def("msg.tpa.none_incoming_but_outgoing", "&7Nothing to accept — you asked &f{player}&7, "
+                + "so it is their answer you are waiting on.");
+        def("msg.tpa.button_accept_generic", "Accept it");
         def("msg.tpa.gone", "&c{player} is no longer online.");
 
         // The gap this whole feature was built around: with a warmup, an accepted request used to
@@ -257,6 +265,11 @@ public final class Lang {
         def("msg.tpa.accepted_by_you_wait", "{term.prefix} &aAccepted&7 — &f{player}&7 arrives in &f{sec}s&7.");
         def("msg.tpa.accepted_you_go", "{term.prefix} &f{player}&7 &aaccepted&7! Teleporting now.");
         def("msg.tpa.accepted_you_wait", "{term.prefix} &f{player}&7 &aaccepted&7! Teleporting in "
+                + "&f{sec}s&7 — hold still.");
+        // The /tpahere side: the person who ACCEPTED is the one who travels, so "they accepted"
+        // would be nonsense addressed to them.
+        def("msg.tpa.accepted_here_go", "{term.prefix} &7Off you go to &f{player}&7.");
+        def("msg.tpa.accepted_here_wait", "{term.prefix} &7Teleporting to &f{player}&7 in "
                 + "&f{sec}s&7 — hold still.");
         def("msg.tpa.arrived_host", "{term.prefix} &f{player}&7 has arrived.");
         def("msg.tpa.failed_host", "{term.prefix} &f{player}&7 did not make it &8({reason}).");
@@ -269,8 +282,8 @@ public final class Lang {
         def("msg.tpa.denied_you", "{term.prefix} &f{player}&7 turned down your {term.tpa}.");
         def("msg.tpa.cancelled_by_you", "{term.prefix} &7Withdrew your {term.tpa} to &f{player}&7.");
         def("msg.tpa.cancelled_you", "{term.prefix} &f{player}&7 withdrew their {term.tpa}.");
-        def("msg.tpa.expired_sender", "&7Your {term.tpa} to &f{player}&7 lapsed.");
-        def("msg.tpa.expired_target", "&7{player}'s {term.tpa} lapsed.");
+        def("msg.tpa.expired_sender", "&e\u231b Your {term.tpa} to &f{player}&e lapsed &8(no answer in time).");
+        def("msg.tpa.expired_target", "&e\u231b &f{player}&e's {term.tpa} lapsed &8(you did not answer in time).");
 
         def("msg.tpa.toggle_name", "Incoming {term.tpa}s");
         def("msg.tpa.list_header", "{term.prefix} &7Open {term.tpa}s:");
