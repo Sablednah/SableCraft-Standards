@@ -17,6 +17,34 @@ Useful config while testing, in `run/config/standards-common.toml`:
 
 ---
 
+## Already proven by machine — skip unless something looks off
+
+`scripts/battery.py` drives these over RCON and asserts on the commands' **return values**, not
+merely that they did not error. 72 assertions, all passing as of 19 Aug:
+
+| Area | Covered |
+|---|---|
+| Economy | `/balance` `/baltop` `/eco set\|give\|take` arithmetic, refusals for unknown players |
+| Homes | set, list, delete, missing-name refusal, the **limit** and raising it live via LuckPerms |
+| Warps | set, list, delete, missing-name refusal |
+| Kits | capture, list, show, claim, delete, and the **cooldown** refusing a second claim |
+| Mail | send, read, clear, empty-mailbox refusal |
+| Movement | `/top` `/back` `/spawn` `/setspawn` |
+| Self care | `/heal` `/feed` `/rest` `/speed`, and the speed cap refusing |
+| Switches | `/fly` `/god` `/vanish` `/tptoggle`, including "already on" reporting no change |
+| Moderation | `/mute` covering **private messages** too, `/unmute`, bad-duration refusal |
+| Server | `/gc` returning real TPS, `/standards economy` naming the provider, `/smite` |
+| Persistence | balance, warps, homes, kits, mail and **kit cooldowns** all surviving a restart |
+
+Two of those confirm design decisions rather than code: **`/eco give` works on an offline player**
+(the reason balances are world save data), and **granting `standards.home.limit.10` takes effect
+without a restart**.
+
+**What a machine could not check** is everything below: whether a message reads clearly, whether a
+grid is legible, whether the timing feels right, and anything needing two people at once.
+
+---
+
 ## Switches — the whole point of the mod
 
 Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
