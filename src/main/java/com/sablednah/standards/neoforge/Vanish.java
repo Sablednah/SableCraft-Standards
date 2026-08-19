@@ -18,6 +18,27 @@ import net.minecraft.server.level.ServerPlayer;
  * particles, held items and a name tag. A vanished player is <em>absent</em>: not tracked, not in
  * the tab list, not targeted by mobs, not picking things up in front of people.</p>
  *
+ * <h2>What vanish hides, and what it deliberately does not</h2>
+ *
+ * <p><b>Vanish hides the player, not their effects on the world.</b> That line is deliberate and
+ * settled — do not "complete" the feature by suppressing the second half.</p>
+ *
+ * <table>
+ * <tr><th>Hidden</th><th>Not hidden</th></tr>
+ * <tr><td>the body itself (entity tracking)</td><td>doors and chests opening</td></tr>
+ * <tr><td>the tab list</td><td>blocks broken or placed</td></tr>
+ * <tr><td>mob targeting</td><td>footsteps and item sounds</td></tr>
+ * <tr><td>incoming damage</td><td>anything else the world does in reaction</td></tr>
+ * <tr><td>being pushed</td><td></td></tr>
+ * <tr><td>being messaged by those who cannot see you</td><td></td></tr>
+ * </table>
+ *
+ * <p>Two reasons. It is more fun — a chest opening by itself is the point of being a ghost. And it
+ * is the only accountability left: a staff member who is <em>completely</em> undetectable can go
+ * through anyone's belongings with no trace whatever. Leaving the world's reaction visible means
+ * the trail still exists, it is merely anonymous. (Owner's call, and their reasoning: "this is why
+ * you need mods you can trust to play not abuse".)</p>
+ *
  * <p>The hiding itself happens in {@link com.sablednah.standards.mixin.ServerPlayerVanishMixin},
  * which answers vanilla's own visibility question. This class holds the state that mixin consults
  * and the extra consequences the tracker does not cover.</p>

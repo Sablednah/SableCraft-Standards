@@ -4,7 +4,8 @@
   "package": "com.sablednah.standards.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerPlayerVanishMixin"
+    "ServerPlayerVanishMixin",
+    "LivingEntityVanishMixin"
   ],
   "injectors": {
     "defaultRequire": 1

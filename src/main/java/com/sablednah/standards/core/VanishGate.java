@@ -47,7 +47,16 @@ public final class VanishGate {
     }
 
     public static boolean isVanished(UUID player) {
-        return VANISHED.contains(player);
+        return !VANISHED.isEmpty() && VANISHED.contains(player);
+    }
+
+    /**
+     * The fast path for hot code. Collision runs for every nearby entity pair every tick, so the
+     * first question asked there must be "is anyone vanished at all", answerable with one field
+     * read on the overwhelming majority of servers.
+     */
+    public static boolean anyVanished() {
+        return !VANISHED.isEmpty();
     }
 
     /**

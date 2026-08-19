@@ -76,50 +76,65 @@ public final class InventoryView implements Container {
 
     public InventoryView(ServerPlayer target) {
         this.target = target.getInventory();
-        java.util.Arrays.fill(mapping, NONE);
-
-        for (int i = 0; i < 27; i++) mapping[i] = i + 9;      // main storage
-        for (int i = 0; i < 9; i++) mapping[27 + i] = i;       // hotbar
-
-        // The bottom row, written out position by position so it can be read against the layout
-        // rather than derived from arithmetic:
-        //
-        //     H C L B X O X S A
-        //     helmet, chestplate, leggings, boots, spacer,
-        //     off hand, spacer, saddle, animal armour
-        //
-        // The two spacers are punctuation, not padding. Four slots together read as a set, one
-        // alone reads as its own thing, and a moderator infers "armour" and "off hand" without a
-        // label — grouping explains the layout better than naming ever does. (Owner's own read on
-        // seeing it: "i see 4 slots - i can infer its armour - and 1 slot alone is offhand".)
-        //
-        // Saddle and animal armour get permanent places rather than appearing only when occupied.
-        // They are slots a player can hold something in but never sees, so a moderation tool that
-        // hid them would be exactly the wrong tool — an empty slot that is visibly empty beats one
-        // that might or might not be there.
-        int[] bottomRow = {39, 38, 37, 36, NONE, 40, NONE, 42, 41};
-        String[] bottomLabels = {
-            "Helmet", "Chestplate", "Leggings", "Boots", null,
-            "Off hand", null, "Saddle", "Animal armour"
-        };
-        for (int i = 0; i < bottomRow.length; i++) {
-            if (bottomRow[i] != NONE && bottomRow[i] < this.target.getContainerSize()) {
-                mapping[45 + i] = bottomRow[i];
-            }
-        }
+        System.arraycopy(buildMapping(this.target.getContainerSize()), 0, mapping, 0, SIZE);
 
         for (int slot = 0; slot < SIZE; slot++) {
             if (mapping[slot] != NONE) continue;
             filler[slot] = pane("Unused");
         }
-
-        // The divider row sits directly above the bottom row, so each pane names what is beneath
-        // it — the layout explains itself on hover instead of in documentation nobody reads.
-        for (int i = 0; i < bottomLabels.length; i++) {
-            filler[36 + i] = pane(bottomLabels[i] == null
+        // The divider row sits directly above the equipment row, so each pane names what is
+        // beneath it — the layout explains itself on hover instead of in documentation nobody
+        // reads.
+        for (int i = 0; i < BOTTOM_LABELS.length; i++) {
+            filler[36 + i] = pane(BOTTOM_LABELS[i] == null
                     ? "Hotbar above"
-                    : bottomLabels[i] + " below");
+                    : BOTTOM_LABELS[i] + " below");
         }
+    }
+
+    /**
+     * The equipment row, written out position by position so it can be read against the layout
+     * rather than derived from arithmetic:
+     *
+     * <pre>
+     *     H C L B X O X S A
+     *     helmet, chestplate, leggings, boots, spacer,
+     *     off hand, spacer, saddle, animal armour
+     * </pre>
+     *
+     * <p>The two spacers are punctuation, not padding. Four slots together read as a set, one
+     * alone reads as its own thing, and a moderator infers "armour" and "off hand" without a
+     * label — grouping explains a layout better than naming ever does.</p>
+     *
+     * <p>Saddle and animal armour get permanent places rather than appearing only when occupied.
+     * They are slots a player can hold something in but never sees, so a tool that hid them would
+     * be exactly the wrong tool.</p>
+     */
+    private static final int[] BOTTOM_ROW = {39, 38, 37, 36, NONE, 40, NONE, 42, 41};
+
+    private static final String[] BOTTOM_LABELS = {
+        "Helmet", "Chestplate", "Leggings", "Boots", null,
+        "Off hand", null, "Saddle", "Animal armour"
+    };
+
+    /**
+     * Chest slot to inventory slot, as a pure function of the inventory's size.
+     *
+     * <p>Static and player-free precisely so it is testable. The first version of this check
+     * needed a live player and was therefore skipped on an empty dev server — a test that quietly
+     * does not run is worse than no test, because it reports as a pass.</p>
+     */
+    public static int[] buildMapping(int inventorySize) {
+        int[] map = new int[SIZE];
+        java.util.Arrays.fill(map, NONE);
+        for (int i = 0; i < 27; i++) map[i] = i + 9;      // main storage
+        for (int i = 0; i < 9; i++) map[27 + i] = i;       // hotbar
+        for (int i = 0; i < BOTTOM_ROW.length; i++) {
+            if (BOTTOM_ROW[i] != NONE && BOTTOM_ROW[i] < inventorySize) {
+                map[45 + i] = BOTTOM_ROW[i];
+            }
+        }
+        return map;
     }
 
     private static ItemStack pane(String label) {

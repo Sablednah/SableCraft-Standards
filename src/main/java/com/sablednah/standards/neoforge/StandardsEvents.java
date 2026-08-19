@@ -202,6 +202,14 @@ public final class StandardsEvents {
             event.setCanceled(true);
             return;
         }
+        // Invisible is not the same as untouchable, and the gap is exploitable: an entity that is
+        // hidden still has a hitbox, so someone who knows roughly where staff are standing can
+        // find them with arrows. Found by hitting a vanished player on purpose, aiming from the
+        // other screen.
+        if (StandardsConfig.VANISH_INVULNERABLE.get() && Vanish.isVanished(player)) {
+            event.setCanceled(true);
+            return;
+        }
         Teleports.onDamaged(player);
     }
 
@@ -233,6 +241,31 @@ public final class StandardsEvents {
         if (event.isCanceled()) return;
 
         ChatFormatter.format(player, event.getRawText()).ifPresent(event::setMessage);
+    }
+
+/**
+     * Projectiles pass straight through a vanished player.
+     *
+     * <p>Cancelling the damage alone was not enough, and the half-fix was <em>worse</em> than
+     * doing nothing: the arrow still collided, so it visibly bounced off empty air and rebounded
+     * onto the shooter. An arrow deflecting off nothing does not hint that someone is there, it
+     * marks the spot exactly. Found by shooting at a vanished player from close range.</p>
+     *
+     * <p>Note where this sits relative to the line vanish draws elsewhere (see {@link Vanish}):
+     * the world's <em>reactions</em> stay visible — chests open, doors swing, footsteps sound —
+     * because those are a trail worth leaving. A deflecting arrow is not a reaction to something
+     * the hidden player did; it is the player's own body giving its position away, which is the
+     * thing vanish exists to prevent.</p>
+     */
+    @SubscribeEvent
+    static void onProjectileImpact(
+            net.neoforged.neoforge.event.entity.ProjectileImpactEvent event) {
+        if (!StandardsConfig.VANISH_INVULNERABLE.get()) return;
+        if (event.getRayTraceResult() instanceof net.minecraft.world.phys.EntityHitResult hit
+                && hit.getEntity() instanceof ServerPlayer target
+                && Vanish.isVanished(target)) {
+            event.setCanceled(true);
+        }
     }
 
     // --- /back on death ---

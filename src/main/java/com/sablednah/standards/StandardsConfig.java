@@ -36,6 +36,7 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_TPA;
     public static final ModConfigSpec.BooleanValue ENABLE_VANISH;
     public static final ModConfigSpec.BooleanValue ENABLE_SMITE;
+    public static final ModConfigSpec.BooleanValue VANISH_INVULNERABLE;
     public static final ModConfigSpec.BooleanValue ENABLE_SPAWN;
     public static final ModConfigSpec.BooleanValue ENABLE_SELFCARE;
     public static final ModConfigSpec.BooleanValue ENABLE_SPEED;
@@ -102,6 +103,13 @@ public final class StandardsConfig {
         ENABLE_VANISH = BUILDER
                 .comment("/vanish and /v. Also exposed to other mods via the PlayerSwitches API.")
                 .define("vanish", true);
+        VANISH_INVULNERABLE = BUILDER
+                .comment("A vanished player takes no damage.",
+                        "On by default because 'not there' is the whole idea: hidden staff should",
+                        "not be shot by someone spraying arrows at a rough guess, and should not",
+                        "drown in a wall they walked into while watching a griefer. Turn it off",
+                        "if you want vanish to hide you without also protecting you.")
+                .define("vanishInvulnerable", true);
         ENABLE_SMITE = BUILDER
                 .comment("/smite — lightning on a target or wherever you are looking. Op-gated.")
                 .define("smite", true);

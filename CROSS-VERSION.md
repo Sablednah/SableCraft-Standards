@@ -43,16 +43,33 @@ Measured tonight, the whole mod's contact with `net.minecraft` is:
 | Teleporting | `Teleports` | Medium — `teleportTo`'s signature has changed before |
 | Save data + codecs | `StandardsData`, `Waypoint` | Low, but a codec change is a data-loss change, not a compile error |
 | Block state reads | `SafeLoc` | Low — three method calls |
-| **Mixin** | `ServerPlayerVanishMixin` | **Highest in the mod, and the only mixin.** One `@Inject` on `ServerPlayer.broadcastToPlayer`. The method is public, two lines long and stable across many versions, but a mixin that stops applying is the single worst failure mode here — see below. |
+| **Mixins** | `ServerPlayerVanishMixin`, `LivingEntityVanishMixin` | **Highest in the mod.** Two `@Inject`s, both for `/vanish`: `ServerPlayer.broadcastToPlayer` (who can see you) and `LivingEntity.isPushable` (who can shove you). Both methods are public, short and long-stable, but a mixin that stops applying is the worst failure mode here — see below. |
 
 So the honest expectation is **a handful of call sites per drop**, not a port.
 
-### The mixin deserves its own paragraph
+### The mixins deserve their own paragraph
 
-Standards has exactly one, and it exists because vanilla's entity tracker already asks the
-question `/vanish` needs to answer. That is a good trade — vanilla then handles unpair, re-pair,
-chunk loads, dimension changes and view-distance for free — but it puts one piece of
-version-fragile surface into a mod that otherwise has almost none.
+Standards has two, both belonging to `/vanish`, because hiding a player from *some* observers is
+inherently invasive and vanilla exposes no events for it:
+
+| Mixin | Injects | Stops |
+|---|---|---|
+| `ServerPlayerVanishMixin` | `ServerPlayer.broadcastToPlayer` | being seen — vanilla's tracker unpairs, so glow and outlines cannot leak either |
+| `LivingEntityVanishMixin` | `LivingEntity.isPushable` | being shoved, which otherwise locates hidden staff by touch |
+
+Both were driven by real testing: the first from the feature's design, the second after someone
+walked into a vanished player and felt them push back. Damage is handled without a mixin, through
+`LivingIncomingDamageEvent`.
+
+The alternatives were considered and are worse. Packet-based hiding leaves the entity tracked, so
+it keeps streaming movement and leaks through glowing. A scoreboard team with
+`collisionRule=never` would clobber FTB Teams and anything else managing team membership, since a
+player can only be in one team.
+
+⚠ `LivingEntityVanishMixin` targets `LivingEntity`, so it runs for **every living entity**, and
+`Entity.push` consults it for every nearby pair every tick. Its first statement is
+`VanishGate.anyVanished()` — one field read, false on virtually every server. **Protect that fast
+path** if the mixin is ever touched.
 
 **Check it first on every Minecraft update.** `injectors.defaultRequire: 1` in
 `standards.mixins.json` makes a non-applying mixin fail the *build/launch* loudly rather than

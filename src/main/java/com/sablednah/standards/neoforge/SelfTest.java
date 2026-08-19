@@ -344,42 +344,51 @@ public final class SelfTest {
      * mapping, so it costs nothing to check on every boot.</p>
      */
     private void checkInventoryViewMapping() {
-        var server = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
-        if (server == null || server.getPlayerList().getPlayers().isEmpty()) {
-            // Needs a real player's inventory to map; skipped on an empty dev server rather than
-            // faked, since a fake would be testing the fake.
-            return;
+        // A player inventory is 36 storage plus 7 equipment slots. No live player needed — the
+        // mapping is pure data, which is the whole reason it was pulled out of the constructor:
+        // the first version of this check required someone online and so was silently skipped on
+        // an empty dev server, reporting as a pass while testing nothing.
+        int[] map = InventoryView.buildMapping(43);
+        final int NONE = -1;
+
+        check("mapping covers a full six rows", map.length == InventoryView.SIZE);
+
+        boolean storage = true;
+        for (int i = 0; i < 27; i++) storage &= map[i] == i + 9;
+        check("rows 1-3 are main storage (inventory 9-35)", storage);
+
+        boolean hotbar = true;
+        for (int i = 0; i < 9; i++) hotbar &= map[27 + i] == i;
+        check("row 4 is the hotbar (inventory 0-8)", hotbar);
+
+        boolean divider = true;
+        for (int i = 36; i <= 44; i++) divider &= map[i] == NONE;
+        check("row 5 is entirely a divider", divider);
+
+        // The agreed equipment row: H C L B X O X S A
+        check("helmet, chestplate, leggings, boots",
+                map[45] == 39 && map[46] == 38 && map[47] == 37 && map[48] == 36);
+        check("both spacers are dead", map[49] == NONE && map[51] == NONE);
+        check("off hand sits alone between them", map[50] == 40);
+        check("saddle and animal armour close the row", map[52] == 42 && map[53] == 41);
+        check("the tail is dead", map[44] == NONE);
+
+        // No inventory slot may appear twice, or taking from one would empty another.
+        var seen = new java.util.HashSet<Integer>();
+        boolean unique = true;
+        for (int slot : map) {
+            if (slot != NONE && !seen.add(slot)) unique = false;
         }
-        var view = new InventoryView(server.getPlayerList().getPlayers().getFirst());
+        check("no inventory slot is mapped twice", unique);
 
-        check("view is a full six rows", view.getContainerSize() == InventoryView.SIZE);
-
-        // Main storage, hotbar and armour are live; the divider and tail are not.
-        boolean storageLive = true;
-        for (int i = 0; i < 36; i++) storageLive &= view.isLive(i);
-        check("all 36 storage and hotbar slots are live", storageLive);
-
-        boolean dividerDead = true;
-        for (int i = 36; i <= 44; i++) dividerDead &= !view.isLive(i);
-        check("the divider row is entirely dead", dividerDead);
-
-        // The bottom row, asserted against the agreed layout: H C L B X O X S A
-        check("helmet, chestplate, leggings, boots are live",
-                view.isLive(45) && view.isLive(46) && view.isLive(47) && view.isLive(48));
-        check("the two spacers are dead", !view.isLive(49) && !view.isLive(51));
-        check("off hand is live", view.isLive(50));
-        check("saddle and animal armour are live", view.isLive(52) && view.isLive(53));
-
-        // Every dead slot must show something, or it is an invisible hole again.
-        boolean deadSlotsVisible = true;
-        for (int i = 0; i < InventoryView.SIZE; i++) {
-            if (!view.isLive(i) && view.getItem(i).isEmpty()) deadSlotsVisible = false;
+        // Every storage and equipment slot the player has must be reachable, or /invsee hides
+        // something — which for a moderation tool is the failure that matters most.
+        boolean reachable = true;
+        for (int i = 0; i < 41; i++) {
+            if (i == 41 || i == 42) continue;
+            reachable &= seen.contains(i);
         }
-        check("every dead slot is visibly filled", deadSlotsVisible);
-
-        // And the other direction: a dead slot must refuse to give anything up.
-        check("a dead slot yields nothing on removal",
-                view.removeItem(40, 64).isEmpty() && view.removeItemNoUpdate(40).isEmpty());
+        check("every real inventory slot is reachable", reachable);
     }
 
     /** The ledger, through the public facade — the same door other mods come in by. */
