@@ -97,6 +97,13 @@ Standards is **server-side**. Install it on the server and every player gets eve
 not they have a single mod installed. There is an optional client channel reserved for future
 conveniences, and nothing in it will ever be load-bearing.
 
+**One stated consequence.** If a chat decorator is registered (by Standards or by another mod),
+those chat lines are composed on the server and sent as **system messages**, which are not signed
+— so client-side chat reporting and blocking do not apply to them. `/ignore` and the server log
+are handled by Standards directly and still work. Undecorated chat is untouched and still vanilla.
+The trade is deliberate: formatting that works for everyone beats signing that only ever worked
+for players who had mods. See [CHAT-API.md](CHAT-API.md#the-cost-a-decorated-line-is-not-signed).
+
 ---
 
 ## Permissions

@@ -86,6 +86,34 @@ Worth stating plainly, because the two APIs look similar and behave oppositely:
 - **Chat**: every decorator gets a turn. A name can carry a faction tag *and* a party tag *and* a
   rank without contradicting itself.
 
+## The cost: a decorated line is not signed
+
+**Worth reading before a moderation incident rather than after.**
+
+A decorated line cannot go out as vanilla player chat. `ServerChatEvent.setMessage` replaces only
+the message *body*, and vanilla wraps whatever it is given in its own `<name> %s` — so a composed
+line that already carries the name comes out with the name twice. There is no set-the-whole-line
+hook, so Standards cancels the event and delivers the line itself.
+
+That means a decorated line is a **system message**, and system messages are not signed. In
+practice:
+
+| | |
+|---|---|
+| Client-side chat reporting | does not apply to decorated lines |
+| Client-side blocking / "hide messages from" | does not apply either |
+| `/ignore` | **honoured by Standards directly**, so this still works |
+| Server log | **echoed by Standards directly**, so chat is still moderatable after the fact |
+| Undecorated chat | untouched — still vanilla, still signed, hover cards and all |
+
+The trade is deliberate and follows from the mod's headline claim: **an unmodded client gets
+everything**. Server-side formatting works for every player; client-side signing only ever worked
+for the modded half of a server. But a server owner relying on client-side reporting as their
+moderation story should know it goes quiet the moment a decorator is registered.
+
+If that trade is wrong for your server, leave `alwaysFormat` off and register no decorators —
+chat then stays entirely vanilla.
+
 ## What the server owner controls
 
 `config/standards-common.toml`, under `[chat]`:
