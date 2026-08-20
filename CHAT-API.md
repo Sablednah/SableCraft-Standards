@@ -102,17 +102,30 @@ practice:
 |---|---|
 | Client-side chat reporting | does not apply to decorated lines |
 | Client-side blocking / "hide messages from" | does not apply either |
+| Vanilla's hover card on the name (click-to-message, profile popup) | lost — a system message carries no sender |
 | `/ignore` | **honoured by Standards directly**, so this still works |
 | Server log | **echoed by Standards directly**, so chat is still moderatable after the fact |
 | Undecorated chat | untouched — still vanilla, still signed, hover cards and all |
+
+Both losses have the same single cause — a system message has no sender attached — and both are
+**invisible until someone needs them**. Verified on two unmodded clients: decorated lines arrive
+as `[System]`, undecorated ones as `[Not Secure]`, and in play there is no visual difference and
+no warning whatever. That is exactly why it is written down.
 
 The trade is deliberate and follows from the mod's headline claim: **an unmodded client gets
 everything**. Server-side formatting works for every player; client-side signing only ever worked
 for the modded half of a server. But a server owner relying on client-side reporting as their
 moderation story should know it goes quiet the moment a decorator is registered.
 
-If that trade is wrong for your server, leave `alwaysFormat` off and register no decorators —
-chat then stays entirely vanilla.
+**A registered decorator that returns nothing costs nothing.** If every decorator returns empty
+prefixes and suffixes — the state most players are in most of the time — `format()` returns empty,
+Standards does not touch the event, and the line goes out as ordinary signed vanilla chat with its
+hover card intact. Registering a decorator does not put chat on the system-message path; only
+*actually decorating a line* does. Confirmed on an unmodded client with a registered-but-silent
+decorator.
+
+If the trade is wrong for your server, leave `alwaysFormat` off and register no decorators — chat
+then stays entirely vanilla.
 
 ## What the server owner controls
 
