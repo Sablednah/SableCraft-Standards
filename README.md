@@ -197,13 +197,16 @@ whenever one misbehaves.
 
 ## For other mods
 
-Standards is built to be a meeting point rather than a silo. Three APIs, all soft dependencies:
+Standards is built to be a meeting point rather than a silo. Five seams, all soft dependencies —
+two of them specified but not yet built:
 
 | API | For | Doc |
 |---|---|---|
 | `api.economy.Economy` | spending and providing money | [`ECONOMY-API.md`](ECONOMY-API.md) |
 | `api.chat.Chat` | chat name prefixes and suffixes, from several mods at once | [`CHAT-API.md`](CHAT-API.md) |
 | `api.PlayerSwitches` / `api.Stations` | driving `/fly`, `/god`, `/vanish` and the workstations from code | — |
+| `api.groups.Groups` / `api.groups.Claims` | *designed, not built* — group membership by kind, and chunk claim queries | [`GROUPS-API.md`](GROUPS-API.md) |
+| `api.combat.Combat` | *designed, not built* — combat tagging, so nothing lets a player walk out of a fight | [`COMBAT-API.md`](COMBAT-API.md) |
 
 The last one exists because a LegendQuest skill granting flight should not have to build a command
 string and hope: the skill is already the authority, so it calls in directly and skips the

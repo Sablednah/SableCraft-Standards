@@ -415,4 +415,10 @@ boundaries can only be tested by the player actually typing the command.
 - `COMMANDS.md` — the full EssentialsX/FTB catalogue with keep/skip recommendations. **This is the
   open decision list**; the owner is working through it.
 - `ECONOMY-API.md` — how LegendQuest and ZombieMod hook the economy.
+- `CHAT-API.md` — the decorator seam, and the stated cost that a decorated line is not signed.
+- `GROUPS-API.md` — **designed, not built.** Group membership by kind and chunk claim queries;
+  also the decisions on FTB (Teams out, compatibility kept), where `Factions-ReForged` sits, and
+  why there will be no minimap.
+- `COMBAT-API.md` — **designed, not built.** Combat tagging, and why `movement.cancelOnDamage`
+  today only protects the warmup window.
 - `CROSS-VERSION.md` — the plan for living on several Minecraft lines at once.
