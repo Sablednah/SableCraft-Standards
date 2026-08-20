@@ -74,8 +74,10 @@ public final class WarpCommands {
         StandardsData data = StandardsData.get(player.level().getServer());
         Optional<Waypoint> destination = data.warp(name);
         if (destination.isEmpty()) {
-            Feedback.chat(player, Lang.fmt("msg.warp.unknown", "name", name,
-                    "list", String.join(", ", data.warpNames())));
+            var known = data.warpNames();
+            Feedback.chat(player, known.isEmpty()
+                    ? Lang.fmt("msg.warp.unknown_none", "name", name)
+                    : Lang.fmt("msg.warp.unknown", "name", name, "list", String.join(", ", known)));
             return 0;
         }
         Teleports.Attempt attempt = Teleports.request(player, destination.get(), true);
@@ -110,6 +112,7 @@ public final class WarpCommands {
         boolean replaced = StandardsData.get(player.level().getServer()).setWarp(name, here);
         Feedback.reply(ctx.getSource(), Lang.fmt(replaced ? "msg.warp.moved" : "msg.warp.set",
                 "name", name, "place", here.describe()), true);
+        Feedback.warnIfUnreachable(player, here);
         return 1;
     }
 
@@ -117,8 +120,10 @@ public final class WarpCommands {
         String name = StringArgumentType.getString(ctx, "name");
         StandardsData data = StandardsData.get(ctx.getSource().getServer());
         if (!data.deleteWarp(name)) {
-            Feedback.fail(ctx.getSource(), Lang.fmt("msg.warp.unknown", "name", name,
-                    "list", String.join(", ", data.warpNames())));
+            var known = data.warpNames();
+            Feedback.fail(ctx.getSource(), known.isEmpty()
+                    ? Lang.fmt("msg.warp.unknown_none", "name", name)
+                    : Lang.fmt("msg.warp.unknown", "name", name, "list", String.join(", ", known)));
             return 0;
         }
         Feedback.reply(ctx.getSource(), Lang.fmt("msg.warp.deleted", "name", name), true);

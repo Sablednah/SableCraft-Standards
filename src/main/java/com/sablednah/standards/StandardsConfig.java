@@ -61,6 +61,7 @@ public final class StandardsConfig {
     public static final ModConfigSpec.IntValue BACK_HISTORY;
     public static final ModConfigSpec.BooleanValue BACK_ON_DEATH;
     public static final ModConfigSpec.IntValue SAFE_LOC_SEARCH;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> TOP_BARRIERS;
 
     // --- homes ---
     public static final ModConfigSpec.IntValue DEFAULT_HOME_LIMIT;
@@ -210,6 +211,17 @@ public final class StandardsConfig {
         BUILDER.pop();
 
         BUILDER.comment("Movement.").push("movement");
+        TOP_BARRIERS = BUILDER
+                .comment("Blocks /top refuses to scan past. A bedrock or barrier box around a",
+                        "build is deliberate protection, and a /top that steps through the roof",
+                        "of one is a way into somebody's base — so the scan stops at these and",
+                        "says so, rather than landing you on top of the box.",
+                        "Block ids. Unknown ids are ignored, so this may safely name blocks from",
+                        "a mod that is not installed. Empty the list to scan through anything.")
+                .defineListAllowEmpty("topBarriers",
+                        java.util.List.of("minecraft:bedrock", "minecraft:barrier"),
+                        () -> "minecraft:bedrock",
+                        o -> o instanceof String);
         MAX_SPEED = BUILDER
                 .comment("Ceiling for /speed, as a multiple of normal. Above roughly 10 the",
                         "client's movement prediction stops agreeing with the server and players",

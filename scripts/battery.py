@@ -121,7 +121,15 @@ def main():
     time.sleep(0.4)
     check("/back returns somewhere", r.value(who, "back") in (0, 1))
     check("/spawn works", r.value(who, "spawn") == 1)
+
+    # /setspawn is destructive and server-wide: whatever it leaves behind is the spawn every
+    # later session uses. Left mid-air once, and the next morning "/spawn says nowhere safe to
+    # land there" took a while to trace back to this line. spreadplayers puts them on actual
+    # ground first, so the spawn this test leaves behind is one a walking player can arrive at.
+    r.run(f"spreadplayers 100 100 1 1 false {who}")
+    time.sleep(0.4)
     check("/setspawn works", r.value(who, "setspawn") == 1)
+    check("and the spawn it left is reachable", r.value(who, "spawn") == 1)
 
     print("\n--- self care ---")
     r.run(f"effect give {who} minecraft:instant_damage 1 0")

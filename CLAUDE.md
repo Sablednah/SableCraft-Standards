@@ -175,6 +175,18 @@ config value and config is not loaded while mods are still being constructed.
 first run and merged thereafter. **Not vanilla translatable components** — a vanilla client does
 not carry our lang file and would see raw keys.
 
+**The merge is the load-bearing half, and it did not exist until it was measured.** `load()` used
+to write the file only when it was *absent*, so every key added after a server's first run was
+missing from that server's file forever — 146 of the catalogue's 222 on this dev world. `get()`
+falls back to `DEFAULTS`, so nothing looked broken; the strings just could not be customised, with
+nothing to say they existed. Found by asking whether `/me` could be italic.
+
+Merging safely needs `messages.known` beside it, because the file's own header invites you to trim
+it to just your changes — so "absent from the file" cannot mean "new", or every restart would
+undo the trimming. New means *never offered to this installation*. There is no guard for an empty
+seen-set: a server upgrading from before the bookkeeping has no record, and re-offering keys once
+beats never offering them, because the same run marks everything seen.
+
 `{term.*}` keys let an owner re-skin vocabulary wholesale (a server whose currency is credits sets
 one key and every message follows). `&` colour codes are converted to `§` in exactly one place,
 `Feedback.colored`. Add a key to the catalogue for anything a player can see; a hardcoded string

@@ -18,7 +18,11 @@ import com.sablednah.standards.neoforge.Teleports;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.state.BlockState;
+import com.sablednah.standards.StandardsConfig;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -71,14 +75,33 @@ public final class MoveCommands {
      * somewhere you did not mean to go. Scanning upward from where you stand finds the first
      * <em>floor above you</em>, which is what everyone actually wants: out of the cave, onto the
      * roof, up through the ceiling.</p>
+     *
+     * <p><b>But the scan stops at the dimension's logical height, not its build height</b>, and
+     * the two are different in exactly the place it matters. The Nether's blocks go up to y255
+     * while its <em>ceiling</em> is the bedrock at y127, so the first safe floor above a player
+     * standing underneath it is the top of that bedrock — a flat, featureless plane you cannot
+     * easily get down from and were certainly not asking for. Reported from the Nether: "/top
+     * took me above bedrock, because 16 blocks up the next empty space was the ceiling."</p>
+     *
+     * <p>{@link DimensionType#logicalHeight()} is the game's own answer to "where does this
+     * dimension actually end" — it is what caps portals and respawn anchors — so it is the right
+     * ceiling to respect here. In the overworld it equals the build height and nothing changes.</p>
      */
     private static int top(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
         ServerLevel level = player.level();
         BlockPos from = player.blockPosition();
 
-        for (int y = from.getY() + 1; y <= level.getMaxY(); y++) {
+        int ceiling = ceilingFor(level);
+        boolean stranded = stranded(level, from);
+        for (int y = from.getY() + 1; y <= ceiling; y++) {
             BlockPos candidate = new BlockPos(from.getX(), y, from.getZ());
+            if (!stranded && isBarrier(level.getBlockState(candidate))) {
+                Feedback.chat(player, Lang.fmt("msg.tp.blocked",
+                        "block", level.getBlockState(candidate).getBlock()
+                                .getName().getString()));
+                return 0;
+            }
             if (SafeLoc.isSafe(level, candidate)) {
                 return go(ctx, player, new Waypoint(level.dimension(),
                         candidate.getX() + 0.5D, candidate.getY(), candidate.getZ() + 0.5D,
@@ -91,19 +114,101 @@ public final class MoveCommands {
     }
 
     /**
+     * Whether this block stops {@code /top} dead.
+     *
+     * <p>A bedrock or barrier box around a build is protection somebody put there on purpose, and
+     * scanning through it lands the player on the roof of a base they were being kept out of. The
+     * ids are compared as written, so an id naming a block from an absent mod simply never
+     * matches — no parsing, nothing to get wrong in the config.</p>
+     */
+    private static boolean isBarrier(BlockState state) {
+        java.util.List<? extends String> configured = StandardsConfig.TOP_BARRIERS.get();
+        if (configured.isEmpty()) {
+            return false;
+        }
+        return matchesAny(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(), configured);
+    }
+
+    /** Pure, so the self-test can prove the matching without a world. */
+    public static boolean matchesAny(String blockId, java.util.List<? extends String> configured) {
+        for (String candidate : configured) {
+            if (blockId.equals(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * True if the player is somewhere the world does not really extend to: falling through the
+     * void, or standing on the Nether roof above the dimension's own ceiling.
+     *
+     * <p>Barriers are protection, but only for people inside the world being protected. Someone
+     * stranded outside it needs a way back more than the box needs defending — and the failure
+     * mode of getting this wrong is that the command meant to rescue them is the thing that
+     * traps them. {@code /bottom} off the Nether roof is exactly that case: the first block
+     * below your feet is the bedrock you are standing on.</p>
+     */
+    private static boolean stranded(ServerLevel level, BlockPos from) {
+        return from.getY() > ceilingFor(level) || overVoid(level, from);
+    }
+
+    /** Nothing solid anywhere beneath this column. */
+    private static boolean overVoid(ServerLevel level, BlockPos from) {
+        for (int y = from.getY() - 1; y >= level.getMinY(); y--) {
+            BlockPos below = new BlockPos(from.getX(), y, from.getZ());
+            if (!level.getBlockState(below).getCollisionShape(level, below).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** The highest Y {@code /top} may land on in this world. See {@link #top}. */
+    private static int ceilingFor(ServerLevel level) {
+        return highestStandableY(level.getMinY(), level.getMaxY(),
+                level.dimensionType().logicalHeight());
+    }
+
+    /**
+     * Pure so the self-test can prove it without a Nether loaded.
+     *
+     * <p>Never returns more than the build height — a dimension is free to declare a logical
+     * height larger than the space it actually has, and trusting it blindly would scan into
+     * nothing.</p>
+     */
+    public static int highestStandableY(int minY, int maxY, int logicalHeight) {
+        return Math.min(maxY, minY + logicalHeight - 1);
+    }
+
+    /**
      * Straight down to the lowest place it is safe to stand — the mirror of {@link #top}.
      *
      * <p>Scanned downward for the same reason {@code /top} scans upward: it finds the floor of
      * whatever you are standing over, which is the cave, the mineshaft or the bedrock layer you
      * were actually asking about.</p>
+     *
+     * <p>It respects the same barriers, because the hole is symmetric — a bedrock vault with air
+     * in it is as reachable from above as a bedrock box is from below. Landing <em>on</em>
+     * bedrock is still fine: the check only fires when the scan would pass <em>through</em> it,
+     * so {@code /bottom} still puts you on the world floor.</p>
      */
     private static int bottom(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
         ServerLevel level = player.level();
         BlockPos from = player.blockPosition();
 
+        // The same barrier rule as /top, for the same reason: a bedrock vault with air inside is
+        // reachable from above, and "/bottom into somebody's base" is the identical hole.
+        boolean stranded = stranded(level, from);
         for (int y = from.getY() - 1; y >= level.getMinY(); y--) {
             BlockPos candidate = new BlockPos(from.getX(), y, from.getZ());
+            if (!stranded && isBarrier(level.getBlockState(candidate))) {
+                Feedback.chat(player, Lang.fmt("msg.tp.blocked",
+                        "block", level.getBlockState(candidate).getBlock()
+                                .getName().getString()));
+                return 0;
+            }
             if (SafeLoc.isSafe(level, candidate)) {
                 return go(ctx, player, new Waypoint(level.dimension(),
                         candidate.getX() + 0.5D, candidate.getY(), candidate.getZ() + 0.5D,

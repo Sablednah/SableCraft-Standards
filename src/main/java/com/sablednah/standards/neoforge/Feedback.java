@@ -1,5 +1,11 @@
 package com.sablednah.standards.neoforge;
 
+import net.minecraft.server.level.ServerLevel;
+
+import net.minecraft.server.MinecraftServer;
+
+import com.sablednah.standards.core.Waypoint;
+
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -64,4 +70,30 @@ public final class Feedback {
     }
 
     private Feedback() {}
+
+    /**
+     * Warn if a just-saved location is one a non-flying player cannot arrive at.
+     *
+     * <p>Saving is still allowed — someone setting a warp on a platform they have not built yet
+     * is doing something reasonable, and refusing would be the mod second-guessing them. But the
+     * alternative to saying so <em>now</em> is saying nothing until somebody else types
+     * {@code /spawn} and gets "nowhere safe to land there", which is the same information
+     * delivered hours later to the person least able to act on it.</p>
+     *
+     * <p>Found exactly that way: an overnight test left the world spawn hanging at y100 and the
+     * failure turned up the next morning, three commands removed from its cause.</p>
+     */
+    public static void warnIfUnreachable(ServerPlayer player, Waypoint saved) {
+        MinecraftServer server = player.level().getServer();
+        if (server == null) {
+            return;
+        }
+        ServerLevel level = saved.level(server);
+        if (level == null) {
+            return;
+        }
+        if (SafeLoc.find(level, saved.blockPos(), true).isEmpty()) {
+            chat(player, Lang.get("msg.tp.set_unreachable"));
+        }
+    }
 }

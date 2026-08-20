@@ -97,6 +97,7 @@ public final class HomeCommands {
         data.setHome(player.getUUID(), name, here);
         Feedback.chat(player, Lang.fmt(overwriting ? "msg.home.moved" : "msg.home.set",
                 "name", name, "place", here.describe()));
+        Feedback.warnIfUnreachable(player, here);
         return 1;
     }
 

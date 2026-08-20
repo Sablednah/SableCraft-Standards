@@ -9,6 +9,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.sablednah.standards.Standards;
 import com.sablednah.standards.core.Duration;
 import com.sablednah.standards.neoforge.Feedback;
 import com.sablednah.standards.neoforge.Lang;
@@ -85,6 +86,56 @@ public final class MessageCommands {
                 .then(Commands.argument("targets", EntityArgument.players())
                         .then(Commands.argument("message", MessageArgument.message())
                                 .executes(MessageCommands::send)));
+    }
+
+    /**
+     * Vanilla's {@code /me}, re-registered so it goes through our rules.
+     *
+     * <p>The italics were the ask; the mute bypass was the reason to do it. Vanilla's {@code /me}
+     * is a separate broadcast path that knows nothing about our mutes, ignores or vanish — so a
+     * muted player could simply narrate at everyone instead of talking, which makes the mute
+     * decorative. Same merge rule as {@code /msg}: matching literal, matching argument name
+     * ({@code action}) and type, so brigadier replaces vanilla's command rather than losing to
+     * it.</p>
+     */
+    public static LiteralArgumentBuilder<CommandSourceStack> emote() {
+        return Commands.literal("me")
+                .then(Commands.argument("action", MessageArgument.message())
+                        .executes(MessageCommands::emote));
+    }
+
+    private static int emote(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer from = ctx.getSource().getPlayerOrException();
+        MinecraftServer server = ctx.getSource().getServer();
+        String action = MessageArgument.getMessage(ctx, "action").getString();
+
+        // A mute is a mute. Narrating at the room must not be the way around it.
+        Optional<Mutes.Mute> mute = Mutes.get(server).active(from.getUUID());
+        if (mute.isPresent()) {
+            long left = mute.get().remaining(System.currentTimeMillis());
+            Feedback.chat(from, mute.get().permanent()
+                    ? Lang.fmt("msg.mod.mute_blocked_perm", "reason", mute.get().reason())
+                    : Lang.fmt("msg.mod.mute_blocked",
+                            "duration", Duration.describe(left), "reason", mute.get().reason()));
+            return 0;
+        }
+
+        // Emoting while hidden announces you as loudly as speaking does.
+        if (Vanish.isVanished(from)) {
+            Feedback.chat(from, Lang.get("msg.chat.emote_vanished"));
+            return 0;
+        }
+
+        String line = Lang.fmt("msg.chat.emote",
+                "player", from.getName().getString(), "action", action);
+        for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
+            if (StandardsAttachments.of(viewer).ignores(from.getUUID())) {
+                continue;
+            }
+            Feedback.chat(viewer, line);
+        }
+        Standards.LOGGER.info("[me] {} {}", from.getName().getString(), action);
+        return 1;
     }
 
     public static LiteralArgumentBuilder<CommandSourceStack> reply(String name) {

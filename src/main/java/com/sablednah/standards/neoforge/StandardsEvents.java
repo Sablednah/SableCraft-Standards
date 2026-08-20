@@ -55,12 +55,63 @@ public final class StandardsEvents {
         }
         applySwitches(player);
         Vanish.onLogin(player);
+        remindOfPersistedSwitches(player);
         if (StandardsConfig.ENABLE_MAIL.get()) {
             com.sablednah.standards.neoforge.commands.MailCommands.announceOnLogin(player);
         }
     }
 
-    @SubscribeEvent
+/**
+     * Tell a returning player which switches are still on.
+     *
+     * <p>Flight, god mode and vanish all survive a logout on purpose. The trouble is that two of
+     * them are <em>silent</em>: a vanished player looks exactly like a lonely server, and the only
+     * hint is mobs quietly ignoring you. Reported by exactly that route — "interesting, zombies
+     * are ignoring me" — after being invisible across three server restarts without knowing.</p>
+     *
+     * <p>Only mentions what is actually on, so an ordinary player sees nothing at all.</p>
+     */
+    private static void remindOfPersistedSwitches(ServerPlayer player) {
+        PlayerState state = StandardsAttachments.of(player);
+        boolean vanished = Vanish.isVanished(player);
+
+        // Order is by how surprising the state is to be in without knowing.
+        java.util.List<String> states = new java.util.ArrayList<>();
+        java.util.List<String> commands = new java.util.ArrayList<>();
+        if (vanished) {
+            states.add(Lang.get("term.state.vanished"));
+            commands.add("/vanish off");
+        }
+        if (state.god()) {
+            states.add(Lang.get("term.state.god"));
+            commands.add("/god off");
+        }
+        if (state.fly()) {
+            states.add(Lang.get("term.state.fly"));
+            commands.add("/fly off");
+        }
+        if (states.isEmpty()) {
+            return;
+        }
+
+        // Vanish takes damage away too, which reads exactly like being stuck in god mode. Say so.
+        boolean hidden = vanished && StandardsConfig.VANISH_INVULNERABLE.get();
+        Feedback.chat(player, Lang.fmt(hidden ? "msg.toggle.still_on_hidden" : "msg.toggle.still_on",
+                "what", joinStates(states),
+                "commands", String.join(", ", commands)));
+    }
+
+    /** "a", "a and b", "a, b and c" — so the reminder reads as a sentence, not a list. */
+    static String joinStates(java.util.List<String> parts) {
+        int last = parts.size() - 1;
+        if (last == 0) {
+            return parts.get(0);
+        }
+        return String.join(", ", parts.subList(0, last))
+                + " " + Lang.get("term.list.and") + " " + parts.get(last);
+    }
+
+        @SubscribeEvent
     static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         Teleports.forget(event.getEntity().getUUID());
         if (event.getEntity() instanceof ServerPlayer leaving) {

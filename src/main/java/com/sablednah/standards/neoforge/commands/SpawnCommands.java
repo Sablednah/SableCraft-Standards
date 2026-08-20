@@ -72,6 +72,7 @@ public final class SpawnCommands {
         Waypoint here = Waypoint.of(player);
         StandardsData.get(ctx.getSource().getServer()).setSpawn(here);
         Feedback.reply(ctx.getSource(), Lang.fmt("msg.spawn.set", "place", here.describe()), true);
+        Feedback.warnIfUnreachable(player, here);
         return 1;
     }
 

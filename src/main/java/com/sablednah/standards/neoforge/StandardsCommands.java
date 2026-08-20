@@ -200,6 +200,8 @@ public final class StandardsCommands {
             for (String alias : new String[] {"msg", "whisper", "pm", "m"}) {
                 dispatcher.register(MessageCommands.msg(alias));
             }
+            // Same merge rule: replaces vanilla's /me command so mutes, ignores and vanish apply.
+            dispatcher.register(MessageCommands.emote());
             dispatcher.register(MessageCommands.reply("r"));
             dispatcher.register(MessageCommands.reply("reply"));
             dispatcher.register(MessageCommands.ignore());

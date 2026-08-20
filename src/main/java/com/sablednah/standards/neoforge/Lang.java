@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sablednah.standards.Standards;
 
@@ -72,6 +75,12 @@ public final class Lang {
         def("msg.toggle.fly", "Flight");
         def("msg.toggle.god", "God mode");
         def("msg.toggle.vanish", "Vanish");
+        // Persisted switches are invisible by definition — say so on login, or
+        // staff spend a week wondering why the server feels quiet.
+        def("msg.toggle.still_on", "{term.prefix} &eYou are {what}&7. &8({commands})");
+        // Vanish quietly implies invulnerability, which reads as being stuck in god
+        // mode — say so rather than leaving them to work it out.
+        def("msg.toggle.still_on_hidden", "{term.prefix} &eYou are {what} &7— hidden and unhittable. &8({commands})");
     }
 
     // --- msg.tp.* : teleporting ---
@@ -85,6 +94,10 @@ public final class Lang {
         def("msg.tp.cooldown", "&cYou must wait &f{sec}s&c before teleporting again.");
         def("msg.tp.done", "{term.prefix} &7Teleported.");
         def("msg.tp.top", "{term.prefix} &7Up you go — &f{y}&7 blocks above where you were.");
+        def("msg.chat.emote", "&o* {player} {action}");
+        def("msg.chat.emote_vanished", "{term.prefix} &7Narrating at a room that cannot see you rather gives the game away.");
+        def("msg.tp.set_unreachable", "{term.prefix} &7Saved — but there is nothing to stand on there, so anyone who cannot fly will be told it is unsafe.");
+        def("msg.tp.blocked", "{term.prefix} &7There is &f{block}&7 in the way, and blocks like that are usually there on purpose.");
         def("msg.tp.top_already", "&7Nothing above you — you are already on top.");
         def("msg.tp.bottom", "{term.prefix} &7Down you go — &f{y}&7 blocks below where you were.");
         def("msg.tp.bottom_already", "&7Nothing below you — you are already at the bottom.");
@@ -232,6 +245,11 @@ public final class Lang {
     // --- msg.tpa.* : teleport requests ---
     static {
         def("term.tpa", "teleport request");
+        // Phrased to read after "You are ..." so they can be listed in one sentence.
+        def("term.state.vanished", "vanished");
+        def("term.state.god", "in god mode");
+        def("term.state.fly", "flying");
+        def("term.list.and", "and");
 
         def("msg.tpa.sent", "{term.prefix} &7Asked &f{player}&7 if you may teleport to them. "
                 + "&8(expires in {sec}s)");
@@ -313,6 +331,8 @@ public final class Lang {
         def("msg.warp.moved", "{term.prefix} &7{term.warp} &f{name}&7 moved here &8({place}).");
         def("msg.warp.deleted", "{term.prefix} &7{term.warp} &f{name}&7 deleted.");
         def("msg.warp.unknown", "&cNo {term.warp} called &f{name}&c. &7Try: {list}");
+        // "Try:" followed by nothing is worse than no hint at all.
+        def("msg.warp.unknown_none", "&cNo {term.warp} called &f{name}&c. &7This server has no {term.warps} yet.");
         def("msg.warp.none", "&7This server has no {term.warps} yet.");
         def("msg.warp.list", "{term.prefix} &7{term.warps} &8({count})&7: &f{list}");
         def("msg.warp.went", "{term.prefix} &7Warped to &f{name}&7.");
@@ -408,6 +428,30 @@ public final class Lang {
                     if (k != null && v != null) loaded.put(String.valueOf(k), String.valueOf(v));
                 });
             }
+            // Merge in keys the catalogue has gained since this file was last seen, so an owner
+            // can actually customise them — get() falls back to DEFAULTS either way, but
+            // "invisible unless you read the source" is not a config file. Appended, never
+            // rewritten, so hand edits, comments and ordering survive.
+            //
+            // The seen-set is what makes this safe. messages.yml invites you to trim it to just
+            // your changes, so "absent from the file" cannot mean "new" — without a record of
+            // what we have already offered, every restart would helpfully undo that trimming.
+            // New means new to this installation, not merely missing.
+            Set<String> seen = readSeen();
+            List<String> added = DEFAULTS.keySet().stream()
+                    .filter(key -> !loaded.containsKey(key) && !seen.contains(key))
+                    .toList();
+            // No guard on an empty seen-set. A server upgrading from a version without this
+            // bookkeeping has no record, and the choice is between re-offering keys someone may
+            // have trimmed (a longer file, once) and never offering them at all — because the
+            // very next line marks everything seen. Silent and permanent loses to noisy and once.
+            if (!added.isEmpty()) {
+                appendMissing(path, added);
+                added.forEach(key -> loaded.put(key, DEFAULTS.get(key)));
+                Standards.LOGGER.info("Added {} new message key(s) to messages.yml", added.size());
+            }
+            writeSeen();
+
             active = loaded;
             Standards.LOGGER.info("Loaded {} message overrides from messages.yml ({} keys in the catalogue)",
                     loaded.size(), DEFAULTS.size());
@@ -415,6 +459,59 @@ public final class Lang {
             Standards.LOGGER.error("Could not load messages.yml — using defaults", e);
             active = new LinkedHashMap<>();
         }
+    }
+
+    /** Every key this installation has already offered the owner. */
+    private static Set<String> readSeen() {
+        Path path = file().resolveSibling("messages.known");
+        try {
+            if (!Files.exists(path)) {
+                return Set.of();
+            }
+            return new LinkedHashSet<>(Files.readAllLines(path).stream()
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                    .toList());
+        } catch (IOException e) {
+            // Unreadable means "assume we have offered everything" — the safe direction is to
+            // add nothing, never to re-add what somebody deleted on purpose.
+            Standards.LOGGER.warn("Could not read messages.known — not merging this run", e);
+            return new LinkedHashSet<>(DEFAULTS.keySet());
+        }
+    }
+
+    private static void writeSeen() {
+        Path path = file().resolveSibling("messages.known");
+        try {
+            Files.writeString(path, "# Keys Standards has already written into messages.yml.\n"
+                    + "# Bookkeeping, not config — deleting it makes the next start re-add every\n"
+                    + "# key you have trimmed out of messages.yml.\n"
+                    + String.join("\n", DEFAULTS.keySet()) + "\n");
+        } catch (IOException e) {
+            Standards.LOGGER.warn("Could not write messages.known", e);
+        }
+    }
+
+    /**
+     * Add keys the file has never seen, at the end, under a heading.
+     *
+     * <p>Appending rather than rewriting is the whole point: the file is meant to be edited, and
+     * regenerating it would silently discard an owner's translation the first time they upgraded.
+     * The heading exists so "what is new in this version" is answerable by scrolling to the
+     * bottom, rather than by diffing against a source file they do not have.</p>
+     */
+    private static void appendMissing(Path path, List<String> keys) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n# --- new keys, added automatically on upgrade — edit or delete freely ---\n");
+        for (String key : keys) {
+            sb.append(render(key, DEFAULTS.get(key)));
+        }
+        Files.writeString(path, sb.toString(), java.nio.file.StandardOpenOption.APPEND);
+    }
+
+    /** One {@code key: "value"} line, escaped for YAML. Shared so both writers agree. */
+    private static String render(String key, String value) {
+        return key + ": \"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"\n";
     }
 
     private static void writeDefaults(Path path) throws IOException {
@@ -426,7 +523,8 @@ public final class Lang {
         sb.append("# A hard-currency server:    term.balance: \"credits\"\n");
         sb.append("# {curly} placeholders are filled at runtime; {term.x} pulls a term from this\n");
         sb.append("# file; '&' colour codes work everywhere. Deleted keys fall back to these\n");
-        sb.append("# defaults, so trimming the file to just your changes is fine.\n");
+        sb.append("# defaults, so trimming the file to just your changes is fine — an upgrade\n");
+        sb.append("# appends genuinely new keys at the end and will not undo your trimming.\n");
         sb.append("# Applied on restart and on /standards reload.\n\n");
         String section = "";
         for (Map.Entry<String, String> entry : DEFAULTS.entrySet()) {
@@ -436,9 +534,7 @@ public final class Lang {
                 section = prefix;
                 sb.append("\n# --- ").append(section).append(" ---\n");
             }
-            sb.append(key).append(": \"")
-                    .append(entry.getValue().replace("\\", "\\\\").replace("\"", "\\\""))
-                    .append("\"\n");
+            sb.append(render(key, entry.getValue()));
         }
         Files.writeString(path, sb.toString());
         Standards.LOGGER.info("Wrote default messages.yml with {} keys", DEFAULTS.size());

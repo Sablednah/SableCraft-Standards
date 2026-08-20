@@ -61,10 +61,21 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Getting about
 
-- [ ] `/top` from inside a cave — first safe floor **above you**, not the surface
-- [ ] `/top` in the Nether — must not put you in the roof
+- [x] `/top` from inside a cave — first safe floor **above you**, not the surface
+- [ ] `/back` **while flying** — returns you to a mid-air point instead of refusing. Every back
+      point a flying player makes is mid-air, so this is the normal case for anyone with `/fly` on
+- [ ] `/sethome` while flying, then `/home` — same story for homes and warps
+- [ ] `/setspawn` somewhere with no floor — saves, but warns you at the time
+- [ ] Bed spawn boxed in, with water nearby — lands you on **dry ground** if any is in range;
+      underwater only when there is genuinely nothing better
+- [ ] `/top` in the Nether — lands **under** the bedrock, never on the roof
+- [ ] `/top` under a bedrock or barrier roof — refuses, and names the block in the way
+- [ ] `/bottom` over a sealed bedrock vault — refuses, rather than dropping you inside it
+- [ ] `/bottom` **from** the Nether roof — still gets you down; the rescue outranks the barrier
+- [ ] `/bottom` on open ground — still lands on the world bedrock floor (landing *on* it is fine,
+      only scanning *through* it is refused)
 - [ ] `/bottom` — op only
-- [ ] `/jump` `/j` — lands on top of what you are looking at, not inside it
+- [x] `/jump` `/j` — lands on top of what you are looking at, not inside it
 - [ ] `/jump` at the sky — "nothing in range"
 - [ ] `/back` after any teleport, and `/back 2`, `/back 3` up the trail
 - [ ] `/back` after dying — refused unless you grant `standards.back.ondeath`
@@ -159,8 +170,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Yourself
 
-- [ ] `/heal` while burning — healed **and** extinguished
-- [ ] `/feed` `/eat`, `/rest`
+- [x] `/heal` while burning — healed **and** extinguished
+- [x] `/feed` `/eat`, `/rest`
 - [ ] `/heal TestBuddy` **[2P]** — they are told who did it
 - [ ] `/speed 2`, `/speed 5` while flying (sets fly speed), `/speed walk 2`, `/speed reset`
 - [ ] `/speed 50` — refused, names the ceiling
@@ -188,7 +199,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Server and admin
 
-- [ ] `/gc` `/tps` `/lag` `/mem` — TPS coloured by health, memory, uptime, entities per dimension
+- [x] `/gc` `/tps` `/lag` `/mem` — TPS coloured by health, memory, uptime, entities per dimension
 - [ ] `/smite TestBuddy` and bare `/smite` at a block
 - [ ] `/standards reload` after editing `messages.yml` — text changes without a restart
 - [ ] edit `term.balance` to "credits" — every money message follows

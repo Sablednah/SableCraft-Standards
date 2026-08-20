@@ -161,7 +161,11 @@ public final class Teleports {
         ServerLevel level = destination.level(server);
         if (level == null) return false;
 
-        Optional<BlockPos> landing = SafeLoc.find(level, destination.blockPos());
+        // A player who can fly does not need a floor at the far end — see SafeLoc.find. Asked at
+        // teleport time, not record time, so turning flight off before a /back still finds ground.
+        @SuppressWarnings("deprecation") // mayfly: the mirrored cache, see StandardsEvents
+        boolean canHover = player.getAbilities().mayfly;
+        Optional<BlockPos> landing = SafeLoc.find(level, destination.blockPos(), !canHover);
         if (landing.isEmpty()) return false;
         BlockPos target = landing.get();
 

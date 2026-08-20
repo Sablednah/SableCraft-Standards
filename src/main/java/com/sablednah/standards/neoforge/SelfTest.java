@@ -11,6 +11,7 @@ import com.sablednah.standards.api.chat.NameDecorator;
 import com.sablednah.standards.api.economy.Economy;
 import com.sablednah.standards.core.Duration;
 import com.sablednah.standards.neoforge.InventoryView;
+import com.sablednah.standards.neoforge.commands.MoveCommands;
 import com.sablednah.standards.core.Money;
 import com.sablednah.standards.core.Toggle;
 import com.sablednah.standards.core.Waypoint;
@@ -60,6 +61,8 @@ public final class SelfTest {
         Standards.LOGGER.info("=== Standards self-test ===");
 
         checkToggleLogic();
+        checkStateSentence();
+        checkTopCeiling();
         checkMoneyFormatting();
         checkCommandsParse(server);
         checkSafeLoc(server);
@@ -87,6 +90,55 @@ public final class SelfTest {
         check("OFF resolves false from false", !Toggle.OFF.resolve(false));
         check("TOGGLE flips false", Toggle.TOGGLE.resolve(false));
         check("TOGGLE flips true", !Toggle.TOGGLE.resolve(true));
+    }
+
+    /**
+     * The login reminder's sentence-joining. Trivial-looking, but it is the first thing a
+     * returning player reads, and "vanished, in god mode, flying" reads like a stack trace.
+     */
+    private void checkStateSentence() {
+        check("one state stands alone",
+                StandardsEvents.joinStates(List.of("vanished")).equals("vanished"));
+        check("two states join with and",
+                StandardsEvents.joinStates(List.of("vanished", "flying"))
+                        .equals("vanished and flying"));
+        check("three states use a comma then and",
+                StandardsEvents.joinStates(List.of("vanished", "in god mode", "flying"))
+                        .equals("vanished, in god mode and flying"));
+    }
+
+    /**
+     * {@code /top}'s ceiling. The Nether is the case that matters: blocks to y255, ceiling at
+     * y127, and the naive answer puts you on the bedrock roof.
+     */
+    private void checkTopCeiling() {
+        // Overworld: logical height is the build height, so nothing is capped.
+        check("the overworld ceiling is the build height",
+                MoveCommands.highestStandableY(-64, 319, 384) == 319);
+        // Nether: min 0, blocks to 255, logical height 128 — must stop under the roof.
+        check("the nether ceiling is the bedrock roof, not the build height",
+                MoveCommands.highestStandableY(0, 255, 128) == 127);
+        check("the nether ceiling is well below the build height",
+                MoveCommands.highestStandableY(0, 255, 128) < 255);
+        // A dimension claiming more logical height than it has must not scan into nothing.
+        check("an over-claimed logical height is clamped to the build height",
+                MoveCommands.highestStandableY(0, 100, 512) == 100);
+
+        // Barrier blocks: a bedrock box is protection, and /top must not step over its roof.
+        List<String> barriers = List.of("minecraft:bedrock", "minecraft:barrier");
+        check("bedrock stops the scan",
+                MoveCommands.matchesAny("minecraft:bedrock", barriers));
+        check("barriers stop the scan",
+                MoveCommands.matchesAny("minecraft:barrier", barriers));
+        check("ordinary blocks do not stop the scan",
+                !MoveCommands.matchesAny("minecraft:stone", barriers));
+        check("a block whose id merely contains a barrier id does not match",
+                !MoveCommands.matchesAny("othermod:bedrock_brick", barriers));
+        check("an id from an absent mod is simply never matched",
+                !MoveCommands.matchesAny("minecraft:stone",
+                        List.of("somemod:unbreakable_casing")));
+        check("an empty list stops nothing",
+                !MoveCommands.matchesAny("minecraft:bedrock", List.of()));
     }
 
     private void checkMoneyFormatting() {
@@ -192,6 +244,16 @@ public final class SelfTest {
             check("/" + alias + " is bound to Standards, not vanilla", ours);
         }
 
+        // /me is the same trap wearing a different hat: vanilla broadcasts it on a path that
+        // knows nothing about mutes, so "it works" and "the mute holds" are separate questions.
+        ParseResults<CommandSourceStack> emote =
+                server.getCommands().getDispatcher().parse("me waves", console);
+        var emoteCommand = boundCommand(emote);
+        check("/me is bound to Standards, not vanilla",
+                emoteCommand != null
+                        && emoteCommand.getClass().getName()
+                                .startsWith("com.sablednah.standards"));
+
         // The other direction: a command that should NOT parse must not. Without this, an
         // over-eager tree that matches anything would sail through every check above.
         ParseResults<CommandSourceStack> nonsense =
@@ -233,6 +295,20 @@ public final class SelfTest {
         overworld.getChunkAt(deepUnderground);
         check("refuses solid bedrock", SafeLoc.find(overworld, deepUnderground).isEmpty()
                 || SafeLoc.isSafe(overworld, SafeLoc.find(overworld, deepUnderground).orElseThrow()));
+
+        // A flying traveller needs no floor. Without this, anywhere you flew is somewhere you can
+        // never return to — the whole back trail of a flying player is unreachable.
+        BlockPos midAir = new BlockPos(spawn.getX(), overworld.getMaxY() - 2, spawn.getZ());
+        overworld.getChunkAt(midAir);
+        check("open sky is not safe to stand in",
+                !SafeLoc.isSafe(overworld, midAir, true));
+        check("open sky is fine for someone who can fly",
+                SafeLoc.isSafe(overworld, midAir, false));
+        check("the default still demands a floor",
+                SafeLoc.isSafe(overworld, midAir) == SafeLoc.isSafe(overworld, midAir, true));
+        // Relaxing the floor is not permission to be entombed.
+        check("a flier is still refused inside solid rock",
+                !SafeLoc.isSafe(overworld, deepUnderground, false));
     }
 
     /**
