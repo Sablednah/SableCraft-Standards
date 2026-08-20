@@ -63,6 +63,7 @@ public final class SelfTest {
         checkToggleLogic();
         checkStateSentence();
         checkTopCeiling();
+        checkChatLine();
         checkMoneyFormatting();
         checkCommandsParse(server);
         checkSafeLoc(server);
@@ -139,6 +140,30 @@ public final class SelfTest {
                         List.of("somemod:unbreakable_casing")));
         check("an empty list stops nothing",
                 !MoveCommands.matchesAny("minecraft:bedrock", List.of()));
+    }
+
+    /**
+     * The composed chat line. It carries the name itself, so anything that adds a second name
+     * around it is a bug — which is exactly what handing it to ServerChatEvent.setMessage did.
+     */
+    private void checkChatLine() {
+        String tpl = "{prefixes}{name}{suffixes}: {message}";
+        String plain = ChatFormatter.compose(tpl, "", "Steve", List.of(), List.of(), "hello");
+        check("an undecorated line is name: message", plain.equals("Steve: hello"));
+
+        String full = ChatFormatter.compose(tpl, "", "Steve",
+                List.of("[FACTION]", "[PARTY]"), List.of("the noble"), "hello");
+        check("prefixes sit left of the name, suffixes right",
+                full.equals("[FACTION][PARTY] Steve the noble: hello"));
+        check("the composed line names the player exactly once",
+                full.split("Steve", -1).length - 1 == 1);
+        check("a decorated line still ends with the message", full.endsWith(": hello"));
+
+        // The affix separator goes between affixes, never against the name.
+        String sep = ChatFormatter.compose(tpl, " ", "Steve",
+                List.of("[A]", "[B]"), List.of(), "hi");
+        check("the separator falls between affixes only", sep.equals("[A] [B] Steve: hi"));
+        check("no doubled space against the name", !sep.contains("  "));
     }
 
     private void checkMoneyFormatting() {

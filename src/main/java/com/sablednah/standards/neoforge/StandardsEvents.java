@@ -6,6 +6,8 @@ import com.sablednah.standards.api.economy.Economy;
 import com.sablednah.standards.core.Waypoint;
 
 import net.minecraft.resources.Identifier;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -291,7 +293,36 @@ public final class StandardsEvents {
         });
         if (event.isCanceled()) return;
 
-        ChatFormatter.format(player, event.getRawText()).ifPresent(event::setMessage);
+        // Cancel and broadcast, rather than setMessage. ServerChatEvent.setMessage replaces the
+        // message *body* only — vanilla still wraps whatever it is given in its own "<name> %s"
+        // chat type, so handing it a finished "Lord Steve the saintly: hello" line produces
+        // "<Steve> Lord Steve the saintly: hello" and the name appears twice. There is no
+        // set-the-whole-line on the event, so the formatted path has to take over delivery.
+        //
+        // Reported from the LegendQuest side, against a genuinely unmodded client — and invisible
+        // here until then, because with no decorator registered format() returns empty and this
+        // line never runs. The first real decorator was the first execution of this code path.
+        ChatFormatter.format(player, event.getRawText()).ifPresent(line -> {
+            event.setCanceled(true);
+            deliver(server, player, line);
+        });
+    }
+
+    /**
+     * Send a formatted chat line ourselves, now that vanilla is not going to.
+     *
+     * <p>Taking over delivery means taking over what delivery did for us: {@code /ignore} was
+     * vanilla's job a moment ago and is ours now, and the line still has to reach the console or
+     * chat vanishes from the server log entirely.</p>
+     */
+    private static void deliver(MinecraftServer server, ServerPlayer from, Component line) {
+        for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
+            if (StandardsAttachments.of(viewer).ignores(from.getUUID())) {
+                continue;
+            }
+            viewer.sendSystemMessage(line);
+        }
+        server.sendSystemMessage(line);
     }
 
 /**

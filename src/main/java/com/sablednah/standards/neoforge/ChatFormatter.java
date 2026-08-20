@@ -39,13 +39,26 @@ public final class ChatFormatter {
             return java.util.Optional.empty();
         }
 
-        String separator = StandardsConfig.CHAT_AFFIX_SEPARATOR.get();
-        String line = StandardsConfig.CHAT_FORMAT.get()
+        return java.util.Optional.of(Feedback.colored(compose(
+                StandardsConfig.CHAT_FORMAT.get(),
+                StandardsConfig.CHAT_AFFIX_SEPARATOR.get(),
+                player.getName().getString(), prefixes, suffixes, message)));
+    }
+
+    /**
+     * The finished line as text. Pure, so the self-test can prove its shape without a player.
+     *
+     * <p>Worth testing precisely because the line is <em>complete</em> — it carries the name
+     * itself, which is what makes it wrong to hand back to something that will add a name of its
+     * own. That mistake produced "&lt;Steve&gt; Lord Steve the saintly: hello" in the wild.</p>
+     */
+    public static String compose(String template, String separator, String name,
+            List<String> prefixes, List<String> suffixes, String message) {
+        return template
                 .replace("{prefixes}", join(prefixes, separator, true))
                 .replace("{suffixes}", join(suffixes, separator, false))
-                .replace("{name}", player.getName().getString())
+                .replace("{name}", name)
                 .replace("{message}", message);
-        return java.util.Optional.of(Feedback.colored(line));
     }
 
     /**
