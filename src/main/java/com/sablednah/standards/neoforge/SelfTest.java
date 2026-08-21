@@ -216,6 +216,24 @@ public final class SelfTest {
         // The impersonation case: reset, then something that looks like somebody else.
         check("a reset code cannot be smuggled through",
                 !Feedback.stripCodes("&r[Admin] hi").contains("&r"));
+
+        // Codes must become component STYLES, not section signs sitting in the text — otherwise
+        // the console, the log and any RCON-driven admin tool read back gibberish.
+        check("a coloured message reads cleanly as plain text",
+                Feedback.colored("&7[&bStandards&7]&r &7Muted &fSteve").getString()
+                        .equals("[Standards] Muted Steve"));
+        check("no section sign survives into the text",
+                !Feedback.colored("&aon").getString().contains("\u00a7"));
+        check("the text itself is preserved exactly",
+                Feedback.colored("&aon").getString().equals("on"));
+        check("an ampersand in ordinary text still reads back",
+                Feedback.colored("Tom & Jerry").getString().equals("Tom & Jerry"));
+        check("an empty string does not explode",
+                Feedback.colored("").getString().isEmpty());
+        check("a message with no codes at all is unchanged",
+                Feedback.colored("plain words").getString().equals("plain words"));
+        check("a trailing code produces no stray text",
+                Feedback.colored("done &").getString().equals("done &"));
     }
 
     /**

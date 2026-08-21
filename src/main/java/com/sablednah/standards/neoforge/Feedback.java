@@ -8,6 +8,9 @@ import com.sablednah.standards.core.Waypoint;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,6 +51,15 @@ public final class Feedback {
     /**
      * Turn {@code &} colour codes into the section sign Minecraft renders.
      *
+     * <p><b>Real component styles, not section signs in the text.</b> The obvious implementation
+     * puts {@code §} characters into a {@code Component.literal} and lets the client interpret
+     * them. That renders correctly in game and is wrong everywhere else: {@code getString()} hands
+     * back the codes verbatim, so the server console, the log and anything driving the server over
+     * RCON all show {@code §7[§bStandards§7]§r §7Muted §fTestBuddy} instead of a sentence. An
+     * owner reading back what their staff did should not have to decode it. (Spotted from the
+     * LegendQuest side, testing our mute output through RCON — the third bug this week whose cause
+     * was output only ever being looked at through a client.)</p>
+     *
      * <p><b>Only where a real code follows.</b> The obvious implementation is
      * {@code text.replace('&', '§')} and it is wrong in a way that takes a while to notice:
      * "Tom &amp; Jerry" becomes "Tom § Jerry", where the section sign eats the following space as
@@ -56,7 +68,41 @@ public final class Feedback {
      * same blind replace and the same symptom.)</p>
      */
     public static Component colored(String text) {
-        return Component.literal(translateCodes(text));
+        MutableComponent out = Component.empty();
+        StringBuilder run = new StringBuilder();
+        Style style = Style.EMPTY;
+
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            ChatFormatting code = (c == '&' || c == '§') && i + 1 < text.length()
+                    ? ChatFormatting.getByCode(text.charAt(i + 1))
+                    : null;
+            if (code == null) {
+                run.append(c);
+                continue;
+            }
+            if (!run.isEmpty()) {
+                out.append(Component.literal(run.toString()).withStyle(style));
+                run.setLength(0);
+            }
+            style = advance(style, code);
+            i++; // consume the code letter
+        }
+        if (!run.isEmpty()) {
+            out.append(Component.literal(run.toString()).withStyle(style));
+        }
+        return out;
+    }
+
+    /**
+     * Legacy rule: a colour clears any formatting before it, {@code &r} clears everything, and
+     * bold/italic/underline/strike/obfuscated accumulate.
+     */
+    private static Style advance(Style style, ChatFormatting code) {
+        if (code == ChatFormatting.RESET) {
+            return Style.EMPTY;
+        }
+        return code.isFormat() ? style.applyFormat(code) : Style.EMPTY.withColor(code);
     }
 
     /** As {@link #colored}, as a String. */
