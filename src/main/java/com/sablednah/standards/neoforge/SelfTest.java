@@ -140,6 +140,22 @@ public final class SelfTest {
                         List.of("somemod:unbreakable_casing")));
         check("an empty list stops nothing",
                 !MoveCommands.matchesAny("minecraft:bedrock", List.of()));
+
+        // The world's own shell must not be reported as somebody's protection. Overworld
+        // -64..319, Nether 0..127 ceiling.
+        check("the overworld floor is the world's edge",
+                MoveCommands.isWorldEdge(-63, -64, 319, false));
+        check("a box in the middle of the overworld is not",
+                !MoveCommands.isWorldEdge(64, -64, 319, false));
+        check("the nether roof is the world's edge",
+                MoveCommands.isWorldEdge(126, 0, 127, true));
+        check("the nether floor is the world's edge",
+                MoveCommands.isWorldEdge(2, 0, 127, true));
+        check("a box in the middle of the nether is not",
+                !MoveCommands.isWorldEdge(64, 0, 127, true));
+        // A dimension without a ceiling must never treat its build limit as one.
+        check("a ceilingless dimension has no roof edge",
+                !MoveCommands.isWorldEdge(318, -64, 319, false));
     }
 
     /**
@@ -232,6 +248,8 @@ public final class SelfTest {
                 "tempban Steve 2h", "tempban Steve 2h being rude",
                 "mute Steve", "mute Steve 30m", "mute Steve 30m spam", "unmute Steve",
                 "invsee Steve",
+                "up",
+                "down",
                 "craft", "workbench", "anvil", "grindstone", "enderchest", "ec",
                 "trashcan", "disposal",
                 "spawn", "setspawn", "playerspawn", "bottom",

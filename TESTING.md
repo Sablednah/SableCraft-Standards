@@ -61,6 +61,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Getting about
 
+- [x] `/up` and `/down` aliases — bare, with no argument
 - [x] `/top` from inside a cave — first safe floor **above you**, not the surface
 - [ ] `/back` **while flying** — returns you to a mid-air point instead of refusing. Every back
       point a flying player makes is mid-air, so this is the normal case for anyone with `/fly` on
@@ -68,11 +69,11 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [ ] `/setspawn` somewhere with no floor — saves, but warns you at the time
 - [ ] Bed spawn boxed in, with water nearby — lands you on **dry ground** if any is in range;
       underwater only when there is genuinely nothing better
-- [ ] `/top` in the Nether — lands **under** the bedrock, never on the roof
-- [ ] `/top` under a bedrock or barrier roof — refuses, and names the block in the way
-- [ ] `/bottom` over a sealed bedrock vault — refuses, rather than dropping you inside it
+- [x] `/top` in the Nether — lands **under** the bedrock, never on the roof
+- [x] `/top` under a bedrock or barrier roof — refuses, and names the block in the way
+- [x] `/bottom` over a sealed bedrock vault — refuses, rather than dropping you inside it
 - [ ] `/bottom` **from** the Nether roof — still gets you down; the rescue outranks the barrier
-- [ ] `/bottom` on open ground — still lands on the world bedrock floor (landing *on* it is fine,
+- [x] `/bottom` on open ground — still lands on the world bedrock floor (landing *on* it is fine,
       only scanning *through* it is refused)
 - [ ] `/bottom` — op only
 - [x] `/jump` `/j` — lands on top of what you are looking at, not inside it

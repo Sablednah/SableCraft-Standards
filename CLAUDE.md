@@ -374,12 +374,34 @@ protocol"). Either use a dev client, or keep a stripped CurseForge instance whos
 spawn, with no message explaining why. Set it to `0` on the dev server; on a live server, tell
 players it exists.
 
-**✔ LuckPerms honours our default resolvers — verified, not assumed.** The worry was that
+**✔ LuckPerms honours our default resolvers, op-gated ones included — verified twice.** The worry was that
 installing it would answer "undefined → false" and silently strip ordinary players of every
 everyone-by-default node. It does not: a non-op with no grants ran `/homes` and got our own
 "no homes yet" message. That is proof rather than inference — a failed `requires()` hides the
 command entirely and yields "Unknown or incomplete command", so seeing *our* text means the
 permission resolved true. Re-check this on a LuckPerms major version bump.
+
+The second half took longer to prove, because only the everyone-by-default nodes had been tested.
+**An op with no LuckPerms grants at all does get the op-gated commands** — `/fly`, `/god` and the
+rest — so LuckPerms resolves our op-level defaults from op status rather than demanding an explicit
+grant. Verified 2026-08-21 against an empty permission set (the `default` group holding no nodes
+and the player holding none), which is what a fresh server looks like on day one.
+
+⚠ **But an unhealthy LuckPerms denies everything, silently.** If its storage fails to initialise,
+every node resolves false, every gated command vanishes from the tree, and the only symptom a
+player sees is *"Unknown or incomplete command"* — indistinguishable from a broken mod. It cost an
+hour before the LP error at the top of the boot log was spotted:
+
+```
+[ERROR] [luckperms]: Failed to init storage implementation
+  Database may be already in use: .../luckperms-h2-v2.mv.db   The file is locked
+```
+
+The cause was **an orphaned dev-server JVM from a previous run still holding the H2 file** — a
+`runServer` that outlived its `stop`. So when permissions look broken, check for a stale JVM before
+suspecting the permission code: `ps -eo pid,etime,args | grep java | grep SableCraft-Standards`.
+Match on the repo path, never on `java` alone — the sibling mods share the same portable JDK and a
+broad kill takes out someone else's dev server.
 
 **RCON is worth enabling on the dev server.** Gradle cannot pipe stdin to the server console, so
 without it every `op`/`deop`/config change costs a two-minute restart. `enable-rcon=true`,

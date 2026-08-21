@@ -38,15 +38,16 @@ public final class MoveCommands {
     /** How far {@code /jump} will look for something to land on. */
     private static final double JUMP_RANGE = 192.0D;
 
-    public static LiteralArgumentBuilder<CommandSourceStack> top() {
-        return Commands.literal("top")
+    /** @param name the literal to build under, so aliases are real trees rather than redirects */
+    public static LiteralArgumentBuilder<CommandSourceStack> top(String name) {
+        return Commands.literal(name)
                 .requires(StandardsPermissions.require(StandardsPermissions.TOP))
                 .executes(MoveCommands::top);
     }
 
     /** @param name the literal to build under, so aliases are real trees rather than redirects */
-    public static LiteralArgumentBuilder<CommandSourceStack> bottom() {
-        return Commands.literal("bottom")
+    public static LiteralArgumentBuilder<CommandSourceStack> bottom(String name) {
+        return Commands.literal(name)
                 .requires(StandardsPermissions.require(StandardsPermissions.BOTTOM))
                 .executes(MoveCommands::bottom);
     }
@@ -97,9 +98,17 @@ public final class MoveCommands {
         for (int y = from.getY() + 1; y <= ceiling; y++) {
             BlockPos candidate = new BlockPos(from.getX(), y, from.getZ());
             if (!stranded && isBarrier(level.getBlockState(candidate))) {
-                Feedback.chat(player, Lang.fmt("msg.tp.blocked",
-                        "block", level.getBlockState(candidate).getBlock()
-                                .getName().getString()));
+                // The world's own roof is not somebody's protection, and saying it is reads as
+                // nonsense in the Nether — where hitting it is the common case rather than the
+                // exception. The roof is the bedrock slab immediately under the logical ceiling,
+                // so anything in the last few blocks of it is the world, not a player.
+                boolean worldRoof = isWorldEdge(candidate.getY(), level.getMinY(), ceiling,
+                        level.dimensionType().hasCeiling());
+                Feedback.chat(player, worldRoof
+                        ? Lang.get("msg.tp.top_ceiling")
+                        : Lang.fmt("msg.tp.blocked",
+                                "block", level.getBlockState(candidate).getBlock()
+                                        .getName().getString()));
                 return 0;
             }
             if (SafeLoc.isSafe(level, candidate)) {
@@ -164,6 +173,28 @@ public final class MoveCommands {
         return true;
     }
 
+    /**
+     * How thick the world's own bedrock shell is, at either end. Both the Nether roof and every
+     * dimension's floor are patchy across roughly four layers, so a barrier found within this of
+     * the edge is the world rather than anything a player built.
+     */
+    private static final int WORLD_SHELL = 5;
+
+    /**
+     * Whether a blocking block at this height is the world's own edge rather than someone's box.
+     *
+     * <p>It matters because the message is the whole point of stopping. "Blocks like that are
+     * usually there on purpose" is exactly right for a bedrock box and nonsense for the Nether
+     * roof or the bottom of the world, and those are the <em>common</em> cases — {@code /top} in
+     * the Nether reaches the ceiling constantly, and {@code /bottom} while stood on bedrock hits
+     * the floor on its very first step.</p>
+     *
+     * <p>Pure, so the self-test can prove it without a world.</p>
+     */
+    public static boolean isWorldEdge(int y, int minY, int ceiling, boolean hasCeiling) {
+        return (hasCeiling && y >= ceiling - WORLD_SHELL) || y <= minY + WORLD_SHELL;
+    }
+
     /** The highest Y {@code /top} may land on in this world. See {@link #top}. */
     private static int ceilingFor(ServerLevel level) {
         return highestStandableY(level.getMinY(), level.getMaxY(),
@@ -204,9 +235,15 @@ public final class MoveCommands {
         for (int y = from.getY() - 1; y >= level.getMinY(); y--) {
             BlockPos candidate = new BlockPos(from.getX(), y, from.getZ());
             if (!stranded && isBarrier(level.getBlockState(candidate))) {
-                Feedback.chat(player, Lang.fmt("msg.tp.blocked",
-                        "block", level.getBlockState(candidate).getBlock()
-                                .getName().getString()));
+                // Standing on the world floor and asking to go down hits bedrock on the first
+                // step, and calling that somebody's protection is nonsense. Same rule as /top.
+                boolean worldFloor = isWorldEdge(candidate.getY(), level.getMinY(),
+                        ceilingFor(level), level.dimensionType().hasCeiling());
+                Feedback.chat(player, worldFloor
+                        ? Lang.get("msg.tp.bottom_already")
+                        : Lang.fmt("msg.tp.blocked",
+                                "block", level.getBlockState(candidate).getBlock()
+                                        .getName().getString()));
                 return 0;
             }
             if (SafeLoc.isSafe(level, candidate)) {

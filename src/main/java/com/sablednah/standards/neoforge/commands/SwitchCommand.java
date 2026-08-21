@@ -76,13 +76,23 @@ public final class SwitchCommand {
             }
         };
 
+        // Turning your OWN switch off never needs the node. See canSwitchOff.
+        Predicate<CommandSourceStack> mayUse = source ->
+                StandardsPermissions.require(self).test(source) || currentlyOn(source, sw);
+
         LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal(name)
-                .requires(StandardsPermissions.require(self))
+                .requires(mayUse)
                 .executes(ctx -> applyToSelf(ctx, sw, whatKey, Toggle.TOGGLE));
 
         for (Toggle state : Toggle.values()) {
-            root.then(Commands.literal(state.key())
-                    .executes(ctx -> applyToSelf(ctx, sw, whatKey, state)));
+            // OFF rides the root's permissive check; ON and TOGGLE need the node outright, so a
+            // player who only reached this command because it is already on cannot re-grant it.
+            LiteralArgumentBuilder<CommandSourceStack> leaf = Commands.literal(state.key())
+                    .executes(ctx -> applyToSelf(ctx, sw, whatKey, state));
+            if (state != Toggle.OFF) {
+                leaf.requires(StandardsPermissions.require(self));
+            }
+            root.then(leaf);
         }
 
         var target = Commands.argument("players", EntityArgument.players())
@@ -95,6 +105,24 @@ public final class SwitchCommand {
         root.then(target);
 
         return root;
+    }
+
+    /**
+     * Whether the source is a player this switch is currently <em>on</em> for.
+     *
+     * <p><b>You can always turn your own switch off.</b> Every switch persists across a logout on
+     * purpose, and gating the off-ramp behind the same node as the on-ramp means a permission
+     * change — or a permissions plugin answering differently than vanilla's op check — can leave
+     * a player permanently flying, permanently invulnerable or permanently invisible with no way
+     * out. The login reminder even tells them to run {@code /fly off}, which is a cruel thing to
+     * say to someone the command is hidden from.</p>
+     *
+     * <p>Found live: a player logged back in with fly and god still on, was refused both commands,
+     * and had to be rescued over RCON. Granting a capability is a decision; dropping one you
+     * already have is not, so only the on-ramp is gated.</p>
+     */
+    private static boolean currentlyOn(CommandSourceStack source, Switch sw) {
+        return source.getEntity() instanceof ServerPlayer player && sw.get(player);
     }
 
     private static int applyToSelf(CommandContext<CommandSourceStack> ctx, Switch sw,

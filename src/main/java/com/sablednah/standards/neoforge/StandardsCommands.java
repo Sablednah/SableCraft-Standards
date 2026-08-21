@@ -85,7 +85,9 @@ public final class StandardsCommands {
 
         // --- getting about ---
         if (StandardsConfig.ENABLE_TOP.get()) {
-            dispatcher.register(MoveCommands.top());
+            dispatcher.register(MoveCommands.top("top"));
+            // Real tree, not a redirect — see the note on /j below.
+            dispatcher.register(MoveCommands.top("up"));
         }
         if (StandardsConfig.ENABLE_JUMP.get()) {
             dispatcher.register(MoveCommands.jump("jump"));
@@ -101,7 +103,8 @@ public final class StandardsCommands {
         }
 
         if (StandardsConfig.ENABLE_BOTTOM.get()) {
-            dispatcher.register(MoveCommands.bottom());
+            dispatcher.register(MoveCommands.bottom("bottom"));
+            dispatcher.register(MoveCommands.bottom("down"));
         }
         if (StandardsConfig.ENABLE_SPAWN.get()) {
             dispatcher.register(SpawnCommands.spawn());
