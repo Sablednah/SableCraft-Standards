@@ -419,6 +419,29 @@ That is a genuinely useful mechanism rather than a hole (vanilla `/execute` is o
 the node** — one live answer to the LegendQuest integration question. But it means permission
 boundaries can only be tested by the player actually typing the command.
 
+## The category of bug this mod keeps producing
+
+**Code that has never met real user input.** Three separate bugs in one day, all the same shape,
+none of them catchable by the self-test as written:
+
+- The chat decorator path had **never executed**. `format()` returns empty with no decorator
+  registered, so the `setMessage` line below it was dead code for weeks. LegendQuest registered the
+  first real decorator and the name doubled within a minute.
+- `Feedback.colored` had only ever seen **text we wrote ourselves**, where every `&` was
+  deliberately a colour code. The first player to type an ampersand got "Tom § Jerry", and the
+  first to type `&r` could dress their words as a server message.
+- The `/top` barrier check had never met **real bedrock** — only the synthetic ids in its own test —
+  so it blamed a player for the shape of the Nether.
+
+The self-test is excellent at "does this function compute the right answer" and blind to "has
+anything ever called it". So when adding a seam or a gate, ask the second question explicitly:
+*what is the first real input this will see, and where does it come from?* If the answer is "another
+mod, later" or "whatever a player types", that path deserves a test that supplies exactly that —
+and, better, a real consumer on the other side of the seam before it is called done.
+
+Both mods independently arrived at treating **"first time real user input reaches this code"** as
+its own risk category. It has earned that status.
+
 ## Gotchas already paid for
 
 - **Static initialisation order.** A `static final` collection declared *after* the fields that
