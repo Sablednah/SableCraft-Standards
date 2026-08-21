@@ -82,7 +82,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [ ] `/back` after dying — refused unless you grant `standards.back.ondeath`
 - [ ] `/spawn` with no `/setspawn` ever run — falls back to world spawn, does not error
 - [ ] `/setspawn` then `/spawn`
-- [x] `/playerspawn` with no bed — says so; with a bed — goes there
+- [ ] `/playerspawn` with no bed — says so; with a bed — goes there
 - [ ] warmup: start any teleport and **walk** — cancelled, and you are told why
 - [ ] warmup: start one and take damage — cancelled
 
