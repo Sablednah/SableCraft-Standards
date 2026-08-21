@@ -162,7 +162,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 ## Kits
 
 - [x] equip yourself, `/setkit knight armour` — saves only what you are wearing
-- [ ] `/setkit starter hotbar`, `/setkit everything all`
+- [x] `/setkit starter hotbar`, `/setkit everything all`
+- [x] stack size and durability are preserved — kits store whole `ItemStack`s,
+      so components (enchantments, custom names) ride along too
 - [x] `/kit`, `/kits`, `/showkit knight`
 - [ ] `/kit knight` with a full inventory — overflow lands at your feet, and says so
 - [x] `/setkit daily all 1d` then `/kit daily` twice — cooldown refuses the second
