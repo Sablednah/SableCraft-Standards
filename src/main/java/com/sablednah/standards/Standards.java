@@ -48,6 +48,7 @@ public class Standards {
                 event.enqueueWork(() -> {
                     StandardsEconomy.registerIfEnabled();
                     com.sablednah.standards.neoforge.Vanish.install();
+                    com.sablednah.standards.neoforge.StandardsEvents.installChatGates();
                 }));
 
         // Game bus: player lifecycle, teleport bookkeeping, permissions, commands.

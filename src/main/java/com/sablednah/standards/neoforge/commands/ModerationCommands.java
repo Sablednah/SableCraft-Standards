@@ -54,7 +54,7 @@ public final class ModerationCommands {
                                 .executes(ctx -> tempban(ctx, ""))
                                 .then(Commands.argument("reason", StringArgumentType.greedyString())
                                         .executes(ctx -> tempban(ctx,
-                                                StringArgumentType.getString(ctx, "reason"))))));
+                                                Feedback.stripCodes(StringArgumentType.getString(ctx, "reason")))))));
     }
 
     public static LiteralArgumentBuilder<CommandSourceStack> mute() {
@@ -67,7 +67,7 @@ public final class ModerationCommands {
                                 .executes(ctx -> muteParsed(ctx, ""))
                                 .then(Commands.argument("reason", StringArgumentType.greedyString())
                                         .executes(ctx -> muteParsed(ctx,
-                                                StringArgumentType.getString(ctx, "reason"))))));
+                                                Feedback.stripCodes(StringArgumentType.getString(ctx, "reason")))))));
     }
 
     public static LiteralArgumentBuilder<CommandSourceStack> unmute() {

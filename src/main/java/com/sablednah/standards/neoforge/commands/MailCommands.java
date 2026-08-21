@@ -58,7 +58,7 @@ public final class MailCommands {
             Feedback.chat(from, Lang.fmt("msg.common.player_not_found", "name", name));
             return 0;
         }
-        String text = StringArgumentType.getString(ctx, "message");
+        String text = Feedback.stripCodes(StringArgumentType.getString(ctx, "message"));
         if (!Mailbox.get(server).send(to.get(), from.getUUID(), from.getName().getString(), text)) {
             Feedback.chat(from, Lang.fmt("msg.mail.full", "player", name));
             return 0;

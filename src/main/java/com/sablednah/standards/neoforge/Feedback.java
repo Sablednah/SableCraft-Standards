@@ -42,8 +42,65 @@ public final class Feedback {
         source.sendFailure(colored(text));
     }
 
+    /** The codes Minecraft actually recognises: 0-9, a-f, k-o, r. */
+    private static final String CODES = "0123456789abcdefklmnorABCDEFKLMNOR";
+
+    /**
+     * Turn {@code &} colour codes into the section sign Minecraft renders.
+     *
+     * <p><b>Only where a real code follows.</b> The obvious implementation is
+     * {@code text.replace('&', '§')} and it is wrong in a way that takes a while to notice:
+     * "Tom &amp; Jerry" becomes "Tom § Jerry", where the section sign eats the following space as
+     * a colour code and the ampersand disappears. Every ordinary use of the word "and" in a
+     * player-facing string is quietly corrupted. (Found next door in LegendQuest, which had the
+     * same blind replace and the same symptom.)</p>
+     */
     public static Component colored(String text) {
-        return Component.literal(text.replace('&', '§'));
+        return Component.literal(translateCodes(text));
+    }
+
+    /** As {@link #colored}, as a String. */
+    public static String translateCodes(String text) {
+        StringBuilder out = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            boolean isCode = c == '&' && i + 1 < text.length()
+                    && CODES.indexOf(text.charAt(i + 1)) >= 0;
+            out.append(isCode ? '§' : c);
+        }
+        return out.toString();
+    }
+
+    /**
+     * Remove formatting from text a player wrote, so it cannot become formatting.
+     *
+     * <p><b>Every path that carries player-authored text into a message must call this.</b> Chat,
+     * {@code /me}, {@code /msg}, mail, home and warp names. {@link Lang#fmt} substitutes values
+     * into a template <em>before</em> the template's codes are translated, so an unfiltered value
+     * is a formatting injection: a player typing {@code &c&l} gets red bold text, and one typing
+     * {@code &r} followed by a plausible prefix can dress their words up as somebody else's — or
+     * as a server message. {@code &k} is worse still, since obfuscated text cannot be read back.</p>
+     *
+     * <p>Both the ampersand form and a literal section sign are stripped: a client cannot type
+     * {@code §} into chat, but text can reach us from a book, a sign, a command block or another
+     * mod, and the assumption that it cannot is exactly the kind that stops being true later.</p>
+     */
+    public static String stripCodes(String text) {
+        StringBuilder out = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            boolean isCode = (c == '&' || c == '§') && i + 1 < text.length()
+                    && CODES.indexOf(text.charAt(i + 1)) >= 0;
+            if (isCode) {
+                i++; // drop the code letter too
+                continue;
+            }
+            if (c == '§') {
+                continue; // a bare section sign has no business in player text
+            }
+            out.append(c);
+        }
+        return out.toString();
     }
 
     /**

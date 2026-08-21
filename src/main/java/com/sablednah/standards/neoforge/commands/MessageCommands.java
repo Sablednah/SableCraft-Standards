@@ -107,7 +107,7 @@ public final class MessageCommands {
     private static int emote(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer from = ctx.getSource().getPlayerOrException();
         MinecraftServer server = ctx.getSource().getServer();
-        String action = MessageArgument.getMessage(ctx, "action").getString();
+        String action = Feedback.stripCodes(MessageArgument.getMessage(ctx, "action").getString());
 
         // A mute is a mute. Narrating at the room must not be the way around it.
         Optional<Mutes.Mute> mute = Mutes.get(server).active(from.getUUID());
@@ -157,7 +157,7 @@ public final class MessageCommands {
 
     private static int send(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer from = ctx.getSource().getPlayerOrException();
-        String text = MessageArgument.getMessage(ctx, "message").getString();
+        String text = Feedback.stripCodes(MessageArgument.getMessage(ctx, "message").getString());
         int delivered = 0;
         // Plural, because vanilla's argument is plural — /msg @a works, and taking that away
         // while claiming to replace /msg would be a downgrade.

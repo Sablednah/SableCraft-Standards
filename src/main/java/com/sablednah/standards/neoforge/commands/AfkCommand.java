@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.sablednah.standards.neoforge.Feedback;
 import com.sablednah.standards.neoforge.Afk;
 import com.sablednah.standards.neoforge.StandardsPermissions;
 
@@ -26,7 +27,7 @@ public final class AfkCommand {
                 .requires(StandardsPermissions.require(StandardsPermissions.AFK))
                 .executes(ctx -> toggle(ctx, ""))
                 .then(Commands.argument("reason", StringArgumentType.greedyString())
-                        .executes(ctx -> toggle(ctx, StringArgumentType.getString(ctx, "reason"))));
+                        .executes(ctx -> toggle(ctx, Feedback.stripCodes(StringArgumentType.getString(ctx, "reason")))));
     }
 
     private static int toggle(CommandContext<CommandSourceStack> ctx, String reason)

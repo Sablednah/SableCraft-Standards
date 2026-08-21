@@ -27,6 +27,89 @@ public final class Chat {
     private static final Logger LOG = LogUtils.getLogger();
 
     private static final List<NameDecorator> DECORATORS = new ArrayList<>();
+    private static final List<ChatRouter> ROUTERS = new ArrayList<>();
+
+    /**
+     * Answers "may this player speak, and if not, why not" — installed by Standards at setup.
+     *
+     * <p>A function rather than a direct call into {@code Mutes} because that lives in the
+     * {@code neoforge} package: the API must not depend on the implementation it is the seam for.
+     * Same arrangement as {@code VanishGate}, and for the same reason.</p>
+     */
+    private static java.util.function.Function<ServerPlayer,
+            java.util.Optional<net.minecraft.network.chat.Component>> speechGate = p -> java.util.Optional.empty();
+
+    private static java.util.function.Consumer<ServerPlayer> activityNote = p -> {};
+
+    /** Installed by Standards during setup. Not for other mods to call. */
+    public static synchronized void installGates(
+            java.util.function.Function<ServerPlayer,
+                    java.util.Optional<net.minecraft.network.chat.Component>> blocked,
+            java.util.function.Consumer<ServerPlayer> activity) {
+        speechGate = blocked;
+        activityNote = activity;
+    }
+
+    /**
+     * Whether this player is currently silenced, and the reason if so — already worded for them.
+     *
+     * <p>For anything that carries a player's words and is not ordinary chat. A mute is meant to
+     * silence every channel, so a book, a sign, a shop label or a channel that does its own
+     * delivery should ask before publishing. Empty means they may speak.</p>
+     */
+    public static java.util.Optional<net.minecraft.network.chat.Component> speechBlocked(
+            ServerPlayer player) {
+        return speechGate.apply(player);
+    }
+
+    /** Mark this player as active, clearing any AFK state. Chat through a channel still counts. */
+    public static void noteActivity(ServerPlayer player) {
+        activityNote.accept(player);
+    }
+
+    /**
+     * Add a channel that may claim messages before they reach the server at large.
+     *
+     * <p>Call during setup, guarded by a {@code standards} loaded check. See {@link ChatRouter} —
+     * unlike decorators these are <b>not</b> additive: the first to claim a message ends it.</p>
+     */
+    public static synchronized void registerRouter(ChatRouter router) {
+        ROUTERS.add(router);
+        // Descending: the highest priority is offered the message first.
+        ROUTERS.sort(Comparator.comparingInt(ChatRouter::priority).reversed());
+        LOG.info("Standards: chat router '{}' registered at priority {} ({} total)",
+                router.id(), router.priority(), ROUTERS.size());
+    }
+
+    /** Remove a router. Mainly for the self-test, which must not leave its fixtures behind. */
+    public static synchronized void unregisterRouter(ChatRouter router) {
+        ROUTERS.remove(router);
+    }
+
+    public static synchronized List<ChatRouter> routers() {
+        return List.copyOf(ROUTERS);
+    }
+
+    /**
+     * Offer a message to each router in turn.
+     *
+     * @return the id of the router that took it, or empty if nobody did and it should be broadcast
+     */
+    public static java.util.Optional<String> route(ServerPlayer sender, String message) {
+        for (ChatRouter router : routers()) {
+            try {
+                if (router.route(sender, message)) {
+                    return java.util.Optional.of(router.id());
+                }
+            } catch (RuntimeException e) {
+                // A thrown router has not delivered anything, so the message must carry on rather
+                // than vanish — the same rule the decorators follow.
+                LOG.error("Standards: chat router '{}' threw; treating the message as unclaimed",
+                        router.id(), e);
+            }
+        }
+        return java.util.Optional.empty();
+    }
 
     /** Add a decorator. Call during setup, guarded by a {@code standards} loaded check. */
     public static synchronized void register(NameDecorator decorator) {

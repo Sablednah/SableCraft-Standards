@@ -42,7 +42,9 @@ public final class ChatFormatter {
         return java.util.Optional.of(Feedback.colored(compose(
                 StandardsConfig.CHAT_FORMAT.get(),
                 StandardsConfig.CHAT_AFFIX_SEPARATOR.get(),
-                player.getName().getString(), prefixes, suffixes, message)));
+                player.getName().getString(), prefixes, suffixes,
+                // What the player typed is text, never formatting. See Feedback.stripCodes.
+                Feedback.stripCodes(message))));
     }
 
     /**

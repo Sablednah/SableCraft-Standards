@@ -63,7 +63,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 - [x] `/up` and `/down` aliases — bare, with no argument
 - [x] `/top` from inside a cave — first safe floor **above you**, not the surface
-- [ ] `/back` **while flying** — returns you to a mid-air point instead of refusing. Every back
+- [x] `/back` **while flying** — returns you to a mid-air point instead of refusing. Every back
       point a flying player makes is mid-air, so this is the normal case for anyone with `/fly` on
 - [ ] `/sethome` while flying, then `/home` — same story for homes and warps
 - [ ] `/setspawn` somewhere with no floor — saves, but warns you at the time
@@ -130,12 +130,12 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Money
 
-- [ ] `/balance` — starts at ₡100
-- [ ] `/baltop`
-- [ ] `/pay TestBuddy 25` **[2P]** — both sides told, balances move
+- [x] `/balance` — starts at ₡100
+- [x] `/baltop`
+- [x] `/pay TestBuddy 25` **[2P]** — both sides told, balances move
 - [ ] `/pay TestBuddy 999999` — refused, tells you what you actually have
 - [ ] `/pay` yourself — the dry refusal
-- [ ] `/eco give TestBuddy 500`, `take`, `set`
+- [x] `/eco give TestBuddy 500`, `take`, `set`
 - [ ] `/eco give` an **offline** player — should work; that is why balances are save data
 - [ ] `/standards economy` — says Standards holds the money, priority -1000
 - [ ] `/bal` `/money` aliases

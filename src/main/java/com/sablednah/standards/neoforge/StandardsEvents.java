@@ -8,6 +8,7 @@ import com.sablednah.standards.core.Waypoint;
 import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import com.sablednah.standards.api.chat.Chat;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -302,9 +303,47 @@ public final class StandardsEvents {
         // Reported from the LegendQuest side, against a genuinely unmodded client — and invisible
         // here until then, because with no decorator registered format() returns empty and this
         // line never runs. The first real decorator was the first execution of this code path.
+        // Offer the message to any registered channel before it goes to the server at large.
+        // Deliberately AFTER the mute gate and the AFK note above: a channel that could bypass
+        // those would make a mute a lie, which is the entire reason this seam exists rather than
+        // channel mods cancelling the event themselves. See ChatRouter.
+        java.util.Optional<String> claimed = Chat.route(player, event.getRawText());
+        if (claimed.isPresent()) {
+            event.setCanceled(true);
+            Standards.LOGGER.debug("chat claimed by router '{}'", claimed.get());
+            return;
+        }
+
         ChatFormatter.format(player, event.getRawText()).ifPresent(line -> {
             event.setCanceled(true);
             deliver(server, player, line);
+        });
+    }
+
+    /**
+     * Hand the Chat API the two questions it cannot answer itself.
+     *
+     * <p>Functions rather than direct calls, because {@code Mutes} and {@code Afk} live here in
+     * {@code neoforge} and the API must not depend on the implementation it is a seam for. Same
+     * arrangement as {@code VanishGate}, installed at setup for the same reason.</p>
+     */
+    public static void installChatGates() {
+        Chat.installGates(StandardsEvents::muteReason, Afk::onActivity);
+    }
+
+    /** The mute check, worded for the player — shared by chat, {@code /msg}, {@code /me}. */
+    private static java.util.Optional<Component> muteReason(ServerPlayer player) {
+        MinecraftServer server = player.level().getServer();
+        if (server == null) {
+            return java.util.Optional.empty();
+        }
+        return Mutes.get(server).active(player.getUUID()).map(mute -> {
+            long left = mute.remaining(System.currentTimeMillis());
+            return Feedback.colored(mute.permanent()
+                    ? Lang.fmt("msg.mod.mute_blocked_perm", "reason", mute.reason())
+                    : Lang.fmt("msg.mod.mute_blocked",
+                            "duration", com.sablednah.standards.core.Duration.describe(left),
+                            "reason", mute.reason()));
         });
     }
 

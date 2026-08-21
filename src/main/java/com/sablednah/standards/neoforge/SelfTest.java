@@ -20,6 +20,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
@@ -64,6 +65,8 @@ public final class SelfTest {
         checkStateSentence();
         checkTopCeiling();
         checkChatLine();
+        checkColourCodes();
+        checkChatRouters();
         checkMoneyFormatting();
         checkCommandsParse(server);
         checkSafeLoc(server);
@@ -180,6 +183,102 @@ public final class SelfTest {
                 List.of("[A]", "[B]"), List.of(), "hi");
         check("the separator falls between affixes only", sep.equals("[A] [B] Steve: hi"));
         check("no doubled space against the name", !sep.contains("  "));
+    }
+
+    /**
+     * Colour codes. Two separate failures: mangling ordinary text that contains an ampersand, and
+     * letting text a player wrote become formatting.
+     */
+    private void checkColourCodes() {
+        check("a real code becomes a section sign",
+                Feedback.translateCodes("&aon").equals("\u00a7aon"));
+        // The blind replace('&','\u00a7') eats the space after the ampersand as a code.
+        check("an ampersand in ordinary text survives",
+                Feedback.translateCodes("Tom & Jerry").equals("Tom & Jerry"));
+        check("a trailing ampersand survives",
+                Feedback.translateCodes("fish &").equals("fish &"));
+        check("an ampersand before a non-code survives",
+                Feedback.translateCodes("A&W root beer").equals("A&W root beer"));
+
+        // Player text must never become formatting: colour, bold, and obfuscation worst of all.
+        check("player colour codes are stripped",
+                Feedback.stripCodes("&c&lSHOUTING").equals("SHOUTING"));
+        check("obfuscation is stripped",
+                Feedback.stripCodes("&khidden").equals("hidden"));
+        check("a literal section sign is stripped too",
+                Feedback.stripCodes("\u00a7cred").equals("red"));
+        check("a bare section sign does not survive",
+                Feedback.stripCodes("odd \u00a7 sign").equals("odd  sign"));
+        check("stripping leaves ordinary ampersands alone",
+                Feedback.stripCodes("Tom & Jerry").equals("Tom & Jerry"));
+        check("stripping leaves ordinary text untouched",
+                Feedback.stripCodes("hello world").equals("hello world"));
+        // The impersonation case: reset, then something that looks like somebody else.
+        check("a reset code cannot be smuggled through",
+                !Feedback.stripCodes("&r[Admin] hi").contains("&r"));
+    }
+
+    /**
+     * The router seam. Registers real routers and takes them out again — asserting that the list
+     * is merely non-empty would pass for a seam that never calls anybody.
+     */
+    private void checkChatRouters() {
+        var order = new ArrayList<String>();
+        // Deliberately registered lowest-first, so a seam that ignored priority would fail.
+        com.sablednah.standards.api.chat.ChatRouter weak = testRouter("test:weak", 0, order, false);
+        com.sablednah.standards.api.chat.ChatRouter strong = testRouter("test:strong", 100, order, true);
+        com.sablednah.standards.api.chat.ChatRouter thrower =
+                new com.sablednah.standards.api.chat.ChatRouter() {
+                    public String id() { return "test:thrower"; }
+                    public int priority() { return 200; }
+                    public boolean route(ServerPlayer s, String m) {
+                        throw new IllegalStateException("deliberate");
+                    }
+                };
+        try {
+            check("nothing is claimed with no routers",
+                    com.sablednah.standards.api.chat.Chat.route(null, "hi").isEmpty());
+
+            com.sablednah.standards.api.chat.Chat.registerRouter(weak);
+            check("a declining router leaves the message unclaimed",
+                    com.sablednah.standards.api.chat.Chat.route(null, "hi").isEmpty());
+            check("a declining router was still asked", order.contains("test:weak"));
+
+            order.clear();
+            com.sablednah.standards.api.chat.Chat.registerRouter(strong);
+            var claimed = com.sablednah.standards.api.chat.Chat.route(null, "hi");
+            check("a claiming router claims it",
+                    claimed.isPresent() && claimed.get().equals("test:strong"));
+            check("higher priority is offered first, and ends it",
+                    order.equals(List.of("test:strong")));
+
+            order.clear();
+            com.sablednah.standards.api.chat.Chat.registerRouter(thrower);
+            var afterThrow = com.sablednah.standards.api.chat.Chat.route(null, "hi");
+            // A router that throws has delivered nothing, so the message must carry on rather
+            // than vanish — the same rule the decorators follow.
+            check("a throwing router does not eat the message",
+                    afterThrow.isPresent() && afterThrow.get().equals("test:strong"));
+        } finally {
+            com.sablednah.standards.api.chat.Chat.unregisterRouter(weak);
+            com.sablednah.standards.api.chat.Chat.unregisterRouter(strong);
+            com.sablednah.standards.api.chat.Chat.unregisterRouter(thrower);
+        }
+        check("the test routers are gone again",
+                com.sablednah.standards.api.chat.Chat.routers().stream()
+                        .noneMatch(r -> r.id().startsWith("test:")));
+    }
+
+    private static com.sablednah.standards.api.chat.ChatRouter testRouter(
+            String id, int priority, List<String> order, boolean claims) {
+        return new com.sablednah.standards.api.chat.ChatRouter() {
+            public String id() { return id; }
+            public int priority() { return priority; }
+            public boolean route(ServerPlayer sender, String message) {
+                order.add(id);
+                return claims;
+            }
+        };
     }
 
     private void checkMoneyFormatting() {
