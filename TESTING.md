@@ -166,7 +166,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] stack size and durability are preserved — kits store whole `ItemStack`s,
       so components (enchantments, custom names) ride along too
 - [x] `/kit`, `/kits`, `/showkit knight`
-- [ ] `/kit knight` with a full inventory — overflow lands at your feet, and says so
+- [x] `/kit knight` with a full inventory — overflow lands at your feet, and says so
 - [x] `/setkit daily all 1d` then `/kit daily` twice — cooldown refuses the second
 - [ ] `/delkit daily`
 - [ ] restart the server — kits and cooldowns survive
