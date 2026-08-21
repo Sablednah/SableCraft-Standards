@@ -242,10 +242,8 @@ public final class StandardsEvents {
         // it. Set only the ability and you get the exact symptom reported — "the FOV changed but
         // it felt the same" — because the client is showing a speed the server will not honour.
         //
-        // So the attribute is the source of truth and the ability is written as a derived cache
-        // of it, purely so the packet carries a value the client renders consistently. Flying is
-        // the other way round: abilities.flyingSpeed genuinely is the authority for creative
-        // flight, which is why /speed fly worked and /speed walk did not.
+        // So the attribute is the whole of the truth here, and the ability is deliberately left
+        // at vanilla's 0.1 — see the note further down, which is the other half of this fix.
         AttributeInstance walking = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (walking != null) {
             walking.removeModifier(WALK_SPEED_MODIFIER);
@@ -256,9 +254,32 @@ public final class StandardsEvents {
             }
         }
 
-        // Vanilla's defaults, scaled. Written every time because respawn and game-mode changes
-        // rebuild the whole Abilities object from scratch.
-        abilities.setWalkingSpeed(0.1F * state.walkSpeed());
+        // WALKING SPEED IS NEVER WRITTEN HERE, and that is the fix rather than an omission.
+        //
+        // Player.readAdditionalSaveData does, at LOGIN ONLY:
+        //     getAttribute(MOVEMENT_SPEED).setBaseValue(abilities.getWalkingSpeed())
+        //
+        // so the ability seeds the attribute's BASE, once, and the client's FOV is the ratio
+        //     getAttributeValue(MOVEMENT_SPEED) / abilities.getWalkingSpeed()
+        // which is precisely "how much faster than your own baseline are you". Leaving the
+        // ability at vanilla's 0.1 therefore gets the speed-potion behaviour for free: the
+        // modifier above makes the player genuinely faster AND widens their view, with no packet
+        // of our own.
+        //
+        // Writing it breaks both halves. Set it at runtime and the attribute base does not follow
+        // until the next login, so the player sees a changed FOV and moves at the old speed —
+        // the reported symptom. Set it alongside the modifier and the ratio becomes 1, so a
+        // genuinely faster player gets no visual cue at all. And worst, the value persists in the
+        // abilities NBT, so at the next login it seeds the base and our modifier multiplies it
+        // AGAIN: /speed walk 2 becomes 4x, then 8x.
+        //
+        // 0.1 is written rather than left alone purely to normalise players carrying a stale
+        // value from an earlier build of this mod, who would otherwise compound on their next
+        // login. Vanilla itself never changes walkingSpeed at runtime.
+        abilities.setWalkingSpeed(0.1F);
+
+        // Flying is genuinely the other way round: there is no flight-speed attribute, so
+        // abilities.flyingSpeed IS the authority. Which is why /speed fly worked all along.
         abilities.setFlyingSpeed(0.05F * state.flySpeed());
 
         if (state.god()) {
