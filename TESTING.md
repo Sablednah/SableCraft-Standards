@@ -77,8 +77,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
       only scanning *through* it is refused)
 - [x] `/bottom` — op only
 - [x] `/jump` `/j` — lands on top of what you are looking at, not inside it
-- [ ] `/jump` at the sky — "nothing in range"
-- [ ] `/back` after any teleport, and `/back 2`, `/back 3` up the trail
+- [x] `/jump` at the sky — "nothing in range"
+- [x] `/back` after any teleport, and `/back 2`, `/back 3` up the trail
 - [ ] `/back` after dying — refused unless you grant `standards.back.ondeath`
 - [ ] `/spawn` with no `/setspawn` ever run — falls back to world spawn, does not error
 - [ ] `/setspawn` then `/spawn`
@@ -203,7 +203,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 ## Server and admin
 
 - [x] `/gc` `/tps` `/lag` `/mem` — TPS coloured by health, memory, uptime, entities per dimension
-- [ ] `/smite TestBuddy` and bare `/smite` at a block
+- [x] bare `/smite` at a block
+- [ ] `/smite TestBuddy` **[2P]**
 - [ ] `/standards reload` after editing `messages.yml` — text changes without a restart
 - [ ] edit `term.balance` to "credits" — every money message follows
 
