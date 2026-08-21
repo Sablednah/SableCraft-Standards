@@ -52,6 +52,8 @@ public final class StandardsEvents {
     static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
+        healStaleWalkSpeed(player);
+
         // The name cache is what makes /eco give <offline player> and /baltop rows possible.
         StandardsData.get(player.level().getServer()).rememberName(player);
         if (StandardsConfig.ENABLE_ECONOMY.get() && Economy.isAvailable()) {
@@ -65,7 +67,38 @@ public final class StandardsEvents {
         }
     }
 
-/**
+    /**
+     * Undo a walking speed persisted by a broken earlier build of this mod.
+     *
+     * <p>Between the first {@code /speed walk} and its fix, Standards wrote
+     * {@code abilities.walkingSpeed}. That value is saved in the player's NBT, and
+     * {@code Player.readAdditionalSaveData} seeds the {@code MOVEMENT_SPEED} base from it at every
+     * login — so our multiplier would apply on top of an already-inflated base and double again on
+     * each relog. 2x becomes 4x becomes 8x, silently.</p>
+     *
+     * <p>Only fires when the value is not vanilla's <em>and</em> the attribute base matches it,
+     * which together mean it was seeded from the ability rather than set by somebody else. And
+     * only at login, because that is the one moment the stale value can do any harm — repeating it
+     * on every respawn would stomp any mod that legitimately sets a walking baseline, which is
+     * exactly the complaint we would raise if it were done to us.</p>
+     */
+    private static void healStaleWalkSpeed(ServerPlayer player) {
+        var abilities = player.getAbilities();
+        if (abilities.getWalkingSpeed() == 0.1F) {
+            return;
+        }
+        AttributeInstance walking = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (walking == null || walking.getBaseValue() != abilities.getWalkingSpeed()) {
+            return;
+        }
+        Standards.LOGGER.info("Resetting a stale walking speed of {} for {}",
+                abilities.getWalkingSpeed(), player.getName().getString());
+        abilities.setWalkingSpeed(0.1F);
+        walking.setBaseValue(0.1D);
+        player.onUpdateAbilities();
+    }
+
+    /**
      * Tell a returning player which switches are still on.
      *
      * <p>Flight, god mode and vanish all survive a logout on purpose. The trouble is that two of
@@ -273,10 +306,10 @@ public final class StandardsEvents {
         // abilities NBT, so at the next login it seeds the base and our modifier multiplies it
         // AGAIN: /speed walk 2 becomes 4x, then 8x.
         //
-        // 0.1 is written rather than left alone purely to normalise players carrying a stale
-        // value from an earlier build of this mod, who would otherwise compound on their next
-        // login. Vanilla itself never changes walkingSpeed at runtime.
-        abilities.setWalkingSpeed(0.1F);
+        // Not written here at all. Normalising a stale value is a one-time migration and belongs
+        // at login (see healStaleWalkSpeed) — doing it on every respawn, dimension change and
+        // game-mode change would stomp any other mod that legitimately sets a walking baseline,
+        // which is precisely the complaint we would raise if somebody did it to us.
 
         // Flying is genuinely the other way round: there is no flight-speed attribute, so
         // abilities.flyingSpeed IS the authority. Which is why /speed fly worked all along.
