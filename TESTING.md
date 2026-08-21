@@ -165,7 +165,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [ ] `/setkit starter hotbar`, `/setkit everything all`
 - [ ] `/kit`, `/kits`, `/showkit knight`
 - [ ] `/kit knight` with a full inventory — overflow lands at your feet, and says so
-- [ ] `/setkit daily all 1d` then `/kit daily` twice — cooldown refuses the second
+- [x] `/setkit daily all 1d` then `/kit daily` twice — cooldown refuses the second
 - [ ] `/delkit daily`
 - [ ] restart the server — kits and cooldowns survive
 
