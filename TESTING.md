@@ -67,7 +67,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
       point a flying player makes is mid-air, so this is the normal case for anyone with `/fly` on
 - [x] `/sethome` while flying, then `/home` — same story for homes and warps
 - [x] `/setspawn` somewhere with no floor — saves, but warns you at the time
-- [ ] Bed spawn boxed in, with water nearby — lands you on **dry ground** if any is in range;
+- [x] Bed spawn boxed in, with water nearby — lands you on **dry ground** if any is in range;
       underwater only when there is genuinely nothing better
 - [x] `/top` in the Nether — lands **under** the bedrock, never on the roof
 - [x] `/top` under a bedrock or barrier roof — refuses, and names the block in the way
@@ -82,7 +82,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [ ] `/back` after dying — refused unless you grant `standards.back.ondeath`
 - [ ] `/spawn` with no `/setspawn` ever run — falls back to world spawn, does not error
 - [ ] `/setspawn` then `/spawn`
-- [ ] `/playerspawn` with no bed — says so; with a bed — goes there
+- [x] `/playerspawn` with no bed — says so; with a bed — goes there
 - [ ] warmup: start any teleport and **walk** — cancelled, and you are told why
 - [ ] warmup: start one and take damage — cancelled
 
