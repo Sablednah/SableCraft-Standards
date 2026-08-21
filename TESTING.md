@@ -72,10 +72,10 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/top` in the Nether — lands **under** the bedrock, never on the roof
 - [x] `/top` under a bedrock or barrier roof — refuses, and names the block in the way
 - [x] `/bottom` over a sealed bedrock vault — refuses, rather than dropping you inside it
-- [ ] `/bottom` **from** the Nether roof — still gets you down; the rescue outranks the barrier
+- [x] `/bottom` **from** the Nether roof — still gets you down; the rescue outranks the barrier
 - [x] `/bottom` on open ground — still lands on the world bedrock floor (landing *on* it is fine,
       only scanning *through* it is refused)
-- [ ] `/bottom` — op only
+- [x] `/bottom` — op only
 - [x] `/jump` `/j` — lands on top of what you are looking at, not inside it
 - [ ] `/jump` at the sky — "nothing in range"
 - [ ] `/back` after any teleport, and `/back 2`, `/back 3` up the trail
