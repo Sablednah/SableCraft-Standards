@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import com.sablednah.standards.api.chat.Chat;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.level.GameType;
 import net.neoforged.bus.api.EventPriority;
@@ -183,6 +184,10 @@ public final class StandardsEvents {
     private static final Identifier FLIGHT_MODIFIER =
             Identifier.fromNamespaceAndPath(Standards.MODID, "fly_command");
 
+    /** Our slice of movement speed, so /speed composes with potions and other mods' modifiers. */
+    private static final Identifier WALK_SPEED_MODIFIER =
+            Identifier.fromNamespaceAndPath(Standards.MODID, "walk_speed");
+
     /**
      * Put the player's saved switches back into effect.
      *
@@ -227,6 +232,28 @@ public final class StandardsEvents {
         if (!mayFly) {
             // Otherwise /fly off leaves them airborne until they happen to touch a block.
             abilities.flying = false;
+        }
+
+        // WALKING SPEED IS AN ATTRIBUTE, mirrored to the ability — decision 3 all over again.
+        //
+        // abilities.walkingSpeed is what the client is told, and it drives the FOV stretch and
+        // the client's own movement prediction. It is NOT what the server moves the player by:
+        // that is minecraft:movement_speed, and the server validates incoming positions against
+        // it. Set only the ability and you get the exact symptom reported — "the FOV changed but
+        // it felt the same" — because the client is showing a speed the server will not honour.
+        //
+        // So the attribute is the source of truth and the ability is written as a derived cache
+        // of it, purely so the packet carries a value the client renders consistently. Flying is
+        // the other way round: abilities.flyingSpeed genuinely is the authority for creative
+        // flight, which is why /speed fly worked and /speed walk did not.
+        AttributeInstance walking = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (walking != null) {
+            walking.removeModifier(WALK_SPEED_MODIFIER);
+            if (state.walkSpeed() != 1.0F) {
+                walking.addTransientModifier(new AttributeModifier(
+                        WALK_SPEED_MODIFIER, state.walkSpeed() - 1.0D,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            }
         }
 
         // Vanilla's defaults, scaled. Written every time because respawn and game-mode changes

@@ -353,6 +353,15 @@ new run directory is exactly the one that would come up at full volume.
 `Unable to delete file` / `AccessDeniedException`. A separate `--project-cache-dir` is *not*
 enough — that separates lock files, not build outputs. Both are set in `TestClient.cmd`.
 
+**⚠ Config hot-reload does not work on this dev server, and it is the environment, not the mod.**
+NeoForge watches `config/*.toml` and reloads them live — the log even says
+`Watching TOML config file ... for changes`. But inotify events do not propagate from the Windows
+filesystem to Linux on `/mnt/d`, so the watcher never fires: verified by editing a value, waiting,
+then `touch`-ing the file, with no reload logged either time. **Restart the dev server after any
+config change.** On a real server the same edit applies live, so do not "fix" this by adding a
+reload command. (`/standards reload` is messages-only for a different and deliberate reason — see
+decision 7.)
+
 **⚠ On `/mnt/d`, Linux does NOT get Linux file semantics.** The usual rule is that Linux can unlink
 a file another process has open and Windows cannot — but drvfs goes through Windows file APIs, so
 Windows locking applies **in both directions**. A file held open by a Windows process cannot be

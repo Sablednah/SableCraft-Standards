@@ -174,7 +174,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/heal` while burning — healed **and** extinguished
 - [x] `/feed` `/eat`, `/rest`
 - [ ] `/heal TestBuddy` **[2P]** — they are told who did it
-- [ ] `/speed 2`, `/speed 5` while flying (sets fly speed), `/speed walk 2`, `/speed reset`
+- [x] `/speed 2`, `/speed 5` while flying (sets fly speed), `/speed walk 2`, `/speed reset`
 - [ ] `/speed 50` — refused, names the ceiling
 - [ ] die and respawn with speed set — it should still be set
 
