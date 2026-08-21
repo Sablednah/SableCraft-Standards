@@ -65,8 +65,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/top` from inside a cave — first safe floor **above you**, not the surface
 - [x] `/back` **while flying** — returns you to a mid-air point instead of refusing. Every back
       point a flying player makes is mid-air, so this is the normal case for anyone with `/fly` on
-- [ ] `/sethome` while flying, then `/home` — same story for homes and warps
-- [ ] `/setspawn` somewhere with no floor — saves, but warns you at the time
+- [x] `/sethome` while flying, then `/home` — same story for homes and warps
+- [x] `/setspawn` somewhere with no floor — saves, but warns you at the time
 - [ ] Bed spawn boxed in, with water nearby — lands you on **dry ground** if any is in range;
       underwater only when there is genuinely nothing better
 - [x] `/top` in the Nether — lands **under** the bedrock, never on the roof
@@ -118,13 +118,13 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Homes and warps
 
-- [ ] `/sethome` then `/home` — the unnamed default
-- [ ] `/sethome base`, `/home base`, `/homes`
+- [x] `/sethome` then `/home` — the unnamed default
+- [x] `/sethome base`, `/home base`, `/homes`
 - [ ] `/sethome` a fourth time — refused at the limit, with the overwrite hint
 - [ ] `lp user <you> permission set standards.home.limit.10 true` — limit rises without a restart
 - [ ] `/delhome base`
 - [ ] `/home nonsense` — lists what you do have
-- [ ] `/setwarp shop`, `/warp shop`, `/warps`, `/delwarp shop`
+- [x] `/setwarp shop`, `/warp shop`, `/warps`, `/delwarp shop`
 - [ ] `/warp` bare — lists them
 - [ ] `/setwarp` as TestBuddy **[2P]** — refused, it is op only
 
