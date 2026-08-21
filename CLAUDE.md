@@ -341,6 +341,12 @@ CurseForge's bundled JDK 21:
 .\TestClient.cmd main       -> Sablednah   (runClientMain,  runMain/)
 ```
 
+**Mute the clients.** `TestClient.cmd` zeroes every `soundCategory_*` in the client's run
+directory before launching. Two clients and a server on one machine play the same sound two or
+three times slightly out of step, for the whole session. It writes the file rather than trusting
+one to exist, because a fresh client generates its own `options.txt` on first start — so a brand
+new run directory is exactly the one that would come up at full volume.
+
 **Each Windows client needs its own build directory**, via `-PwinClient=<name>` →
 `build-win-<name>/`. Without it the client's `:createMinecraftArtifacts` tries to replace
 `build/moddev/artifacts/neoforge-*.jar` while the running dev server holds it open, and fails with

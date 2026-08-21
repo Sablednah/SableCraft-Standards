@@ -38,6 +38,30 @@ if not exist "%JAVA_HOME%\bin\java.exe" (
 rem A separate project cache AND build directory per client. Both are needed: the cache stops
 rem the gradle daemons fighting over lock files, and -PwinClient gives each client its own
 rem build/ so it never tries to delete the neoforge jar the running WSL server holds open.
+rem ---------------------------------------------------------------------
+rem Mute every sound category before launching.
+rem
+rem Two dev clients and a server on one machine means the same sound plays
+rem two or three times, slightly out of step, for hours. It is genuinely
+rem unpleasant to test through, and remembering to turn it down in-game is
+rem a thing you remember on the second launch, never the first.
+rem
+rem Done here rather than by hand because a fresh client writes a default
+rem options.txt the first time it starts - so a run directory that does not
+rem exist yet is exactly the one that would come up loud.
+rem ---------------------------------------------------------------------
+set "RUNDIR=run%WHO%"
+if /i "%WHO%"=="TestBuddy" set "RUNDIR=runBuddy"
+if /i "%WHO%"=="Sablednah" set "RUNDIR=runMain"
+powershell -NoProfile -Command ^
+  "$d = '%RUNDIR%'; $f = Join-Path $d 'options.txt';" ^
+  "New-Item -ItemType Directory -Force -Path $d | Out-Null;" ^
+  "$cats = 'master','music','record','weather','block','hostile','neutral','player','ambient','voice','ui';" ^
+  "$lines = if (Test-Path $f) { Get-Content $f } else { @() };" ^
+  "$lines = $lines | Where-Object { $_ -notmatch '^soundCategory_' };" ^
+  "$lines += $cats | ForEach-Object { 'soundCategory_' + $_ + ':0.0' };" ^
+  "Set-Content -Path $f -Value $lines"
+
 echo Starting %WHO% (first run compiles - be patient)...
 call gradlew.bat %TASK% --project-cache-dir .gradle-win-%WHO% -PwinClient=%WHO%
 pause
