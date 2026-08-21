@@ -205,8 +205,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/gc` `/tps` `/lag` `/mem` — TPS coloured by health, memory, uptime, entities per dimension
 - [x] bare `/smite` at a block
 - [ ] `/smite TestBuddy` **[2P]**
-- [ ] `/standards reload` after editing `messages.yml` — text changes without a restart
-- [ ] edit `term.balance` to "credits" — every money message follows
+- [x] `/standards reload` after editing `messages.yml` — text changes without a restart
+- [x] edit `term.balance` to "credits" — every money message follows
 
 ## Permissions, with LuckPerms
 

@@ -349,6 +349,9 @@ public final class Lang {
         def("msg.eco.balance_self", "{term.prefix} &7Your {term.balance}: &a{amount}");
         def("msg.eco.balance_other", "{term.prefix} &f{player}&7's {term.balance}: &a{amount}");
         def("msg.eco.no_account", "&c{player} has no account.");
+        def("msg.eco.paid_offline", "{term.prefix} &7Paid &a{amount}&7 to &f{player}&7, who is offline — they will be told when they next log in. New {term.balance}: &a{balance}");
+        def("msg.eco.paid_you_offline", "paid you &a{amount}&7 while you were away.");
+        def("msg.eco.unknown_player", "&cNo player called &f{player}&c has been seen on this server.");
         def("msg.eco.paid", "{term.prefix} &7Paid &a{amount}&7 to &f{player}&7. "
                 + "New {term.balance}: &a{balance}");
         def("msg.eco.received", "{term.prefix} &f{player}&7 paid you &a{amount}&7. "
@@ -362,6 +365,7 @@ public final class Lang {
                 + "(now &a{balance}&7).");
         def("msg.eco.admin_took", "{term.prefix} &7Took &c{amount}&7 from &f{player}&7 "
                 + "(now &a{balance}&7).");
+        def("msg.eco.admin_many", "{term.prefix} &7Adjusted &f{count}&7 {term.balance}s by &a{amount}&7.");
         def("msg.eco.admin_set", "{term.prefix} &7Set &f{player}&7's {term.balance} to &a{amount}&7.");
         def("msg.eco.baltop_header", "{term.prefix} &7Richest accounts:");
         def("msg.eco.baltop_row", " &8{rank}.&r &f{player} &7— &a{amount}");

@@ -180,6 +180,39 @@ public final class StandardsEvents {
         }
     }
 
+    /**
+     * Re-apply the switches <em>before</em> the client is told anything, on death.
+     *
+     * <p>{@code PlayerList.respawn} runs in this order:</p>
+     *
+     * <pre>
+     *   restoreFrom(...)                  // PlayerEvent.Clone fires at the end of this
+     *   send(ClientboundRespawnPacket)    // the client draws whatever it is given here
+     *   firePlayerRespawnEvent(...)       // PlayerRespawnEvent — too late
+     * </pre>
+     *
+     * <p>So anything repaired on {@code PlayerRespawnEvent} is repaired after the client has
+     * already been sent the wrong values. LegendQuest hit the visible version of this — a health
+     * bar showing ten hearts for a tick before snapping to twenty-eight — and passed the finding
+     * on. Ours is less visible and worse: there is a window in which {@code invulnerable} is false
+     * for a {@code /god} player and {@code mayfly} is false for a flying one, so respawning into
+     * lava can cost a hit and a flying player can drop.</p>
+     *
+     * <p><b>Split rather than moved.</b> {@code applySwitches} ends with
+     * {@code onUpdateAbilities()}, which sends a packet, and at Clone time the player is not in a
+     * level yet. So the state is written here and the packet is left to the respawn event below,
+     * which stays as an idempotent safety net for respawn paths that never clone.</p>
+     */
+    @SubscribeEvent
+    static void onClone(PlayerEvent.Clone event) {
+        if (!event.isWasDeath()) {
+            return; // returning from the End keeps everything; nothing to repair
+        }
+        if (event.getEntity() instanceof ServerPlayer player) {
+            applySwitches(player, false);
+        }
+    }
+
     @SubscribeEvent
     static void onRespawn(PlayerEvent.PlayerRespawnEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
@@ -242,6 +275,15 @@ public final class StandardsEvents {
      */
     @SuppressWarnings("deprecation") // mayfly: deliberately mirrored, see above
     public static void applySwitches(ServerPlayer player) {
+        applySwitches(player, true);
+    }
+
+    /**
+     * @param sync whether to push the result to the client. False only from
+     *             {@link #onClone}, where the player has no level yet and the respawn packet
+     *             that follows carries the values anyway.
+     */
+    public static void applySwitches(ServerPlayer player, boolean sync) {
         PlayerState state = StandardsAttachments.of(player);
         boolean creativeish = player.isCreative() || player.isSpectator();
 
@@ -320,7 +362,9 @@ public final class StandardsEvents {
         } else if (!creativeish) {
             abilities.invulnerable = false;
         }
-        player.onUpdateAbilities();
+        if (sync) {
+            player.onUpdateAbilities();
+        }
     }
 
     // --- god mode ---

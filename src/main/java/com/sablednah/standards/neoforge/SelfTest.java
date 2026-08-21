@@ -368,6 +368,14 @@ public final class SelfTest {
                 "up",
                 "down",
                 "standards testchat hello world",
+                // Both /eco argument branches: a bare name (offline-capable) and a selector
+                // (command blocks). The order they are registered in is what makes both work.
+                "eco give Steve 100",
+                "eco give @p 100",
+                "eco give @a[tag=winner] 500",
+                "eco take @p 5",
+                "eco set @p 0",
+                "pay Steve 10",
                 "craft", "workbench", "anvil", "grindstone", "enderchest", "ec",
                 "trashcan", "disposal",
                 "spawn", "setspawn", "playerspawn", "bottom",
