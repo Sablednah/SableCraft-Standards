@@ -2,6 +2,7 @@ package com.sablednah.standards.neoforge;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.sablednah.standards.Standards;
 import com.sablednah.standards.StandardsConfig;
@@ -27,6 +28,7 @@ import com.sablednah.standards.neoforge.commands.WarpCommands;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Where every command is registered.
@@ -253,7 +255,47 @@ public final class StandardsCommands {
         return Commands.literal("standards")
                 .requires(StandardsPermissions.require(StandardsPermissions.ADMIN))
                 .then(Commands.literal("reload").executes(StandardsCommands::reload))
-                .then(Commands.literal("economy").executes(StandardsCommands::economyInfo));
+                .then(Commands.literal("economy").executes(StandardsCommands::economyInfo))
+                .then(Commands.literal("testchat")
+                        .then(Commands.argument("message", StringArgumentType.greedyString())
+                                .executes(StandardsCommands::testChat)));
+    }
+
+    /**
+     * Put a real chat message through the real pipeline, as yourself.
+     *
+     * <p><b>Why this exists.</b> {@code SelfTest} runs on {@code ServerStartedEvent} with nobody
+     * connected, so the one thing it structurally cannot do is push player input through a path —
+     * and "a path nothing has ever called" is the shape of most of the bugs this mod has produced.
+     * Everything from the mute gate to the router seam only truly runs when somebody types, and
+     * RCON cannot make somebody type.</p>
+     *
+     * <p>So this posts a genuine {@link net.neoforged.neoforge.event.ServerChatEvent} on the real
+     * bus. AFK clearing, the mute gate, router offers, decoration and delivery all run exactly as
+     * they would for a typed line; only vanilla's packet decode is skipped. Borrowed from the
+     * LegendQuest session, which built the same harness to test the router from RCON.</p>
+     *
+     * <p><b>Yourself only, deliberately.</b> The obvious generalisation — a player argument — is a
+     * tool for making anybody appear to say anything, and impersonation is the one thing the colour
+     * code stripping was just hardened against. Ops can already do a great deal; putting words in
+     * a named player's mouth should not be one of them.</p>
+     *
+     * @return 1 if the message went through, 0 if something stopped it — so
+     *         {@code execute store result score} can assert on it from RCON
+     */
+    private static int testChat(CommandContext<CommandSourceStack> ctx)
+            throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        String message = StringArgumentType.getString(ctx, "message");
+
+        var event = new net.neoforged.neoforge.event.ServerChatEvent(
+                player, message, Feedback.colored(message));
+        boolean cancelled = net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(event).isCanceled();
+
+        Feedback.reply(ctx.getSource(), Lang.fmt("msg.admin.testchat",
+                "result", Lang.get(cancelled ? "msg.admin.testchat_stopped"
+                        : "msg.admin.testchat_through")), false);
+        return cancelled ? 0 : 1;
     }
 
     /**

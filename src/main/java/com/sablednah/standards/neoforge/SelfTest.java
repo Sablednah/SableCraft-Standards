@@ -349,6 +349,7 @@ public final class SelfTest {
                 "invsee Steve",
                 "up",
                 "down",
+                "standards testchat hello world",
                 "craft", "workbench", "anvil", "grindstone", "enderchest", "ec",
                 "trashcan", "disposal",
                 "spawn", "setspawn", "playerspawn", "bottom",

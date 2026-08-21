@@ -106,6 +106,42 @@ def main():
     check("/kit for a missing kit refuses", r.value(who, "kit nosuchkit") == 0)
     check("/delkit removes", r.value(who, "delkit probe") == 1)
 
+    # --- the chat pipeline, driven through a REAL ServerChatEvent ---
+    #
+    # This is the gap the self-test cannot close. SelfTest runs on ServerStartedEvent with nobody
+    # connected, so it can prove a function computes the right answer but never that anything
+    # calls it — and "a path nothing has ever called" is the shape of most of this mod's bugs.
+    # /standards testchat posts a genuine event on the real bus, so the mute gate, the router
+    # offer, decoration and delivery all run as they would for a typed line.
+    #
+    # Harness borrowed from the LegendQuest session, which built the same thing to test the
+    # router seam from RCON.
+    print("\n--- chat pipeline (real events) ---")
+    r.run(f"unmute {who}")
+    time.sleep(0.3)
+    check("an ordinary line goes through",
+          r.value(who, "standards testchat hello world") == 1)
+
+    r.run(f"mute {who} 10m battery test")
+    time.sleep(0.4)
+    # The one that was actually broken: a mute must stop chat at the gate, not merely at the
+    # public channel. Yesterday a channel mod could step around this entirely.
+    check("a muted player's chat is stopped",
+          r.value(who, "standards testchat i am muted") == 0)
+    check("and their /msg is stopped too, not just chat",
+          r.value(who, f"msg {who} sneaking through") == 0)
+    r.run(f"unmute {who}")
+    time.sleep(0.4)
+    check("unmuting lets chat through again",
+          r.value(who, "standards testchat back again") == 1)
+
+    # Colour codes: player text must never become formatting. The self-test proves the function;
+    # this proves the function is actually on the path a message travels.
+    check("a line with colour codes still delivers",
+          r.value(who, "standards testchat &c&lnot red not bold") == 1)
+    check("an ampersand in ordinary text still delivers",
+          r.value(who, "standards testchat Tom & Jerry") == 1)
+
     print("\n--- mail ---")
     r.value(who, "mail clear")
     check("/mail send works", r.value(who, f"mail send {who} hello") == 1)

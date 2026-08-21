@@ -96,6 +96,9 @@ public final class Lang {
         def("msg.tp.top", "{term.prefix} &7Up you go — &f{y}&7 blocks above where you were.");
         def("msg.chat.emote", "&o* {player} {action}");
         def("msg.chat.emote_vanished", "{term.prefix} &7Narrating at a room that cannot see you rather gives the game away.");
+        def("msg.admin.testchat", "{term.prefix} &7Chat pipeline: &f{result}&7.");
+        def("msg.admin.testchat_through", "&adelivered");
+        def("msg.admin.testchat_stopped", "&cstopped &7(muted, or claimed by a channel)");
         def("msg.tp.set_unreachable", "{term.prefix} &7Saved — but there is nothing to stand on there, so anyone who cannot fly will be told it is unsafe.");
         def("msg.tp.top_ceiling", "{term.prefix} &7Nothing above you but the ceiling — that is as high as this place goes.");
         def("msg.tp.blocked", "{term.prefix} &7There is &f{block}&7 in the way, and blocks like that are usually there on purpose.");
