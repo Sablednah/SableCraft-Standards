@@ -136,7 +136,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/pay TestBuddy 999999` — refused, tells you what you actually have
 - [x] `/pay` yourself — the dry refusal
 - [x] `/eco give TestBuddy 500`, `take`, `set`
-- [x] `/eco give` an **offline** player — should work; that is why balances are save data
+- [x] `/eco give` an **offline** player
+- [x] `/eco give @p 100` from a **command block** — the arena case; selectors resolve
+- [ ] `/eco give @a[tag=winner] 500` — a real tag, several winners at once — should work; that is why balances are save data
 - [x] `/standards economy` — says Standards holds the money, priority -1000
 - [x] `/bal` `/money` aliases
 
