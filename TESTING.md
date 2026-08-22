@@ -181,6 +181,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/speed 2`, `/speed 5` while flying (sets fly speed), `/speed walk 2`, `/speed reset`
 - [ ] `/speed 50` — refused, names the ceiling
 - [ ] die and respawn with speed set — it should still be set
+- [x] die with `/god` or `/fly` on — no flicker of vulnerability or grounding before they
+      re-apply; the state is written on Clone, before the client is told
 
 ## Stations — all denied by default, on purpose
 
