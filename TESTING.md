@@ -188,8 +188,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 - [x] `/craft` — refused for everyone including you
 - [x] `lp user <you> permission set standards.craft true` — now works, no restart
-- [ ] `/anvil` `/grindstone` `/enderchest` `/ec` `/trashcan` `/disposal` `/workbench`
-- [ ] put something in `/trashcan` and close it — gone, unrecoverable
+- [x] `/anvil` `/grindstone` `/enderchest` `/ec` `/trashcan` `/disposal` `/workbench`
+- [x] put something in `/trashcan` and close it — gone, unrecoverable
 
 ## Moderation
 
