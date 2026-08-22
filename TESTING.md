@@ -128,9 +128,11 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] holding two numbered limits at once (5 and 10) — the **highest** wins, so grants
       from a rank and a donor perk stack instead of fighting
 - [ ] `/delhome base`
-- [ ] `/home nonsense` — lists what you do have
+- [x] `/home nonsense` — lists what you do have
 - [x] `/setwarp shop`, `/warp shop`, `/warps`, `/delwarp shop`
-- [ ] `/warp` bare — lists them
+- [x] `/warp` bare — lists them
+- [x] `/warp junk` — names the warps that exist, or says the server has none at all
+      (that empty-list case used to read as a broken command)
 - [ ] `/setwarp` as TestBuddy **[2P]** — refused, it is op only
 
 ## Money
