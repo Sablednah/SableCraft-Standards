@@ -127,7 +127,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `lp user <you> permission set standards.home.limit.10 true` — limit rises without a restart
 - [x] holding two numbered limits at once (5 and 10) — the **highest** wins, so grants
       from a rank and a donor perk stack instead of fighting
-- [ ] `/delhome base`
+- [x] `/delhome base`
+- [x] `/delhome wrongname` — lists your homes, same as `/home wrongname`
 - [x] `/home nonsense` — lists what you do have
 - [x] `/setwarp shop`, `/warp shop`, `/warps`, `/delwarp shop`
 - [x] `/warp` bare — lists them
