@@ -186,8 +186,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Stations — all denied by default, on purpose
 
-- [ ] `/craft` — refused for everyone including you
-- [ ] `lp user <you> permission set standards.craft true` — now works, no restart
+- [x] `/craft` — refused for everyone including you
+- [x] `lp user <you> permission set standards.craft true` — now works, no restart
 - [ ] `/anvil` `/grindstone` `/enderchest` `/ec` `/trashcan` `/disposal` `/workbench`
 - [ ] put something in `/trashcan` and close it — gone, unrecoverable
 
