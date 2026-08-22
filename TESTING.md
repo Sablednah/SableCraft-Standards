@@ -142,6 +142,31 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/standards economy` — says Standards holds the money, priority -1000
 - [x] `/bal` `/money` aliases
 
+## Before you start: you are op, and op hides things
+
+Several features default to `Default.OPS`, so **the person doing the testing is the one person who
+never sees them.** That is not a bug — an admin should not wait five seconds to teleport — but it
+means a check can read as "working" when you simply bypassed it.
+
+Bitten three times already: the teleport countdown, the teleport cooldown, and the home limit.
+Deny them on your own account for the duration, then unset when finished:
+
+```
+/lp user <you> permission set standards.teleport.instant false
+/lp user <you> permission set standards.teleport.nocooldown false
+/lp user <you> permission set standards.home.limit.unlimited false
+```
+
+```
+/lp user <you> permission unset standards.teleport.instant
+/lp user <you> permission unset standards.teleport.nocooldown
+/lp user <you> permission unset standards.home.limit.unlimited
+```
+
+⚠ **LuckPerms does not grant its own commands to ops on this platform**, so `/lp` may answer with
+nothing but its version banner — which looks identical to a malformed command. Console and RCON
+always work, and `lp user <you> permission set luckperms.* true` from there fixes it permanently.
+
 ## Talking
 
 - [ ] `/msg TestBuddy hi` **[2P]** and `/r` back — vanilla owns `/msg`, we override it
