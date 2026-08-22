@@ -133,7 +133,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/balance` — starts at ₡100
 - [x] `/baltop`
 - [x] `/pay TestBuddy 25` **[2P]** — both sides told, balances move
-- [ ] `/pay TestBuddy 999999` — refused, tells you what you actually have
+- [x] `/pay TestBuddy 999999` — refused, tells you what you actually have
 - [x] `/pay` yourself — the dry refusal
 - [x] `/eco give TestBuddy 500`, `take`, `set`
 - [x] `/eco give` an **offline** player — should work; that is why balances are save data
