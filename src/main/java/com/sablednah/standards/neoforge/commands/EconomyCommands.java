@@ -138,7 +138,16 @@ public final class EconomyCommands {
                 changed++;
             }
         }
-        Feedback.reply(ctx.getSource(), Lang.fmt("msg.eco.admin_many",
+        if (changed == 0) {
+            Feedback.fail(ctx.getSource(), Lang.get("msg.eco.admin_none"));
+            return 0;
+        }
+        String key = switch (op) {
+            case GIVE -> "msg.eco.admin_gave_many";
+            case TAKE -> "msg.eco.admin_took_many";
+            case SET -> "msg.eco.admin_set_many";
+        };
+        Feedback.reply(ctx.getSource(), Lang.fmt(key,
                 "count", changed, "amount", Economy.format(value)), true);
         return changed;
     }

@@ -249,6 +249,7 @@ public final class Lang {
     // --- msg.tpa.* : teleport requests ---
     static {
         def("term.tpa", "teleport request");
+        def("term.tpas", "teleport requests");
         // Phrased to read after "You are ..." so they can be listed in one sentence.
         def("term.state.vanished", "vanished");
         def("term.state.god", "in god mode");
@@ -267,10 +268,10 @@ public final class Lang {
         def("msg.tpa.button_deny_tip", "Turn down {player}'s {term.tpa}");
         def("msg.tpa.self", "&7You are already where you are.");
         def("msg.tpa.duplicate", "&7You have already asked &f{player}&7 — wait for an answer.");
-        def("msg.tpa.refusing", "&c{player} is not accepting {term.tpa}s right now.");
-        def("msg.tpa.none_incoming", "&7No open {term.tpa}s.");
+        def("msg.tpa.refusing", "&c{player} is not accepting {term.tpas} right now.");
+        def("msg.tpa.none_incoming", "&7No open {term.tpas}.");
         def("msg.tpa.none_from", "&cNo open {term.tpa} from &f{name}&c.");
-        def("msg.tpa.none_outgoing", "&7You have no {term.tpa}s waiting for an answer.");
+        def("msg.tpa.none_outgoing", "&7You have no {term.tpas} waiting for an answer.");
         // Dead ends turned into signposts. /tpa tab-completes to tpacancel before tpaccept, and
         // on /tpahere the person who asked is not the person who accepts — both land someone in
         // the wrong command with nothing useful to do next.
@@ -307,8 +308,8 @@ public final class Lang {
         def("msg.tpa.expired_sender", "&e\u231b Your {term.tpa} to &f{player}&e lapsed &8(no answer in time).");
         def("msg.tpa.expired_target", "&e\u231b &f{player}&e's {term.tpa} lapsed &8(you did not answer in time).");
 
-        def("msg.tpa.toggle_name", "Incoming {term.tpa}s");
-        def("msg.tpa.list_header", "{term.prefix} &7Open {term.tpa}s:");
+        def("msg.tpa.toggle_name", "Incoming {term.tpas}");
+        def("msg.tpa.list_header", "{term.prefix} &7Open {term.tpas}:");
         def("msg.tpa.list_row", " &7-&r &f{player} &8({dir}, {sec}s left)");
         def("msg.tpa.dir_to_you", "to you");
         def("msg.tpa.dir_to_them", "you to them");
@@ -365,7 +366,13 @@ public final class Lang {
                 + "(now &a{balance}&7).");
         def("msg.eco.admin_took", "{term.prefix} &7Took &c{amount}&7 from &f{player}&7 "
                 + "(now &a{balance}&7).");
-        def("msg.eco.admin_many", "{term.prefix} &7Adjusted &f{count}&7 {term.balance}s by &a{amount}&7.");
+        // One per verb, mirroring the single-target wording above. NEVER pluralise a {term.*}
+        // value by appending an s: the term is vocabulary the owner chose, so it may be "credits",
+        // "gil" or "brass", and "creditss" is what naive inflection actually produced.
+        def("msg.eco.admin_gave_many", "{term.prefix} &7Gave &a{amount}&7 to &f{count}&7 players.");
+        def("msg.eco.admin_took_many", "{term.prefix} &7Took &c{amount}&7 from &f{count}&7 players.");
+        def("msg.eco.admin_set_many", "{term.prefix} &7Set the {term.balance} of &f{count}&7 players to &a{amount}&7.");
+        def("msg.eco.admin_none", "&7Nobody matched — no {term.balance} changed.");
         def("msg.eco.admin_set", "{term.prefix} &7Set &f{player}&7's {term.balance} to &a{amount}&7.");
         def("msg.eco.baltop_header", "{term.prefix} &7Richest accounts:");
         def("msg.eco.baltop_row", " &8{rank}.&r &f{player} &7— &a{amount}");
@@ -420,6 +427,11 @@ public final class Lang {
 
     private static Path file() {
         return FMLPaths.CONFIGDIR.get().resolve("standards").resolve("messages.yml");
+    }
+
+    /** The built-in catalogue, for checks that must look at every message. */
+    public static Map<String, String> catalogue() {
+        return Map.copyOf(DEFAULTS);
     }
 
     /** Load overrides; write the full catalogue out if the file is absent. */

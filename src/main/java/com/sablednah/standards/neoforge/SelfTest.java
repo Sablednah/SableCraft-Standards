@@ -65,6 +65,7 @@ public final class SelfTest {
         checkStateSentence();
         checkTopCeiling();
         checkChatLine();
+        checkNoTermInflection();
         checkColourCodes();
         checkChatRouters();
         checkMoneyFormatting();
@@ -297,6 +298,26 @@ public final class SelfTest {
                 return claims;
             }
         };
+    }
+
+    /**
+     * No message may inflect a {@code {term.*}} value.
+     *
+     * <p>The terms are vocabulary the server owner chose — a currency might be "credits", "gil"
+     * or "brass" — so appending an "s" for a plural is a rule that cannot hold. It produced
+     * "creditss" in front of a real user before this check existed. Where a plural is genuinely
+     * needed the catalogue defines one, which is why {@code term.homes} and {@code term.warps}
+     * sit beside their singulars.</p>
+     */
+    private void checkNoTermInflection() {
+        java.util.regex.Pattern inflected =
+                java.util.regex.Pattern.compile("\\{term\\.[a-z_.]+\\}[A-Za-z]");
+        List<String> offenders = Lang.catalogue().entrySet().stream()
+                .filter(e -> inflected.matcher(e.getValue()).find())
+                .map(java.util.Map.Entry::getKey)
+                .toList();
+        check("no message inflects a vocabulary term" + (offenders.isEmpty() ? "" : " " + offenders),
+                offenders.isEmpty());
     }
 
     private void checkMoneyFormatting() {
