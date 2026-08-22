@@ -156,7 +156,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 ## Away
 
 - [x] `/afk` — announced to everyone
-- [ ] move — automatically back, no second command needed
+- [x] move — automatically back, no second command needed
 - [x] `/afk gone for tea` — reason shown
 - [x] `/lurk` alias
 - [x] stand still for `afk.awayAfterSeconds` — marked away automatically
