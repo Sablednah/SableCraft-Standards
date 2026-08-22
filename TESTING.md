@@ -120,7 +120,10 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 - [x] `/sethome` then `/home` — the unnamed default
 - [x] `/sethome base`, `/home base`, `/homes`
-- [ ] `/sethome` a fourth time — refused at the limit, with the overwrite hint
+- [x] `/sethome` a fourth time — refused at the limit, with the overwrite hint
+- [x] overwriting an existing home while over the limit — allowed, so a ceiling never
+      means "you may never /sethome again"
+- [x] lowering a limit below what a player already has — nothing is deleted
 - [x] `lp user <you> permission set standards.home.limit.10 true` — limit rises without a restart
 - [x] holding two numbered limits at once (5 and 10) — the **highest** wins, so grants
       from a rank and a donor perk stack instead of fighting
