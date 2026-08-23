@@ -150,6 +150,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/baltop`
 - [x] `/pay TestBuddy 25` **[2P]** — both sides told, balances move
 - [x] `/pay TestBuddy 999999` — refused, tells you what you actually have
+- [x] `/pay` an **offline** player — resolved by name, and the notice arrives as mail from you
+      when they next log in, so the money never appears unexplained
 - [x] `/pay` yourself — the dry refusal
 - [x] `/eco give TestBuddy 500`, `take`, `set`
 - [x] `/eco give` an **offline** player
