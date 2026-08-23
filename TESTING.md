@@ -106,7 +106,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/tpaccept` when you are the one waiting — tells you so
 - [ ] let one lapse — ⌛ message at both ends
 - [x] `/tpalist` — who asked, which direction, seconds left
-- [ ] `/call` `/tpyes` `/tpno` aliases
+- [x] `/call` `/tpyes` `/tpno` aliases
+- [x] `/tpa` yourself — refused, you are already there
 - [ ] `/tpoffline TestBuddy` after they log out — op only
 
 ## Vanish **[2P]** — TestBuddy must not be op
