@@ -91,7 +91,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/setspawn` then `/spawn`
 - [x] `/playerspawn` with no bed — says so; with a bed — goes there
 - [x] warmup: start any teleport and **walk** — cancelled, and you are told why
-- [ ] warmup: start one and take damage — cancelled
+- [x] warmup: start one and take damage — cancelled
 
 ## Teleport requests **[2P]**
 
