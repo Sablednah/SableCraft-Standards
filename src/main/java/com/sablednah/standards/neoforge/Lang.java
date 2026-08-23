@@ -109,6 +109,7 @@ public final class Lang {
         def("msg.tp.to_offline", "{term.prefix} &7To where &f{player}&7 logged out &8({place}).");
         def("msg.tp.jump_nothing", "&cNothing in range to jump to.");
         def("msg.tp.jump_done", "{term.prefix} &7Jumped &f{blocks}&7 blocks.");
+        def("msg.tp.back_death_disabled", "&7Returning to where you died is not enabled here, so that spot was not saved. &8(/back again for your previous location.)");
         def("msg.tp.back_none", "&7Nowhere to go back to.");
         def("msg.tp.back_done", "{term.prefix} &7Returned to where you were &8({place}).");
         def("msg.tp.back_death", "{term.prefix} &7Returned to where you died &8({place}).");

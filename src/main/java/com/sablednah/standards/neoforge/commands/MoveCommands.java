@@ -296,6 +296,16 @@ public final class MoveCommands {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
         PlayerState state = StandardsAttachments.of(player);
 
+        // They died since their last /back, and the death site was deliberately not stored. Say so
+        // once, and clear it — a second /back then does the ordinary thing. Refusing silently, or
+        // teleporting them to a warp they used ten minutes ago, both read as the command being
+        // broken; only one of them also moves them somewhere they never asked to go.
+        if (steps == 1 && state.deathNotRecorded()) {
+            state.setDeathNotRecorded(false);
+            Feedback.chat(player, Lang.get("msg.tp.back_death_disabled"));
+            return 0;
+        }
+
         Optional<Waypoint> destination = state.peekBack(steps);
         if (destination.isEmpty()) {
             Feedback.chat(player, Lang.get("msg.tp.back_none"));

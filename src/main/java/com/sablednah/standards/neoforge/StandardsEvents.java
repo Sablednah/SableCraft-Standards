@@ -524,9 +524,15 @@ public final class StandardsEvents {
     @SubscribeEvent
     static void onDeath(net.neoforged.neoforge.event.entity.living.LivingDeathEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!StandardsConfig.BACK_ON_DEATH.get()) return;
-        if (!StandardsPermissions.has(player, StandardsPermissions.BACK_ON_DEATH)) return;
-        StandardsAttachments.of(player).pushBack(Waypoint.of(player), true);
+        PlayerState state = StandardsAttachments.of(player);
+        if (!StandardsConfig.BACK_ON_DEATH.get()
+                || !StandardsPermissions.has(player, StandardsPermissions.BACK_ON_DEATH)) {
+            // Remember THAT they died even though we will not record WHERE, so /back can explain
+            // itself rather than silently sending them to their last warp. See deathNotRecorded.
+            state.setDeathNotRecorded(true);
+            return;
+        }
+        state.pushBack(Waypoint.of(player), true);
     }
 
     private StandardsEvents() {}

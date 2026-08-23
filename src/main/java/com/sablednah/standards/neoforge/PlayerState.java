@@ -31,6 +31,7 @@ public class PlayerState {
             Codec.BOOL.optionalFieldOf("god", false).forGetter(PlayerState::god),
             Waypoint.CODEC.listOf().optionalFieldOf("back", List.of()).forGetter(s -> List.copyOf(s.back)),
             Codec.BOOL.optionalFieldOf("backWasDeath", false).forGetter(PlayerState::backWasDeath),
+            Codec.BOOL.optionalFieldOf("deathNotRecorded", false).forGetter(PlayerState::deathNotRecorded),
             Codec.BOOL.optionalFieldOf("refusingTeleports", false).forGetter(PlayerState::refusingTeleports),
             Codec.BOOL.optionalFieldOf("vanished", false).forGetter(PlayerState::vanished),
             Codec.FLOAT.optionalFieldOf("walkSpeed", 1.0F).forGetter(PlayerState::walkSpeed),
@@ -47,6 +48,16 @@ public class PlayerState {
     private final List<Waypoint> back = new ArrayList<>();
     /** Whether the newest entry in {@link #back} is a death site, purely so the message can say so. */
     private boolean backWasDeath;
+    /**
+     * They died, and we did <em>not</em> record where, because the permission was not granted.
+     *
+     * <p>Kept purely so {@code /back} can explain itself. Without it a player dies, types
+     * {@code /back} expecting their corpse, and is silently teleported to wherever they last
+     * warped from — which is not a refusal, it is being sent somewhere they never asked to go and
+     * given no reason. Reported from exactly that: "back after the death took me back to a
+     * previous teleport".</p>
+     */
+    private boolean deathNotRecorded;
     /** {@code /tptoggle} — refuse all incoming teleport requests. Persisted, because a player who
      *  set it wants it to still be set tomorrow. */
     private boolean refusingTeleports;
@@ -68,12 +79,14 @@ public class PlayerState {
     public PlayerState() {}
 
     private PlayerState(boolean fly, boolean god, List<Waypoint> back, boolean backWasDeath,
+            boolean deathNotRecorded,
             boolean refusingTeleports, boolean vanished, float walkSpeed, float flySpeed,
             boolean refusingMessages, boolean socialSpy, List<java.util.UUID> ignored) {
         this.fly = fly;
         this.god = god;
         this.back.addAll(back);
         this.backWasDeath = backWasDeath;
+        this.deathNotRecorded = deathNotRecorded;
         this.refusingTeleports = refusingTeleports;
         this.vanished = vanished;
         this.walkSpeed = walkSpeed;
@@ -101,6 +114,15 @@ public class PlayerState {
 
     public boolean backWasDeath() {
         return backWasDeath;
+    }
+
+    public boolean deathNotRecorded() {
+        return deathNotRecorded;
+    }
+
+    /** Set on death when the death site was deliberately not stored; cleared once explained. */
+    public void setDeathNotRecorded(boolean value) {
+        deathNotRecorded = value;
     }
 
     public boolean refusingTeleports() {
@@ -173,6 +195,9 @@ public class PlayerState {
     public void pushBack(Waypoint where, boolean death) {
         back.addFirst(where);
         backWasDeath = death;
+        if (death) {
+            deathNotRecorded = false;
+        }
         int limit = StandardsConfig.BACK_HISTORY.get();
         while (back.size() > limit) {
             back.removeLast();
