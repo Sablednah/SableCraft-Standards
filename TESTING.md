@@ -102,10 +102,10 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [ ] accept, then walk during the countdown — cancelled, **and they are told why**
 - [ ] `/tpa`, accept, then have the host run away — you land where they *ended up*
       (`tpaFollowTarget = false` to land where they were instead)
-- [ ] `/tpacancel` with nothing to cancel but a request waiting — offers an Accept button
-- [ ] `/tpaccept` when you are the one waiting — tells you so
+- [x] `/tpacancel` with nothing to cancel but a request waiting — offers an Accept button
+- [x] `/tpaccept` when you are the one waiting — tells you so
 - [ ] let one lapse — ⌛ message at both ends
-- [ ] `/tpalist` — who asked, which direction, seconds left
+- [x] `/tpalist` — who asked, which direction, seconds left
 - [ ] `/call` `/tpyes` `/tpno` aliases
 - [ ] `/tpoffline TestBuddy` after they log out — op only
 
