@@ -132,24 +132,46 @@ public final class EconomyCommands {
         if (amount.isEmpty()) return 0;
         double value = Money.round(amount.get());
 
-        int changed = 0;
+        List<ServerPlayer> changed = new java.util.ArrayList<>();
         for (ServerPlayer target : EntityArgument.getPlayers(ctx, "targets")) {
             if (applyTo(target.getUUID(), op, value).success()) {
-                changed++;
+                changed.add(target);
             }
         }
-        if (changed == 0) {
+        if (changed.isEmpty()) {
             Feedback.fail(ctx.getSource(), Lang.get("msg.eco.admin_none"));
             return 0;
         }
+
+        // A selector that matched exactly one player gets the named message rather than a count.
+        // "Gave ₡500 to 1 players" is both ungrammatical and less useful than saying who — and an
+        // arena selector matching a single winner is the common case, not the edge one.
+        if (changed.size() == 1) {
+            ServerPlayer only = changed.get(0);
+            Feedback.reply(ctx.getSource(), Lang.fmt(namedKey(op),
+                    "player", only.getName().getString(),
+                    "amount", Economy.format(value),
+                    "balance", Economy.format(Economy.balance(only.getUUID()))), true);
+            return 1;
+        }
+
         String key = switch (op) {
             case GIVE -> "msg.eco.admin_gave_many";
             case TAKE -> "msg.eco.admin_took_many";
             case SET -> "msg.eco.admin_set_many";
         };
         Feedback.reply(ctx.getSource(), Lang.fmt(key,
-                "count", changed, "amount", Economy.format(value)), true);
-        return changed;
+                "count", changed.size(), "amount", Economy.format(value)), true);
+        return changed.size();
+    }
+
+    /** The per-player message for each verb, shared by the name and selector forms. */
+    private static String namedKey(AdminOp op) {
+        return switch (op) {
+            case GIVE -> "msg.eco.admin_gave";
+            case TAKE -> "msg.eco.admin_took";
+            case SET -> "msg.eco.admin_set";
+        };
     }
 
     /** The operation itself, shared by the name and selector forms so they cannot drift. */
@@ -294,12 +316,7 @@ public final class EconomyCommands {
             });
             return 0;
         }
-        String key = switch (op) {
-            case GIVE -> "msg.eco.admin_gave";
-            case TAKE -> "msg.eco.admin_took";
-            case SET -> "msg.eco.admin_set";
-        };
-        Feedback.reply(ctx.getSource(), Lang.fmt(key,
+        Feedback.reply(ctx.getSource(), Lang.fmt(namedKey(op),
                 "player", name,
                 "amount", Economy.format(value),
                 "balance", Economy.format(Economy.balance(uuid))), true);
