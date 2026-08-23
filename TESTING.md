@@ -49,8 +49,10 @@ grid is legible, whether the timing feels right, and anything needing two people
 
 Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
-- [ ] `/fly` — toggles. `/fly on` twice says "already on" rather than silently succeeding
-- [ ] `/fly off` while airborne — you drop, rather than hanging there
+- [x] `/fly` and `/god` — bare toggles, and explicit `on` / `off` both work
+- [ ] `/fly on` twice — says "already on" rather than silently succeeding
+- [x] `/fly off` while airborne — you drop, rather than hanging there
+- [x] `/god off` — damage lands again immediately
 - [ ] `/fly TestBuddy on` **[2P]** — they are told who did it
 - [ ] `/fly @a off` — reports a count, not one name
 - [ ] `/god` / `/god on` — take damage, then don't. Try lava, fall, starvation
