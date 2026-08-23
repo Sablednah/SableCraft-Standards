@@ -108,7 +108,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/tpalist` — who asked, which direction, seconds left
 - [x] `/call` `/tpyes` `/tpno` aliases
 - [x] `/tpa` yourself — refused, you are already there
-- [ ] `/tpoffline TestBuddy` after they log out — op only
+- [x] `/tpoffline TestBuddy` after they log out — op only
 
 ## Vanish **[2P]** — TestBuddy must not be op
 
@@ -193,6 +193,7 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
       work if the merge replaced vanilla's command rather than losing to it)
 - [x] `/r` with nobody to reply to
 - [x] `/ignore TestBuddy` **[2P]** — their messages stop arriving
+- [x] the ignore list survives a disconnect and a server restart
 - [ ] `/ignore` also hides their **public chat**, not only their `/msg`
 - [x] …**and they cannot tell** — the sender still sees an ordinary "sent" confirmation,
       because an ignore that announces itself is a weapon rather than a shield
