@@ -185,7 +185,7 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 
 ## Talking
 
-- [ ] `/msg TestBuddy hi` **[2P]** and `/r` back — vanilla owns `/msg`, we override it
+- [x] `/msg TestBuddy hi` **[2P]** and `/r` back — vanilla owns `/msg`, we override it
 - [ ] `/w` `/whisper` `/tell` `/pm` `/m` — all ours, all behave the same
 - [x] `/r` with nobody to reply to
 - [ ] `/ignore TestBuddy` **[2P]** — their messages stop arriving, **and they cannot tell**
