@@ -249,7 +249,7 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 - [x] `/mute TestBuddy 30m spam` **[2P]** — they are told, and told again each time they try
 - [x] a muted player's `/msg` is blocked too, not just chat
 - [x] and `/r`, `/w` and `/me` — every channel, not a list of the ones we remembered
-- [ ] `/unmute TestBuddy`
+- [x] `/unmute TestBuddy`
 - [ ] `/tempban TestBuddy 2h testing` — kicked with the reason; `/pardon` lifts it
 - [ ] `/tempban TestBuddy bananas` — refused, does not silently ban for 0 seconds
 
