@@ -439,10 +439,39 @@ public final class StandardsEvents {
             return;
         }
 
-        ChatFormatter.format(player, event.getRawText()).ifPresent(line -> {
-            event.setCanceled(true);
-            deliver(server, player, line);
-        });
+        // /ignore has to filter public chat too, not just /msg — and ServerChatEvent is
+        // all-or-nothing, with no way to drop a single recipient. So the only way to hide a line
+        // from one person is to take delivery over for everybody.
+        //
+        // Which is why it is asked rather than assumed: the cost of taking over is that the line
+        // becomes a system message, losing signed chat and hover cards for every viewer, and it
+        // would be wrong to charge that to a whole server for a feature nobody is using. Checked
+        // per message because it is a cheap scan of who is online, and it is false almost always.
+        //
+        // Found when the self-test's leaked decorators were removed: until then EVERY line was
+        // decorated, so /ignore silently worked on public chat for the wrong reason, and fixing
+        // the leak exposed that it had never worked on its own.
+        boolean hiddenFromSomeone = anyoneIgnoring(server, player);
+
+        java.util.Optional<Component> formatted = ChatFormatter.format(player, event.getRawText());
+        if (formatted.isEmpty() && !hiddenFromSomeone) {
+            return; // nothing to add and nobody to hide it from: leave vanilla entirely alone
+        }
+        event.setCanceled(true);
+        deliver(server, player, formatted.orElseGet(() -> Feedback.colored(
+                Lang.fmt("msg.chat.plain",
+                        "player", player.getName().getString(),
+                        "message", Feedback.stripCodes(event.getRawText())))));
+    }
+
+    /** Whether anybody online has this player on their ignore list. */
+    private static boolean anyoneIgnoring(MinecraftServer server, ServerPlayer speaker) {
+        for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
+            if (StandardsAttachments.of(viewer).ignores(speaker.getUUID())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

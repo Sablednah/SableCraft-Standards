@@ -193,7 +193,8 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
       work if the merge replaced vanilla's command rather than losing to it)
 - [x] `/r` with nobody to reply to
 - [x] `/ignore TestBuddy` **[2P]** — their messages stop arriving
-- [ ] …**and they cannot tell** — the sender still sees an ordinary "sent" confirmation,
+- [ ] `/ignore` also hides their **public chat**, not only their `/msg`
+- [x] …**and they cannot tell** — the sender still sees an ordinary "sent" confirmation,
       because an ignore that announces itself is a weapon rather than a shield
 - [x] `/ignore` bare — lists who
 - [x] `/mail send TestBuddy hello`, they `/mail read`

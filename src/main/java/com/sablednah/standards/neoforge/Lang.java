@@ -94,6 +94,9 @@ public final class Lang {
         def("msg.tp.cooldown", "&cYou must wait &f{sec}s&c before teleporting again.");
         def("msg.tp.done", "{term.prefix} &7Teleported.");
         def("msg.tp.top", "{term.prefix} &7Up you go — &f{y}&7 blocks above where you were.");
+        // Vanilla's own shape, used only when we must take delivery over without decorating —
+        // see StandardsEvents.onChat. Matches chat.type.text so nobody notices the handover.
+        def("msg.chat.plain", "<{player}> {message}");
         def("msg.chat.emote", "&o* {player} {action}");
         def("msg.chat.emote_vanished", "{term.prefix} &7Narrating at a room that cannot see you rather gives the game away.");
         def("msg.admin.testchat", "{term.prefix} &7Chat pipeline: &f{result}&7.");
