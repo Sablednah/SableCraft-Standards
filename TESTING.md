@@ -243,8 +243,9 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 - [ ] take an item — it really leaves them
 - [ ] shift-click everywhere — nothing duplicates, nothing lands in equipment
 - [ ] click a grey pane — inert, and shift-clicking one does nothing
-- [ ] `/mute TestBuddy 30m spam` **[2P]** — they are told, and told again each time they try
-- [ ] a muted player's `/msg` is blocked too, not just chat
+- [x] `/mute TestBuddy 30m spam` **[2P]** — they are told, and told again each time they try
+- [x] a muted player's `/msg` is blocked too, not just chat
+- [x] and `/r`, `/w` and `/me` — every channel, not a list of the ones we remembered
 - [ ] `/unmute TestBuddy`
 - [ ] `/tempban TestBuddy 2h testing` — kicked with the reason; `/pardon` lifts it
 - [ ] `/tempban TestBuddy bananas` — refused, does not silently ban for 0 seconds
