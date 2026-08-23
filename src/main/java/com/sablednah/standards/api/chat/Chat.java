@@ -119,6 +119,11 @@ public final class Chat {
                 decorator.id(), decorator.priority(), DECORATORS.size());
     }
 
+    /** Remove a decorator. Mainly for the self-test, which must not leave its fixtures behind. */
+    public static synchronized void unregister(NameDecorator decorator) {
+        DECORATORS.remove(decorator);
+    }
+
     public static synchronized List<NameDecorator> all() {
         return List.copyOf(DECORATORS);
     }

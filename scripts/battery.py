@@ -75,14 +75,19 @@ def main():
     check("/baltop lists at least one account", (r.value(who, "baltop") or 0) >= 1)
 
     print("\n--- homes ---")
+    # Measure a baseline rather than assuming an empty one. The old checks deleted the two names
+    # this battery uses and then asserted the count was exactly 1 and 2 — which only held on a
+    # player who had never set a home by hand. TestBuddy had accumulated seven across days of
+    # manual testing, so three checks failed and reported a mod bug that did not exist.
     r.value(who, "delhome home")
     r.value(who, "delhome base")
+    baseline = r.value(who, "homes") or 0
     check("/sethome works", r.value(who, "sethome") == 1)
-    check("/homes counts 1", r.value(who, "homes") == 1)
+    check("/homes counts one more", (r.value(who, "homes") or 0) == baseline + 1)
     check("/sethome base works", r.value(who, "sethome base") == 1)
-    check("/homes counts 2", r.value(who, "homes") == 2)
+    check("/homes counts two more", (r.value(who, "homes") or 0) == baseline + 2)
     check("/delhome removes", r.value(who, "delhome base") == 1)
-    check("/homes back to 1", r.value(who, "homes") == 1)
+    check("/homes back to one more", (r.value(who, "homes") or 0) == baseline + 1)
     check("/home to a missing name refuses", r.value(who, "home nonsense") == 0)
 
     print("\n--- warps ---")

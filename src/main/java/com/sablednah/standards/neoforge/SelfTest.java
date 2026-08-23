@@ -584,22 +584,37 @@ public final class SelfTest {
         }
 
         int before = Chat.all().size();
-        Chat.register(new Fixed("selftest:party", 10, "[PARTY]", "-party"));
-        Chat.register(new Fixed("selftest:faction", 5, "[FACTION]", "-faction"));
-        Chat.register(new Fixed("selftest:rank", 100, "Lord", "the noble"));
+        NameDecorator party = new Fixed("selftest:party", 10, "[PARTY]", "-party");
+        NameDecorator faction = new Fixed("selftest:faction", 5, "[FACTION]", "-faction");
+        NameDecorator rank = new Fixed("selftest:rank", 100, "Lord", "the noble");
+        try {
+            Chat.register(party);
+            Chat.register(faction);
+            Chat.register(rank);
 
-        // A null player is fine here: these fixed decorators never look at it.
-        var prefixes = Chat.prefixes(null);
-        var suffixes = Chat.suffixes(null);
+            // A null player is fine here: these fixed decorators never look at it.
+            var prefixes = Chat.prefixes(null);
+            var suffixes = Chat.suffixes(null);
 
-        check("decorators registered", Chat.all().size() == before + 3);
-        check("prefixes run lowest priority first (furthest from the name)",
-                prefixes.equals(java.util.List.of("[FACTION]", "[PARTY]", "Lord")));
-        check("suffixes mirror them, highest priority nearest the name",
-                suffixes.equals(java.util.List.of("the noble", "-party", "-faction")));
-        // The worked example from the design, end to end.
-        check("assembles the intended line",
-                String.join("", prefixes).equals("[FACTION][PARTY]Lord"));
+            check("decorators registered", Chat.all().size() == before + 3);
+            check("prefixes run lowest priority first (furthest from the name)",
+                    prefixes.equals(java.util.List.of("[FACTION]", "[PARTY]", "Lord")));
+            check("suffixes mirror them, highest priority nearest the name",
+                    suffixes.equals(java.util.List.of("the noble", "-party", "-faction")));
+            // The worked example from the design, end to end.
+            check("assembles the intended line",
+                    String.join("", prefixes).equals("[FACTION][PARTY]Lord"));
+        } finally {
+            // MUST come out again. Left registered, these decorate every real chat line on the
+            // server for the rest of its life — which also drags every message onto the
+            // cancel-and-deliver path, costing signed chat and hover cards. It did exactly that
+            // for a whole day of testing before the RCON battery noticed.
+            Chat.unregister(party);
+            Chat.unregister(faction);
+            Chat.unregister(rank);
+        }
+        check("the test decorators are gone again",
+                Chat.all().stream().noneMatch(d -> d.id().startsWith("selftest:")));
     }
 
     /**
