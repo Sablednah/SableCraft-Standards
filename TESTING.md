@@ -194,7 +194,7 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 - [x] `/r` with nobody to reply to
 - [x] `/ignore TestBuddy` **[2P]** — their messages stop arriving
 - [x] the ignore list survives a disconnect and a server restart
-- [ ] `/ignore` also hides their **public chat**, not only their `/msg`
+- [x] `/ignore` also hides their **public chat**, not only their `/msg`
 - [x] …**and they cannot tell** — the sender still sees an ordinary "sent" confirmation,
       because an ignore that announces itself is a weapon rather than a shield
 - [x] `/ignore` bare — lists who
