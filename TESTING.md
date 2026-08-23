@@ -242,11 +242,12 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 
 ## Moderation
 
-- [ ] `/invsee TestBuddy` **[2P]** — rows 1-3 storage, row 4 hotbar, bottom row
+- [x] `/invsee TestBuddy` **[2P]** — rows 1-3 storage, row 4 hotbar, bottom row
       `H C L B _ O _ S A`
-- [ ] take an item — it really leaves them
-- [ ] shift-click everywhere — nothing duplicates, nothing lands in equipment
-- [ ] click a grey pane — inert, and shift-clicking one does nothing
+- [x] take an item — it really leaves them
+- [x] shift-click everywhere — nothing duplicates, nothing lands in equipment
+- [x] click a grey pane — inert, and shift-clicking one does nothing
+- [x] every drag-and-drop route a person could think of, tried deliberately
 - [x] `/mute TestBuddy 30m spam` **[2P]** — they are told, and told again each time they try
 - [x] a muted player's `/msg` is blocked too, not just chat
 - [x] and `/r`, `/w` and `/me` — every channel, not a list of the ones we remembered
