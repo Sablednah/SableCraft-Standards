@@ -81,7 +81,12 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/jump` `/j` — lands on top of what you are looking at, not inside it
 - [x] `/jump` at the sky — "nothing in range"
 - [x] `/back` after any teleport, and `/back 2`, `/back 3` up the trail
-- [ ] `/back` after dying — refused unless you grant `standards.back.ondeath`
+- [x] `/back` after dying — with `standards.back.ondeath` granted, returns you to the corpse
+      with a death-specific message
+- [ ] `/back` after dying **without** the node — explains that the spot was not saved, rather
+      than silently sending you to the previous entry on the trail
+- [x] with a warmup configured, arrival is still announced — the message fires on landing,
+      not on acceptance
 - [x] `/spawn` with no `/setspawn` ever run — falls back to world spawn, does not error
 - [x] `/setspawn` then `/spawn`
 - [x] `/playerspawn` with no bed — says so; with a bed — goes there
