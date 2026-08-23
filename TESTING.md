@@ -50,13 +50,13 @@ grid is legible, whether the timing feels right, and anything needing two people
 Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 - [x] `/fly` and `/god` — bare toggles, and explicit `on` / `off` both work
-- [ ] `/fly on` twice — says "already on" rather than silently succeeding
+- [x] `/fly on` twice — says "already on" rather than silently succeeding
 - [x] `/fly off` while airborne — you drop, rather than hanging there
 - [x] `/god off` — damage lands again immediately
 - [ ] `/fly TestBuddy on` **[2P]** — they are told who did it
 - [x] `/fly @a off` — reports a count, not one name
 - [x] `/god` / `/god on` — take damage, then don't. Try lava, fall, starvation
-- [ ] `/vanish` `/v` — see the vanish section below
+- [x] `/vanish` `/v` — see the vanish section below
 - [ ] `/tptoggle off` **[2P]** — TestBuddy's `/tpa` to you says you are not accepting
 - [ ] `/msgtoggle off` **[2P]** — same for `/msg`
 - [ ] `/socialspy on` **[2P]** — you see their private messages
@@ -83,7 +83,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/back` after any teleport, and `/back 2`, `/back 3` up the trail
 - [ ] `/back` after dying — refused unless you grant `standards.back.ondeath`
 - [x] `/spawn` with no `/setspawn` ever run — falls back to world spawn, does not error
-- [ ] `/setspawn` then `/spawn`
+- [x] `/setspawn` then `/spawn`
 - [x] `/playerspawn` with no bed — says so; with a bed — goes there
 - [x] warmup: start any teleport and **walk** — cancelled, and you are told why
 - [ ] warmup: start one and take damage — cancelled
@@ -106,17 +106,17 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Vanish **[2P]** — TestBuddy must not be op
 
-- [ ] `/vanish on` — invisible, not translucent
-- [ ] Tab — you are off their list
-- [ ] a mob near you stops pathing to you
+- [x] `/vanish on` — invisible, not translucent
+- [x] Tab — you are off their list
+- [x] a mob near you stops pathing to you
 - [ ] their `/msg` to you fails; your `/msg` to them works
-- [ ] spectral arrow — no glow outline
+- [x] spectral arrow — no glow outline
 - [ ] they shoot you — arrows pass through, no bounce
-- [ ] they walk into you — no shove, they phase through
-- [ ] open a chest — **it should still animate for them.** Deliberate; the world's reactions stay
+- [x] they walk into you — no shove, they phase through
+- [x] open a chest — **it should still animate for them.** Deliberate; the world's reactions stay
       visible, only the player is hidden
-- [ ] relog while vanished — still hidden
-- [ ] `/vanish off` — reappear cleanly, no ghost
+- [x] relog while vanished — still hidden
+- [x] `/vanish off` — reappear cleanly, no ghost
 
 ## Homes and warps
 
