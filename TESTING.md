@@ -83,7 +83,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/back` after any teleport, and `/back 2`, `/back 3` up the trail
 - [x] `/back` after dying — with `standards.back.ondeath` granted, returns you to the corpse
       with a death-specific message
-- [ ] `/back` after dying **without** the node — explains that the spot was not saved, rather
+- [x] `/back` after dying **without** the node — explains that the spot was not saved, rather
       than silently sending you to the previous entry on the trail
 - [x] with a warmup configured, arrival is still announced — the message fires on landing,
       not on acceptance
