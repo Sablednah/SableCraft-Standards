@@ -54,8 +54,8 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/fly off` while airborne — you drop, rather than hanging there
 - [x] `/god off` — damage lands again immediately
 - [ ] `/fly TestBuddy on` **[2P]** — they are told who did it
-- [ ] `/fly @a off` — reports a count, not one name
-- [ ] `/god` / `/god on` — take damage, then don't. Try lava, fall, starvation
+- [x] `/fly @a off` — reports a count, not one name
+- [x] `/god` / `/god on` — take damage, then don't. Try lava, fall, starvation
 - [ ] `/vanish` `/v` — see the vanish section below
 - [ ] `/tptoggle off` **[2P]** — TestBuddy's `/tpa` to you says you are not accepting
 - [ ] `/msgtoggle off` **[2P]** — same for `/msg`
@@ -214,8 +214,8 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 - [x] `/feed` `/eat`, `/rest`
 - [ ] `/heal TestBuddy` **[2P]** — they are told who did it
 - [x] `/speed 2`, `/speed 5` while flying (sets fly speed), `/speed walk 2`, `/speed reset`
-- [ ] `/speed 50` — refused, names the ceiling
-- [ ] die and respawn with speed set — it should still be set
+- [x] `/speed 50` — refused, names the ceiling
+- [x] die and respawn with speed set — it should still be set
 - [x] die with `/god` or `/fly` on — no flicker of vulnerability or grounding before they
       re-apply; the state is written on Clone, before the client is told
 
