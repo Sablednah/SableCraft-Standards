@@ -99,7 +99,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] click Accept — **you** are told immediately, and get a ticking action-bar countdown
 - [x] they are told you are arriving, and told again when you land
 - [x] `/tpahere TestBuddy` — accepted, **they** travel, and both sides get the right message
-- [ ] accept, then walk during the countdown — cancelled, **and they are told why**
+- [x] accept, then walk during the countdown — cancelled, **and they are told why**
 - [ ] `/tpa`, accept, then have the host run away — you land where they *ended up*
       (`tpaFollowTarget = false` to land where they were instead)
 - [x] `/tpacancel` with nothing to cancel but a request waiting — offers an Accept button
