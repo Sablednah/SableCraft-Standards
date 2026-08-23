@@ -192,7 +192,7 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 - [x] `/r` with nobody to reply to
 - [ ] `/ignore TestBuddy` **[2P]** — their messages stop arriving, **and they cannot tell**
 - [x] `/ignore` bare — lists who
-- [ ] `/mail send TestBuddy hello`, they `/mail read`
+- [x] `/mail send TestBuddy hello`, they `/mail read`
 - [ ] mail to someone **offline**, then they log in — announced, not marked read
 - [x] `/mail clear`
 
