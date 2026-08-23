@@ -259,4 +259,6 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 - [ ] TestBuddy cannot use `/fly` `/god` `/invsee` `/eco` `/setwarp` `/bottom`
 - [ ] `lp user TestBuddy permission set standards.fly true` — works immediately
 - [ ] `lp group default permission set standards.craft true` — group-wide
-- [ ] deop yourself — `/fly` starts refusing
+- [x] deop yourself — `/fly on` refuses
+- [x] deopped **while airborne** — you keep flying rather than dropping, and `/fly off` is
+      still available so you can land. Losing a permission must never strand you
