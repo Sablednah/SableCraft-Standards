@@ -192,7 +192,9 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
       (`/tell` and `/w` are vanilla **redirects** to the node we merged onto, so they only
       work if the merge replaced vanilla's command rather than losing to it)
 - [x] `/r` with nobody to reply to
-- [ ] `/ignore TestBuddy` **[2P]** — their messages stop arriving, **and they cannot tell**
+- [x] `/ignore TestBuddy` **[2P]** — their messages stop arriving
+- [ ] …**and they cannot tell** — the sender still sees an ordinary "sent" confirmation,
+      because an ignore that announces itself is a weapon rather than a shield
 - [x] `/ignore` bare — lists who
 - [x] `/mail send TestBuddy hello`, they `/mail read`
 - [x] mail to someone **offline**, then they log in — announced, not marked read
