@@ -273,7 +273,6 @@ public final class StandardsEvents {
      * truth and {@code mayfly} is written as a derived cache of it, purely so the packet carries
      * the right answer.</p>
      */
-    @SuppressWarnings("deprecation") // mayfly: deliberately mirrored, see above
     public static void applySwitches(ServerPlayer player) {
         applySwitches(player, true);
     }
@@ -283,6 +282,7 @@ public final class StandardsEvents {
      *             {@link #onClone}, where the player has no level yet and the respawn packet
      *             that follows carries the values anyway.
      */
+    @SuppressWarnings("deprecation") // mayfly: deliberately mirrored, see the class notes above
     public static void applySwitches(ServerPlayer player, boolean sync) {
         PlayerState state = StandardsAttachments.of(player);
         boolean creativeish = player.isCreative() || player.isSpectator();
