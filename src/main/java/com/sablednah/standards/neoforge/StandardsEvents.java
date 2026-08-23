@@ -367,6 +367,25 @@ public final class StandardsEvents {
         }
     }
 
+    /**
+     * A vanished player walks past items rather than hoovering them up.
+     *
+     * <p>Reported from a live test: an arrow passed through a vanished player, stuck in the wall
+     * behind them, and was then silently collected. An item disappearing off the floor with
+     * nobody standing there is as much of a give-away as being seen — and unlike the chest
+     * animation, which stays visible on purpose, this is not an act the player chose.</p>
+     */
+    @SubscribeEvent
+    static void onVanishedPickup(
+            net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent.Pre event) {
+        if (StandardsConfig.VANISH_PICKUP.get()) {
+            return; // the owner wants vanish to still tidy up
+        }
+        if (event.getPlayer() instanceof ServerPlayer player && Vanish.isVanished(player)) {
+            event.setCanPickup(net.minecraft.util.TriState.FALSE);
+        }
+    }
+
     // --- god mode ---
 
     /**

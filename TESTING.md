@@ -121,6 +121,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] they walk into you — no shove, they phase through
 - [x] open a chest — **it should still animate for them.** Deliberate; the world's reactions stay
       visible, only the player is hidden
+- [x] shoot past them — arrows do not bounce, and the arrow that lands is **not picked up**
+      (`vanish.vanishPickup = false`; an item vanishing off the floor with nobody there gives
+      you away as surely as being seen)
 - [x] relog while vanished — still hidden
 - [x] `/vanish off` — reappear cleanly, no ghost
 

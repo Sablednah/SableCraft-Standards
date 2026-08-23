@@ -37,6 +37,7 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_VANISH;
     public static final ModConfigSpec.BooleanValue ENABLE_SMITE;
     public static final ModConfigSpec.BooleanValue VANISH_INVULNERABLE;
+    public static final ModConfigSpec.BooleanValue VANISH_PICKUP;
     public static final ModConfigSpec.BooleanValue ENABLE_SPAWN;
     public static final ModConfigSpec.BooleanValue ENABLE_SELFCARE;
     public static final ModConfigSpec.BooleanValue ENABLE_SPEED;
@@ -111,6 +112,18 @@ public final class StandardsConfig {
                         "drown in a wall they walked into while watching a griefer. Turn it off",
                         "if you want vanish to hide you without also protecting you.")
                 .define("vanishInvulnerable", true);
+        VANISH_PICKUP = BUILDER
+                .comment("Whether a vanished player picks items up. Off.",
+                        "Named for the behaviour rather than its negation, so 'false' reads the",
+                        "same way whichever end you approach it from.",
+                        "Two reasons, and the first is the one that matters: an item vanishing off",
+                        "the floor with nobody standing there gives you away as surely as being",
+                        "seen. Unlike opening a chest, which stays deliberately visible, picking up",
+                        "is not something you chose to do — you walked past it.",
+                        "The second is that hidden staff watching a fight should not quietly",
+                        "collect the loot. Turn it on if vanish is meant to be a free camera that",
+                        "can still tidy up.")
+                .define("vanishPickup", false);
         ENABLE_SMITE = BUILDER
                 .comment("/smite — lightning on a target or wherever you are looking. Op-gated.")
                 .define("smite", true);

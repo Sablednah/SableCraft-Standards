@@ -256,6 +256,20 @@ predicate that `Vanish.install()` registers at setup. **Keep it dependency-free.
 `VanishGate.hidden` is called from inside the tracker for every player pair every pass, so it opens
 with an `isEmpty()` check — the feature costs nothing on a server where nobody uses it.
 
+**Where the line sits, decided by testing rather than by rule.** A vanished player is hidden; the
+*world's* reactions to them are not. A chest they open still animates, and that is deliberate —
+suppressing it would mean suppressing the sound, the particles and every other second-order effect,
+and there is no end to that list.
+
+But **item pickup is on the other side of the line**, because it is not an act they chose: you walk
+past an arrow and it is gone from everyone's screen with nobody standing there. That gives you away
+as surely as being seen, and it also means hidden staff quietly collect the loot from a fight they
+were only watching. `vanish.vanishPickup` defaults to `false`.
+
+Note the config is named for the behaviour rather than its negation — `vanishPickup = false` rather
+than `vanishNoPickup = true` — so "off" means the same thing whichever end you approach it from. A
+negated boolean is a coin flip every time somebody reads it.
+
 ### 10. Taking a command back off vanilla
 
 `/msg` is vanilla's, and `/tell` and `/w` are **redirects** to its node. That defeats the obvious
