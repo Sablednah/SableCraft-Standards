@@ -80,9 +80,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/jump` at the sky — "nothing in range"
 - [x] `/back` after any teleport, and `/back 2`, `/back 3` up the trail
 - [ ] `/back` after dying — refused unless you grant `standards.back.ondeath`
-- [ ] `/spawn` with no `/setspawn` ever run — falls back to world spawn, does not error
+- [x] `/spawn` with no `/setspawn` ever run — falls back to world spawn, does not error
 - [ ] `/setspawn` then `/spawn`
-- [ ] `/playerspawn` with no bed — says so; with a bed — goes there
+- [x] `/playerspawn` with no bed — says so; with a bed — goes there
 - [x] warmup: start any teleport and **walk** — cancelled, and you are told why
 - [ ] warmup: start one and take damage — cancelled
 
