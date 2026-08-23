@@ -117,7 +117,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] a mob near you stops pathing to you
 - [ ] their `/msg` to you fails; your `/msg` to them works
 - [x] spectral arrow — no glow outline
-- [ ] they shoot you — arrows pass through, no bounce
+- [x] they shoot you — arrows pass through, no bounce
 - [x] they walk into you — no shove, they phase through
 - [x] open a chest — **it should still animate for them.** Deliberate; the world's reactions stay
       visible, only the player is hidden
