@@ -95,9 +95,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 
 ## Teleport requests **[2P]**
 
-- [ ] `/tpa TestBuddy` — they get a prompt with clickable `[Accept]` / `[Deny]`
-- [ ] click Accept — **you** are told immediately, and get a ticking action-bar countdown
-- [ ] they are told you are arriving, and told again when you land
+- [x] `/tpa TestBuddy` — they get a prompt with clickable `[Accept]` / `[Deny]`
+- [x] click Accept — **you** are told immediately, and get a ticking action-bar countdown
+- [x] they are told you are arriving, and told again when you land
 - [ ] `/tpahere TestBuddy` — accepted, **they** travel, and both sides get the right message
 - [ ] accept, then walk during the countdown — cancelled, **and they are told why**
 - [ ] `/tpa`, accept, then have the host run away — you land where they *ended up*
