@@ -186,7 +186,9 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 ## Talking
 
 - [x] `/msg TestBuddy hi` **[2P]** and `/r` back — vanilla owns `/msg`, we override it
-- [ ] `/w` `/whisper` `/tell` `/pm` `/m` — all ours, all behave the same
+- [x] `/w` `/whisper` `/tell` `/pm` `/m` — all ours, all behave the same
+      (`/tell` and `/w` are vanilla **redirects** to the node we merged onto, so they only
+      work if the merge replaced vanilla's command rather than losing to it)
 - [x] `/r` with nobody to reply to
 - [ ] `/ignore TestBuddy` **[2P]** — their messages stop arriving, **and they cannot tell**
 - [x] `/ignore` bare — lists who
