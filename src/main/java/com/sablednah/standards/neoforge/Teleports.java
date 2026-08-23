@@ -102,6 +102,30 @@ public final class Teleports {
         return request(player, destination, recordBack, NOBODY);
     }
 
+    /**
+     * As above, but say something when the traveller actually lands.
+     *
+     * <p><b>On arrival, not on acceptance.</b> Every command used to print its success line only
+     * when {@code !attempt.queued()} — so the moment a server configured a warmup, every teleport
+     * went silent: countdown, then nothing. Reported from {@code /back} after a death, where the
+     * lost message was the one distinguishing "back to where you died" from "back to where you
+     * were", but the gap was the same for {@code /home}, {@code /warp}, {@code /spawn},
+     * {@code /top}, {@code /bottom} and {@code /jump}.</p>
+     *
+     * <p>{@link Watcher#onArrive} already fires on both the instant and the warmed path, so this
+     * is the existing seam rather than a new one — the same machinery that narrates {@code /tpa}
+     * to the other party.</p>
+     */
+    public static Attempt request(ServerPlayer player, Waypoint destination, boolean recordBack,
+            String arrivalMessage) {
+        return request(player, destination, recordBack, new Watcher() {
+            @Override
+            public void onArrive(ServerPlayer traveller) {
+                Feedback.chat(traveller, arrivalMessage);
+            }
+        });
+    }
+
     /** As above, plus someone to keep informed about how it goes. See {@link Watcher}. */
     public static Attempt request(ServerPlayer player, Waypoint destination, boolean recordBack,
             Watcher watcher) {

@@ -80,12 +80,10 @@ public final class WarpCommands {
                     : Lang.fmt("msg.warp.unknown", "name", name, "list", String.join(", ", known)));
             return 0;
         }
-        Teleports.Attempt attempt = Teleports.request(player, destination.get(), true);
+        Teleports.Attempt attempt = Teleports.request(player, destination.get(), true,
+                Lang.fmt("msg.warp.went", "name", name));
         if (!MoveCommands.report(player, attempt)) {
             return 0;
-        }
-        if (!attempt.queued()) {
-            Feedback.chat(player, Lang.fmt("msg.warp.went", "name", name));
         }
         return 1;
     }

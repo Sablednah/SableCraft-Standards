@@ -114,12 +114,10 @@ public final class HomeCommands {
                     : Lang.fmt("msg.home.unknown", "name", name, "list", String.join(", ", mine.keySet())));
             return 0;
         }
-        Teleports.Attempt attempt = Teleports.request(player, destination.get(), true);
+        Teleports.Attempt attempt = Teleports.request(player, destination.get(), true,
+                Lang.fmt("msg.home.went", "name", name));
         if (!MoveCommands.report(player, attempt)) {
             return 0;
-        }
-        if (!attempt.queued()) {
-            Feedback.chat(player, Lang.fmt("msg.home.went", "name", name));
         }
         return 1;
     }

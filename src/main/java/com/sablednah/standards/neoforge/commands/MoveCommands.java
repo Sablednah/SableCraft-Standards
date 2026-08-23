@@ -315,27 +315,22 @@ public final class MoveCommands {
 
         // recordBack = false: the trail must not grow an entry every time it is walked, or /back
         // becomes a two-step loop between the last two places you stood.
-        Teleports.Attempt attempt = Teleports.request(player, destination.get(), false);
+        Teleports.Attempt attempt = Teleports.request(player, destination.get(), false,
+                Lang.fmt(wasDeath ? "msg.tp.back_death" : "msg.tp.back_done",
+                        "place", destination.get().describe()));
         if (!report(player, attempt)) {
             return 0;
         }
         state.popBack(steps);
-        if (!attempt.queued()) {
-            Feedback.chat(player, Lang.fmt(wasDeath ? "msg.tp.back_death" : "msg.tp.back_done",
-                    "place", destination.get().describe()));
-        }
         return 1;
     }
 
     /** Ask for a teleport and say the right thing about the answer. */
     private static int go(CommandContext<CommandSourceStack> ctx, ServerPlayer player,
             Waypoint destination, String successMessage) {
-        Teleports.Attempt attempt = Teleports.request(player, destination, true);
+        Teleports.Attempt attempt = Teleports.request(player, destination, true, successMessage);
         if (!report(player, attempt)) {
             return 0;
-        }
-        if (!attempt.queued()) {
-            Feedback.chat(player, successMessage);
         }
         return 1;
     }

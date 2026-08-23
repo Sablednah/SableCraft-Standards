@@ -66,13 +66,11 @@ public final class TpOfflineCommand {
             return 0;
         }
 
-        Teleports.Attempt attempt = Teleports.request(me, destination.get(), true);
+        Teleports.Attempt attempt = Teleports.request(me, destination.get(), true,
+                Lang.fmt("msg.tp.to_offline",
+                        "player", name, "place", destination.get().describe()));
         if (!MoveCommands.report(me, attempt)) {
             return 0;
-        }
-        if (!attempt.queued()) {
-            Feedback.chat(me, Lang.fmt("msg.tp.to_offline",
-                    "player", name, "place", destination.get().describe()));
         }
         return 1;
     }

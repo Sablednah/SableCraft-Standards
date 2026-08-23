@@ -57,12 +57,10 @@ public final class SpawnCommands {
         MinecraftServer server = ctx.getSource().getServer();
         Waypoint destination = StandardsData.get(server).spawn().orElseGet(() -> worldSpawn(server));
 
-        Teleports.Attempt attempt = Teleports.request(player, destination, true);
+        Teleports.Attempt attempt = Teleports.request(player, destination, true,
+                Lang.get("msg.spawn.went"));
         if (!MoveCommands.report(player, attempt)) {
             return 0;
-        }
-        if (!attempt.queued()) {
-            Feedback.chat(player, Lang.get("msg.spawn.went"));
         }
         return 1;
     }
@@ -94,12 +92,10 @@ public final class SpawnCommands {
             Feedback.chat(player, Lang.get("msg.spawn.no_bed"));
             return 0;
         }
-        Teleports.Attempt attempt = Teleports.request(player, bed.get(), true);
+        Teleports.Attempt attempt = Teleports.request(player, bed.get(), true,
+                Lang.get("msg.spawn.went_bed"));
         if (!MoveCommands.report(player, attempt)) {
             return 0;
-        }
-        if (!attempt.queued()) {
-            Feedback.chat(player, Lang.get("msg.spawn.went_bed"));
         }
         return 1;
     }
