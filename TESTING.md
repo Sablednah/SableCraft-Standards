@@ -104,7 +104,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
       (`tpaFollowTarget = false` to land where they were instead)
 - [x] `/tpacancel` with nothing to cancel but a request waiting — offers an Accept button
 - [x] `/tpaccept` when you are the one waiting — tells you so
-- [ ] let one lapse — ⌛ message at both ends
+- [x] let one lapse — ⌛ message at both ends
 - [x] `/tpalist` — who asked, which direction, seconds left
 - [x] `/call` `/tpyes` `/tpno` aliases
 - [x] `/tpa` yourself — refused, you are already there
