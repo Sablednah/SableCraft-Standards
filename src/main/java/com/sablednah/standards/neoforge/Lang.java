@@ -208,7 +208,10 @@ public final class Lang {
     static {
         def("msg.pm.sent", "&8[&7me &8-> &f{player}&8]&7 {message}");
         def("msg.pm.received", "&8[&f{player} &8-> &7me&8]&7 {message}");
-        def("msg.pm.spy", "&8[spy] [{from} -> {to}] {message}");
+        // Dark grey is for parenthetical asides, not for words somebody has to read: the whole
+        // line used to be &8, which on a transparent black chat background is close to invisible.
+        // The [spy] marker stays dim because it IS an aside; the names and the message do not.
+        def("msg.pm.spy", "&8[spy] &7[&f{from}&7 → &f{to}&7] &7{message}");
         def("msg.pm.self", "&7Talking to yourself is a sign you need a break.");
         def("msg.pm.refusing", "&c{player} is not accepting messages right now.");
         def("msg.pm.nobody_to_reply", "&7Nobody has messaged you yet.");
