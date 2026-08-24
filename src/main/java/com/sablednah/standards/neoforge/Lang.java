@@ -218,7 +218,7 @@ public final class Lang {
         def("msg.pm.ignore_self", "&7You cannot ignore yourself, however tempting.");
         def("msg.pm.ignore_none", "&7You are not ignoring anyone.");
         def("msg.pm.ignore_list", "{term.prefix} &7Ignoring: &f{list}");
-        def("msg.pm.toggle_name", "Incoming messages");
+        def("msg.pm.toggle_name", "Accepting messages");
         def("msg.pm.spy_toggle_name", "Social spy");
     }
 
@@ -312,7 +312,7 @@ public final class Lang {
         def("msg.tpa.expired_sender", "&e\u231b Your {term.tpa} to &f{player}&e lapsed &8(no answer in time).");
         def("msg.tpa.expired_target", "&e\u231b &f{player}&e's {term.tpa} lapsed &8(you did not answer in time).");
 
-        def("msg.tpa.toggle_name", "Incoming {term.tpas}");
+        def("msg.tpa.toggle_name", "Accepting {term.tpas}");
         def("msg.tpa.list_header", "{term.prefix} &7Open {term.tpas}:");
         def("msg.tpa.list_row", " &7-&r &f{player} &8({dir}, {sec}s left)");
         def("msg.tpa.dir_to_you", "to you");

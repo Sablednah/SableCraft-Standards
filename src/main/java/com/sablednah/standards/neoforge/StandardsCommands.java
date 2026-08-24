@@ -152,10 +152,15 @@ public final class StandardsCommands {
             dispatcher.register(TpaCommands.list());
 
             // /tptoggle is a switch like any other, so it gets on/off/toggle for free — and the
-            // switch is named for what it controls ("Incoming teleport requests"), not for the
+            // switch is named for what it controls ("Accepting teleport requests"), not for the
             // command. That matters: '/tptoggle on' is genuinely ambiguous when the thing being
             // toggled is a refusal, and reading it as "requests: on" is the only sense a player
             // guesses right first time.
+            //
+            // A GERUND, not a plural noun. The switch message is "{what} is now {state}", so
+            // "Incoming teleport requests" produced "Incoming teleport requests IS now off".
+            // Every other switch happens to be a singular noun — Flight, God mode, Vanish — so
+            // nothing caught it until a screenshot did.
             dispatcher.register(SwitchCommand.build("tptoggle", "msg.tpa.toggle_name",
                     StandardsPermissions.TPTOGGLE, StandardsPermissions.ADMIN,
                     player -> !StandardsAttachments.of(player).refusingTeleports(),

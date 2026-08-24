@@ -179,7 +179,13 @@ Deny them on your own account for the duration, then unset when finished:
 /lp user <you> permission set standards.teleport.instant false
 /lp user <you> permission set standards.teleport.nocooldown false
 /lp user <you> permission set standards.home.limit.unlimited false
+/lp user <you> permission set standards.tpa.override false
+/lp user <you> permission set standards.msg.override false
 ```
+
+The last two are the ones that make `/tptoggle` and `/msgtoggle` look broken: staff can always
+reach a player, deliberately, because otherwise anyone could make themselves uncontactable by
+exactly the people who need to contact them.
 
 ```
 /lp user <you> permission unset standards.teleport.instant
