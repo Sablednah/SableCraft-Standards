@@ -20,6 +20,7 @@ import com.sablednah.standards.neoforge.commands.SelfCareCommands;
 import com.sablednah.standards.neoforge.commands.SpawnCommands;
 import com.sablednah.standards.neoforge.commands.SpeedCommand;
 import com.sablednah.standards.neoforge.commands.StationCommands;
+import com.sablednah.standards.neoforge.commands.GroupCommands;
 import com.sablednah.standards.neoforge.commands.HomeCommands;
 import com.sablednah.standards.neoforge.commands.MoveCommands;
 import com.sablednah.standards.neoforge.commands.SwitchCommand;
@@ -199,6 +200,11 @@ public final class StandardsCommands {
         if (StandardsConfig.ENABLE_TP_OFFLINE.get()) {
             dispatcher.register(TpOfflineCommand.build("tpoffline"));
             dispatcher.register(TpOfflineCommand.build("otp"));
+        }
+
+        // --- groups ---
+        if (StandardsConfig.ENABLE_GROUPS.get()) {
+            dispatcher.register(GroupCommands.group());
         }
 
         // --- talking ---

@@ -165,6 +165,9 @@ public final class StandardsPermissions {
     public static final PermissionNode<Boolean> PAY = node("pay", Default.EVERYONE);
     public static final PermissionNode<Boolean> ECO_ADMIN = node("eco", Default.OPS);
 
+    /** Founding and running a lightweight group. Everyone, like homes — it is a social feature. */
+    public static final PermissionNode<Boolean> GROUP = node("group", Default.EVERYONE);
+
     // --- teleport bypasses ---
     public static final PermissionNode<Boolean> TP_INSTANT = node("teleport.instant", Default.OPS);
     public static final PermissionNode<Boolean> TP_NO_COOLDOWN = node("teleport.nocooldown", Default.OPS);

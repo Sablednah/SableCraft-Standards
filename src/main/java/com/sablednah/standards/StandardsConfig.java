@@ -38,6 +38,8 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_SMITE;
     public static final ModConfigSpec.BooleanValue VANISH_INVULNERABLE;
     public static final ModConfigSpec.BooleanValue VANISH_PICKUP;
+    public static final ModConfigSpec.BooleanValue ENABLE_GROUPS;
+    public static final ModConfigSpec.IntValue GROUP_INVITE_TIMEOUT;
     public static final ModConfigSpec.BooleanValue ENABLE_SPAWN;
     public static final ModConfigSpec.BooleanValue ENABLE_SELFCARE;
     public static final ModConfigSpec.BooleanValue ENABLE_SPEED;
@@ -124,6 +126,19 @@ public final class StandardsConfig {
                         "collect the loot. Turn it on if vanish is meant to be a free camera that",
                         "can still tidy up.")
                 .define("vanishPickup", false);
+        ENABLE_GROUPS = BUILDER
+                .comment("The built-in lightweight groups: /group and its subcommands, plus the",
+                        "standards:group kind offered through the groups API.",
+                        "Turn it off on a pack running a faction mod — that mod registers its own",
+                        "kind, and two group systems side by side is exactly the confusion the API",
+                        "exists to prevent.")
+                .define("groups", true);
+        GROUP_INVITE_TIMEOUT = BUILDER
+                .comment("Seconds a group invite stays open. 0 means it never expires.",
+                        "Off by default: on a small server an invite that quietly evaporates is",
+                        "more annoying than one that lingers, and the person who sent it is not",
+                        "told either way. Set it if invites are piling up.")
+                .defineInRange("groupInviteTimeoutSeconds", 0, 0, 2_592_000);
         ENABLE_SMITE = BUILDER
                 .comment("/smite — lightning on a target or wherever you are looking. Op-gated.")
                 .define("smite", true);

@@ -146,10 +146,34 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
     }
 
     public boolean isInvited(String groupId, UUID player) {
-        return invites.containsKey(key(groupId, player));
+        Long sent = invites.get(key(groupId, player));
+        return sent != null && !expired(sent);
+    }
+
+    /**
+     * Whether an invite sent at this time has lapsed.
+     *
+     * <p>Zero means never, which is the default: on a small server an invite that quietly
+     * evaporates is more annoying than one that lingers, and neither party is told when it goes.
+     * The config exists for servers where they pile up.</p>
+     */
+    private static boolean expired(long sentAt) {
+        int seconds = com.sablednah.standards.StandardsConfig.GROUP_INVITE_TIMEOUT.get();
+        return seconds > 0 && System.currentTimeMillis() - sentAt > seconds * 1000L;
+    }
+
+    /**
+     * Drop lapsed invites. Called from the read paths rather than on a timer — there is no
+     * observable difference, and a timer is a thing to keep running correctly for no gain.
+     */
+    public void pruneInvites() {
+        if (invites.entrySet().removeIf(e -> expired(e.getValue()))) {
+            setDirty();
+        }
     }
 
     public List<Entry> invitesFor(UUID player) {
+        pruneInvites();
         return invites.keySet().stream()
                 .filter(k -> k.endsWith("|" + player))
                 .map(k -> groups.get(k.substring(0, k.indexOf('|'))))

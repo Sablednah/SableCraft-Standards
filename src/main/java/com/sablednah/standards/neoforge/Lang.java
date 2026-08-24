@@ -108,6 +108,37 @@ public final class Lang {
         def("msg.admin.testchat", "{term.prefix} &7Chat pipeline: &f{result}&7.");
         def("msg.admin.testchat_through", "&adelivered");
         def("msg.admin.testchat_stopped", "&cstopped &7(muted, or claimed by a channel)");
+        def("msg.group.none", "{term.prefix} &7You are not in a {term.group}. &8(/group create <name>)");
+        def("msg.group.none_on_server", "{term.prefix} &7No {term.groups} on this server yet.");
+        def("msg.group.created", "{term.prefix} &7Founded &f{name}&7. &8(/group invite <player>)");
+        def("msg.group.name_taken", "&cSomething is already called &f{name}&c.");
+        def("msg.group.already_in_one", "&cYou are already in a {term.group} — leave it first.");
+        def("msg.group.they_are_in_one", "&c{player} is already in a {term.group}.");
+        def("msg.group.unknown", "&cNo {term.group} called &f{name}&c.");
+        def("msg.group.not_owner", "&cOnly the owner can do that.");
+        def("msg.group.invited", "{term.prefix} &7Invited &f{player}&7 to &f{name}&7.");
+        def("msg.group.invite_received", "{term.prefix} &f{player}&7 invited you to &f{name}&7. &8(/group accept {name})");
+        def("msg.group.invites_waiting", "{term.prefix} &7Waiting for an answer: &f{list}&7.");
+        def("msg.group.no_invite", "&cYou have no invite to &f{name}&c.");
+        def("msg.group.joined", "{term.prefix} &7You joined &f{name}&7.");
+        def("msg.group.denied", "{term.prefix} &7Turned down &f{name}&7.");
+        def("msg.group.member_joined", "{term.prefix} &f{player}&7 joined the {term.group}.");
+        def("msg.group.member_left", "{term.prefix} &f{player}&7 left the {term.group}.");
+        def("msg.group.you_left", "{term.prefix} &7You left &f{name}&7.");
+        def("msg.group.disbanded", "{term.prefix} &7&f{name}&7 has been disbanded by its owner.");
+        def("msg.group.you_disbanded", "{term.prefix} &7Disbanded &f{name}&7.");
+        def("msg.group.not_a_member", "&c{player} is not in your {term.group}.");
+        def("msg.group.kick_self", "&cUse &f/group leave&c — leaving as the owner disbands it.");
+        def("msg.group.kicked", "{term.prefix} &7Removed &f{player}&7.");
+        def("msg.group.you_were_kicked", "{term.prefix} &7You were removed from &f{name}&7.");
+        def("msg.group.renamed", "{term.prefix} &f{old}&7 is now called &f{name}&7.");
+        def("msg.group.tag_set", "{term.prefix} &7Chat tag set to &f[{tag}]&7.");
+        def("msg.group.tag_cleared", "{term.prefix} &7Chat tag removed.");
+        def("msg.group.tag_taken", "&cAnother {term.group} already uses &f[{tag}]&c.");
+        def("msg.group.tag_too_long", "&cA chat tag is at most &f{max}&c characters — it goes on every line.");
+        def("msg.group.no_tag", "none");
+        def("msg.group.list", "{term.prefix} &7{term.groups} {term.dim}({count})&7: &f{list}");
+        def("msg.group.info", "{term.prefix} &f{name}&7 {term.dim}[{tag}]&7 — owner &f{owner}&7, {term.dim}({count})&7: &f{members}");
         def("msg.tp.set_unreachable", "{term.prefix} &7Saved — but there is nothing to stand on there, so anyone who cannot fly will be told it is unsafe.");
         def("msg.tp.top_ceiling", "{term.prefix} &7Nothing above you but the ceiling — that is as high as this place goes.");
         def("msg.tp.blocked", "{term.prefix} &7There is &f{block}&7 in the way, and blocks like that are usually there on purpose.");
@@ -261,6 +292,8 @@ public final class Lang {
 
     // --- msg.tpa.* : teleport requests ---
     static {
+        def("term.group", "group");
+        def("term.groups", "groups");
         def("term.tpa", "teleport request");
         def("term.tpas", "teleport requests");
         // Phrased to read after "You are ..." so they can be listed in one sentence.

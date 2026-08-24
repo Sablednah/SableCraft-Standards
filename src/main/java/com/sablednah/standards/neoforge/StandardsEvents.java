@@ -494,6 +494,26 @@ public final class StandardsEvents {
     }
 
     /**
+     * Publish the built-in groups once the server exists.
+     *
+     * <p>Not at {@code FMLCommonSetupEvent} like the economy: the store lives in the overworld's
+     * saved data, so there is no server to hand the provider until one has started. Removed again
+     * on stop, or a single-player world opened twice would try to register a second provider for
+     * the same kind and be refused — correctly, but confusingly.</p>
+     */
+    @SubscribeEvent
+    static void onServerStarted(net.neoforged.neoforge.event.server.ServerStartedEvent event) {
+        if (StandardsConfig.ENABLE_GROUPS.get()) {
+            StandardsGroupProvider.install(event.getServer());
+        }
+    }
+
+    @SubscribeEvent
+    static void onServerStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent event) {
+        StandardsGroupProvider.uninstall();
+    }
+
+    /**
      * Hand the Chat API the two questions it cannot answer itself.
      *
      * <p>Functions rather than direct calls, because {@code Mutes} and {@code Afk} live here in

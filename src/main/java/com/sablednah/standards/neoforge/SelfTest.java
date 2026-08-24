@@ -390,6 +390,10 @@ public final class SelfTest {
                             byName(String n) { return java.util.Optional.empty(); }
                 };
 
+        // Measured, not assumed. Standards' own built-in groups provider registers on the same
+        // event this test runs on, so an absolute count is wrong the moment the mod grows a
+        // provider of its own — which is exactly the mistake the RCON battery made with homes.
+        int baseKinds = com.sablednah.standards.api.groups.Groups.kinds().size();
         try {
             check("a provider is accepted",
                     com.sablednah.standards.api.groups.Groups.register(parties));
@@ -409,9 +413,6 @@ public final class SelfTest {
                     com.sablednah.standards.api.groups.Groups.primary(null, roleKind).isEmpty());
             check("but all() returns every one of them",
                     com.sablednah.standards.api.groups.Groups.all(null, roleKind).size() == 2);
-            check("all() across kinds returns them together",
-                    com.sablednah.standards.api.groups.Groups.all(null).size() == 3);
-
             check("an unprovided kind is simply empty",
                     com.sablednah.standards.api.groups.Groups.all(null, thrower).isEmpty());
 
@@ -421,7 +422,8 @@ public final class SelfTest {
             check("and does not stop the other kinds answering",
                     com.sablednah.standards.api.groups.Groups.all(null).size() == 3);
 
-            check("kinds are listed", com.sablednah.standards.api.groups.Groups.kinds().size() == 3);
+            check("kinds are listed",
+                    com.sablednah.standards.api.groups.Groups.kinds().size() == baseKinds + 3);
             check("a kind can be found by id",
                     com.sablednah.standards.api.groups.Groups.kind("selftest:role")
                             .map(k -> !k.exclusive()).orElse(false));
@@ -430,6 +432,8 @@ public final class SelfTest {
             com.sablednah.standards.api.groups.Groups.unregister(roleKind);
             com.sablednah.standards.api.groups.Groups.unregister(thrower);
         }
+        check("the kind count is back where it started",
+                com.sablednah.standards.api.groups.Groups.kinds().size() == baseKinds);
         check("the test providers are gone again",
                 com.sablednah.standards.api.groups.Groups.kinds().stream()
                         .noneMatch(k -> k.id().startsWith("selftest:")));
@@ -577,6 +581,18 @@ public final class SelfTest {
                 "eco take @p 5",
                 "eco set @p 0",
                 "pay Steve 10",
+                "group",
+                "group create Crew",
+                "group invite Steve",
+                "group accept Crew",
+                "group deny Crew",
+                "group leave",
+                "group kick Steve",
+                "group rename Crew",
+                "group tag TCB",
+                "group list",
+                "group info",
+                "group info Crew",
                 "craft", "workbench", "anvil", "grindstone", "enderchest", "ec",
                 "trashcan", "disposal",
                 "spawn", "setspawn", "playerspawn", "bottom",
