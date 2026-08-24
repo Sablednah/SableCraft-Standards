@@ -70,6 +70,7 @@ public final class SelfTest {
         checkChatRouters();
         checkGroups();
         checkClaims();
+        checkTeleportRelief();
         checkMoneyFormatting();
         checkCommandsParse(server);
         checkSafeLoc(server);
@@ -502,6 +503,21 @@ public final class SelfTest {
                 return permits;
             }
         };
+    }
+
+    /**
+     * Teleport relief. The two halves are separate on purpose: the cooldown is a rate limit with
+     * nothing to protect inside a group, the warmup is the anti-combat-log half and stays.
+     */
+    private void checkTeleportRelief() {
+        var none = com.sablednah.standards.neoforge.Teleports.Relief.NONE;
+        check("no relief skips nothing", !none.cooldown() && !none.warmup());
+
+        var mates = com.sablednah.standards.neoforge.Teleports.Relief.forGroupMates();
+        check("group mates skip the cooldown by default", mates.cooldown());
+        // If this ever defaults on, somebody has made escaping a fight free for anyone who
+        // remembered to make a group first.
+        check("group mates do NOT skip the warmup by default", !mates.warmup());
     }
 
     private void checkMoneyFormatting() {

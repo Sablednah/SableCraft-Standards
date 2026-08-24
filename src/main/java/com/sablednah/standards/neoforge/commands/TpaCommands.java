@@ -243,8 +243,14 @@ public final class TpaCommands {
                                 .map(Waypoint::of)
                         : () -> Optional.of(snapshot);
 
+        // Two people already in a group together have arranged this by other means; the cooldown
+        // is friction with nothing to protect. The warmup is a separate question and stays unless
+        // the server says otherwise — see Teleports.Relief.
+        Teleports.Relief relief = com.sablednah.standards.api.groups.Groups.share(traveller, host)
+                ? Teleports.Relief.forGroupMates()
+                : Teleports.Relief.NONE;
         Teleports.Attempt attempt =
-                Teleports.request(traveller, destination, snapshot, true, watcher);
+                Teleports.request(traveller, destination, snapshot, true, watcher, relief);
         if (!attempt.accepted()) {
             MoveCommands.report(traveller, attempt);
             // The host asked for this and deserves to know it did not start.

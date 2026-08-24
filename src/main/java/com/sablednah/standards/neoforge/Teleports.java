@@ -141,17 +141,41 @@ public final class Teleports {
      */
     public static Attempt request(ServerPlayer player, Supplier<Optional<Waypoint>> destination,
             Waypoint preview, boolean recordBack, Watcher watcher) {
+        return request(player, destination, preview, recordBack, watcher, Relief.NONE);
+    }
+
+    /**
+     * What a teleport is allowed to skip.
+     *
+     * <p>Cooldown and warmup are separated because they protect different things. The cooldown is
+     * a rate limit — friction against strangers, and nothing at all inside a group. The warmup is
+     * the anti-combat-log half, and your own group is precisely who you would arrange an escape
+     * with, so it stays unless a server says otherwise.</p>
+     */
+    public record Relief(boolean cooldown, boolean warmup) {
+        public static final Relief NONE = new Relief(false, false);
+
+        /** What two players in the same group get, per config. */
+        public static Relief forGroupMates() {
+            return new Relief(
+                    com.sablednah.standards.StandardsConfig.GROUP_TP_SKIP_COOLDOWN.get(),
+                    com.sablednah.standards.StandardsConfig.GROUP_TP_SKIP_WARMUP.get());
+        }
+    }
+
+    public static Attempt request(ServerPlayer player, Supplier<Optional<Waypoint>> destination,
+            Waypoint preview, boolean recordBack, Watcher watcher, Relief relief) {
         MinecraftServer server = player.level().getServer();
         if (server == null || preview.level(server) == null) {
             return Attempt.refused(Refusal.NO_WORLD, 0);
         }
 
-        long cooldownLeft = cooldownRemaining(player);
+        long cooldownLeft = relief.cooldown() ? 0 : cooldownRemaining(player);
         if (cooldownLeft > 0) {
             return Attempt.refused(Refusal.COOLDOWN, cooldownLeft);
         }
 
-        int warmup = StandardsConfig.TELEPORT_WARMUP.get();
+        int warmup = relief.warmup() ? 0 : StandardsConfig.TELEPORT_WARMUP.get();
         if (warmup <= 0 || StandardsPermissions.has(player, StandardsPermissions.TP_INSTANT)) {
             Optional<Waypoint> now = destination.get();
             if (now.isPresent() && perform(player, now.get(), recordBack)) {

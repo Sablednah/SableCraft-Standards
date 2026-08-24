@@ -42,6 +42,8 @@ public final class StandardsConfig {
     public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> CHAT_GROUP_KINDS;
     public static final ModConfigSpec.IntValue GROUP_INVITE_TIMEOUT;
     public static final ModConfigSpec.IntValue GROUP_HOME_LIMIT;
+    public static final ModConfigSpec.BooleanValue GROUP_TP_SKIP_COOLDOWN;
+    public static final ModConfigSpec.BooleanValue GROUP_TP_SKIP_WARMUP;
     public static final ModConfigSpec.BooleanValue ENABLE_SPAWN;
     public static final ModConfigSpec.BooleanValue ENABLE_SELFCARE;
     public static final ModConfigSpec.BooleanValue ENABLE_SPEED;
@@ -147,6 +149,18 @@ public final class StandardsConfig {
                         "homes on purpose: 'my bedroom' and 'our base' are different things, and",
                         "merging them would mean nobody can have a private home any more.")
                 .defineInRange("groupHomeLimit", 3, -1, 10_000);
+        GROUP_TP_SKIP_COOLDOWN = BUILDER
+                .comment("Teleporting to somebody in your own group ignores the teleport cooldown.",
+                        "On by default. The cooldown is a rate limit against strangers; inside a",
+                        "group it is friction with nothing to protect.")
+                .define("groupTeleportSkipsCooldown", true);
+        GROUP_TP_SKIP_WARMUP = BUILDER
+                .comment("...and ignores the warmup countdown too.",
+                        "OFF by default, and the two are separate on purpose. The warmup is the",
+                        "anti-combat-log half — it is what stops somebody escaping a fight — and",
+                        "your own group is exactly who you would arrange that with. Turn it on for",
+                        "a co-operative server where nobody is fighting anybody.")
+                .define("groupTeleportSkipsWarmup", false);
         ENABLE_SMITE = BUILDER
                 .comment("/smite — lightning on a target or wherever you are looking. Op-gated.")
                 .define("smite", true);
