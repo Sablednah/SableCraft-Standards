@@ -146,7 +146,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/warp` bare — lists them
 - [x] `/warp junk` — names the warps that exist, or says the server has none at all
       (that empty-list case used to read as a broken command)
-- [ ] `/setwarp` as TestBuddy **[2P]** — refused, it is op only
+- [x] `/setwarp` as TestBuddy **[2P]** — refused, it is op only
 
 ## Money
 
