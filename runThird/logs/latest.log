@@ -84,3 +84,4 @@
 [24Aug2026 19:58:17.629] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [me -> TestBuddy] hello tb
 [24Aug2026 19:58:44.823] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [TestBuddy -> me] hello third
 [24Aug2026 20:01:09.317] [Render thread/WARN] [net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl/]: Client disconnected with reason: Disconnected
+[24Aug2026 22:58:39.932] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Stopping!

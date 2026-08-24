@@ -299,3 +299,5 @@
 [24Aug2026 19:58:44.823] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [TestBuddy -> me] hello third
 [24Aug2026 20:01:09.250] [Render thread/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Unloading configs type SERVER
 [24Aug2026 20:01:09.317] [Render thread/WARN] [net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl/]: Client disconnected with reason: Disconnected
+[24Aug2026 22:58:39.916] [Render thread/DEBUG] [net.neoforged.fml.classloading.transformation.ClassTransformStatistics/]: Transformed/total loaded classes: 409/8387 (4.88%) and 32 parsed for mixin
+[24Aug2026 22:58:39.932] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Stopping!

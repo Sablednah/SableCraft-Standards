@@ -39,6 +39,7 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue VANISH_INVULNERABLE;
     public static final ModConfigSpec.BooleanValue VANISH_PICKUP;
     public static final ModConfigSpec.BooleanValue ENABLE_GROUPS;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> CHAT_GROUP_KINDS;
     public static final ModConfigSpec.IntValue GROUP_INVITE_TIMEOUT;
     public static final ModConfigSpec.BooleanValue ENABLE_SPAWN;
     public static final ModConfigSpec.BooleanValue ENABLE_SELFCARE;
@@ -299,6 +300,20 @@ public final class StandardsConfig {
                         "an undecorated line is left entirely alone, keeping vanilla's hover cards",
                         "and team colours — which is why off is the default.")
                 .define("alwaysFormat", false);
+        CHAT_GROUP_KINDS = BUILDER
+                .comment("Which group kinds put a tag in chat, outermost first.",
+                        "Kind ids, from whichever mods provide them — standards:group,",
+                        "legendquest:party, factions:faction. Empty means no group tags at all.",
+                        "Order is yours: the first listed renders furthest from the name.",
+                        "A group with no short tag set is skipped rather than rendered by its",
+                        "full name — [The Crimson Brotherhood] on every line is what makes people",
+                        "turn this off.",
+                        "Kind ids, never group names: players rename their groups, and a rename",
+                        "that silently drops the styling is a bug found on somebody else's server.")
+                .defineListAllowEmpty("groupTagKinds",
+                        java.util.List.of("standards:group"),
+                        () -> "standards:group",
+                        o -> o instanceof String);
         BUILDER.pop();
 
         BUILDER.comment("Homes.").push("homes");

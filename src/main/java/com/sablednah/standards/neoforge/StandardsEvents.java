@@ -506,6 +506,9 @@ public final class StandardsEvents {
         if (StandardsConfig.ENABLE_GROUPS.get()) {
             StandardsGroupProvider.install(event.getServer());
         }
+        // After the provider, so a kind listed in config already has one to resolve against —
+        // though the decorator copes either way, since a mod may register a kind later still.
+        GroupTags.install();
     }
 
     @SubscribeEvent
