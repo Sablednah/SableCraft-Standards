@@ -138,6 +138,16 @@ public final class Lang {
         def("msg.group.tag_taken", "&cAnother {term.group} already uses &f[{tag}]&c.");
         def("msg.group.tag_too_long", "&cA chat tag is at most &f{max}&c characters — it goes on every line.");
         def("msg.group.no_tag", "none");
+        def("msg.group.home_set", "{term.prefix} &7Shared {term.home} &f{name}&7 set {term.dim}({place})&7.");
+        def("msg.group.home_set_others", "{term.prefix} &f{player}&7 set the shared {term.home} &f{name}&7.");
+        def("msg.group.home_deleted", "{term.prefix} &7Shared {term.home} &f{name}&7 removed.");
+        def("msg.group.home_went", "{term.prefix} &7To &f{name}&7.");
+        def("msg.group.home_limit", "&cYour {term.group} already has &f{limit}&c shared {term.homes} — remove one, or overwrite it with &f/group sethome <name>&c.");
+        def("msg.group.home_unknown", "&cNo shared {term.home} called &f{name}&c. &7Try: &f{list}");
+        def("msg.group.no_homes", "none");
+        def("msg.group.no_homes_yet", "{term.prefix} &f{name}&7 has no shared {term.homes} yet. {term.dim}(/group sethome <name>)");
+        def("msg.group.which_home", "{term.prefix} &7Which one? &f{list}");
+        def("msg.group.homes", "{term.prefix} &7{term.homes} for &f{name}&7 {term.dim}({count})&7: &f{list}");
         def("msg.group.list", "{term.prefix} &7{term.groups} {term.dim}({count})&7: &f{list}");
         def("msg.group.info", "{term.prefix} &f{name}&7 {term.dim}[{tag}]&7 — owner &f{owner}&7, {term.dim}({count})&7: &f{members}");
         def("msg.tp.set_unreachable", "{term.prefix} &7Saved — but there is nothing to stand on there, so anyone who cannot fly will be told it is unsafe.");

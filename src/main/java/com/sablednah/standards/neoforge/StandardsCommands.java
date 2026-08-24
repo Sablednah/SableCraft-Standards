@@ -205,6 +205,9 @@ public final class StandardsCommands {
         // --- groups ---
         if (StandardsConfig.ENABLE_GROUPS.get()) {
             dispatcher.register(GroupCommands.group());
+            // These two DO sit at their plain names — see the note on GroupCommands.groupHome.
+            dispatcher.register(GroupCommands.groupHome("ghome"));
+            dispatcher.register(GroupCommands.groupHomes("ghomes"));
         }
 
         // --- talking ---

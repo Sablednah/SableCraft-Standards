@@ -73,6 +73,13 @@ public final class GroupCommands {
                 .then(Commands.literal("tag")
                         .then(Commands.argument("tag", StringArgumentType.word())
                                 .executes(GroupCommands::tag)))
+                .then(Commands.literal("sethome")
+                        .then(Commands.argument("name", StringArgumentType.word())
+                                .executes(GroupCommands::setHome)))
+                .then(Commands.literal("delhome")
+                        .then(Commands.argument("name", StringArgumentType.word())
+                                .suggests(GroupCommands::suggestOwnHomes)
+                                .executes(GroupCommands::delHome)))
                 .then(Commands.literal("list").executes(GroupCommands::list))
                 .then(Commands.literal("info")
                         .executes(ctx -> info(ctx, null))
@@ -80,6 +87,78 @@ public final class GroupCommands {
                                 .suggests(GroupCommands::suggestGroups)
                                 .executes(ctx -> info(ctx,
                                         StringArgumentType.getString(ctx, "name")))));
+    }
+
+    /**
+     * {@code /ghome [name]} and {@code /ghomes} — at their plain names, unlike the rest.
+     *
+     * <p>Decision 12 applies here where it does not to {@code /group create}: travelling to the
+     * base is something a member does several times an hour, and {@code /group home base} is four
+     * words for a thing that wants to be one.</p>
+     */
+    public static LiteralArgumentBuilder<CommandSourceStack> groupHome(String name) {
+        return Commands.literal(name)
+                .requires(StandardsPermissions.require(StandardsPermissions.GROUP))
+                .executes(ctx -> goHome(ctx, null))
+                .then(Commands.argument("name", StringArgumentType.word())
+                        .suggests(GroupCommands::suggestOwnHomes)
+                        .executes(ctx -> goHome(ctx, StringArgumentType.getString(ctx, "name"))));
+    }
+
+    public static LiteralArgumentBuilder<CommandSourceStack> groupHomes(String name) {
+        return Commands.literal(name)
+                .requires(StandardsPermissions.require(StandardsPermissions.GROUP))
+                .executes(GroupCommands::listHomes);
+    }
+
+    private static int goHome(CommandContext<CommandSourceStack> ctx, String name)
+            throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        Optional<StandardsGroups.Entry> mine = store(ctx).of(player.getUUID());
+        if (mine.isEmpty()) {
+            Feedback.chat(player, Lang.get("msg.group.none"));
+            return 0;
+        }
+        String groupId = mine.get().id();
+        List<String> names = store(ctx).homeNames(groupId);
+        // A bare /ghome with exactly one home means that one. With several it has to ask, because
+        // picking arbitrarily would send somebody to the wrong continent.
+        String wanted = name != null ? name : (names.size() == 1 ? names.get(0) : null);
+        if (wanted == null) {
+            Feedback.chat(player, names.isEmpty()
+                    ? Lang.fmt("msg.group.no_homes_yet", "name", mine.get().name())
+                    : Lang.fmt("msg.group.which_home", "list", String.join(", ", names)));
+            return 0;
+        }
+        Optional<com.sablednah.standards.core.Waypoint> where = store(ctx).home(groupId, wanted);
+        if (where.isEmpty()) {
+            Feedback.chat(player, Lang.fmt("msg.group.home_unknown",
+                    "name", wanted, "list", homeList(ctx, groupId)));
+            return 0;
+        }
+        com.sablednah.standards.neoforge.Teleports.Attempt attempt =
+                com.sablednah.standards.neoforge.Teleports.request(player, where.get(), true,
+                        Lang.fmt("msg.group.home_went", "name", wanted));
+        return MoveCommands.report(player, attempt) ? 1 : 0;
+    }
+
+    private static int listHomes(CommandContext<CommandSourceStack> ctx)
+            throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        Optional<StandardsGroups.Entry> mine = store(ctx).of(player.getUUID());
+        if (mine.isEmpty()) {
+            Feedback.chat(player, Lang.get("msg.group.none"));
+            return 0;
+        }
+        List<String> names = store(ctx).homeNames(mine.get().id());
+        if (names.isEmpty()) {
+            Feedback.chat(player, Lang.fmt("msg.group.no_homes_yet", "name", mine.get().name()));
+            return 0;
+        }
+        Feedback.chat(player, Lang.fmt("msg.group.homes",
+                "name", mine.get().name(), "count", names.size(),
+                "list", String.join(", ", names)));
+        return names.size();
     }
 
     // --- reading ---
@@ -304,6 +383,70 @@ public final class GroupCommands {
                 ? Lang.get("msg.group.tag_cleared")
                 : Lang.fmt("msg.group.tag_set", "tag", wanted));
         return 1;
+    }
+
+    // --- shared homes ---
+
+    /**
+     * Owner sets, every member travels.
+     *
+     * <p>Matching {@code rename}, {@code tag} and {@code kick}: the owner decides what the group
+     * has, and members use it. Letting anyone set one is friendlier right up until somebody fills
+     * the limit with junk and the owner has no way to tell which is the real base.</p>
+     */
+    private static int setHome(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        String name = StringArgumentType.getString(ctx, "name");
+        Optional<StandardsGroups.Entry> owned = owned(ctx, player);
+        if (owned.isEmpty()) {
+            return 0;
+        }
+        int limit = com.sablednah.standards.StandardsConfig.GROUP_HOME_LIMIT.get();
+        com.sablednah.standards.core.Waypoint here =
+                com.sablednah.standards.core.Waypoint.of(player);
+        if (!store(ctx).setHome(owned.get().id(), name, here, limit)) {
+            Feedback.chat(player, Lang.fmt("msg.group.home_limit", "limit", limit, "name", name));
+            return 0;
+        }
+        Feedback.chat(player, Lang.fmt("msg.group.home_set",
+                "name", name, "place", here.describe()));
+        Feedback.warnIfUnreachable(player, here);
+        announce(ctx, owned.get(), Lang.fmt("msg.group.home_set_others",
+                "player", player.getName().getString(), "name", name), player.getUUID());
+        return 1;
+    }
+
+    private static int delHome(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        String name = StringArgumentType.getString(ctx, "name");
+        Optional<StandardsGroups.Entry> owned = owned(ctx, player);
+        if (owned.isEmpty()) {
+            return 0;
+        }
+        if (!store(ctx).deleteHome(owned.get().id(), name)) {
+            Feedback.chat(player, Lang.fmt("msg.group.home_unknown",
+                    "name", name, "list", homeList(ctx, owned.get().id())));
+            return 0;
+        }
+        Feedback.chat(player, Lang.fmt("msg.group.home_deleted", "name", name));
+        return 1;
+    }
+
+    static String homeList(CommandContext<CommandSourceStack> ctx, String groupId) {
+        List<String> names = store(ctx).homeNames(groupId);
+        return names.isEmpty() ? Lang.get("msg.group.no_homes") : String.join(", ", names);
+    }
+
+    private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions>
+            suggestOwnHomes(CommandContext<CommandSourceStack> ctx,
+                    com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+        if (!(ctx.getSource().getEntity() instanceof ServerPlayer player)) {
+            return builder.buildFuture();
+        }
+        return store(ctx).of(player.getUUID())
+                .map(e -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                        store(ctx).homeNames(e.id()), builder))
+                .orElseGet(builder::buildFuture);
     }
 
     // --- helpers ---

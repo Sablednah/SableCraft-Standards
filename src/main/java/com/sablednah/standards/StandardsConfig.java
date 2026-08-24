@@ -41,6 +41,7 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_GROUPS;
     public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> CHAT_GROUP_KINDS;
     public static final ModConfigSpec.IntValue GROUP_INVITE_TIMEOUT;
+    public static final ModConfigSpec.IntValue GROUP_HOME_LIMIT;
     public static final ModConfigSpec.BooleanValue ENABLE_SPAWN;
     public static final ModConfigSpec.BooleanValue ENABLE_SELFCARE;
     public static final ModConfigSpec.BooleanValue ENABLE_SPEED;
@@ -140,6 +141,12 @@ public final class StandardsConfig {
                         "more annoying than one that lingers, and the person who sent it is not",
                         "told either way. Set it if invites are piling up.")
                 .defineInRange("groupInviteTimeoutSeconds", 0, 0, 2_592_000);
+        GROUP_HOME_LIMIT = BUILDER
+                .comment("Shared homes a group may have. -1 for no limit.",
+                        "Set by the owner, reachable by every member, and separate from personal",
+                        "homes on purpose: 'my bedroom' and 'our base' are different things, and",
+                        "merging them would mean nobody can have a private home any more.")
+                .defineInRange("groupHomeLimit", 3, -1, 10_000);
         ENABLE_SMITE = BUILDER
                 .comment("/smite — lightning on a target or wherever you are looking. Op-gated.")
                 .define("smite", true);

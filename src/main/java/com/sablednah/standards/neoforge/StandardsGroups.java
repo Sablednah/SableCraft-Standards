@@ -53,6 +53,22 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
                 .apply(i, Entry::new));
     }
 
+    /**
+     * A shared home, keyed by group rather than by player.
+     *
+     * <p>Deliberately separate from personal homes rather than making a member's homes visible to
+     * the group. "My bedroom" and "our base" are different things, and merging them means nobody
+     * can have a private home any more — the sort of trade that only shows up after people have
+     * already put things somewhere.</p>
+     */
+    private record GroupHome(String group, String name, com.sablednah.standards.core.Waypoint where) {
+        static final Codec<GroupHome> CODEC = RecordCodecBuilder.create(i -> i.group(
+                Codec.STRING.fieldOf("group").forGetter(GroupHome::group),
+                Codec.STRING.fieldOf("name").forGetter(GroupHome::name),
+                com.sablednah.standards.core.Waypoint.CODEC.fieldOf("where").forGetter(GroupHome::where))
+                .apply(i, GroupHome::new));
+    }
+
     private record Invite(String group, UUID player, long at) {
         static final Codec<Invite> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("group").forGetter(Invite::group),
@@ -61,11 +77,13 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
                 .apply(i, Invite::new));
     }
 
-    private record Snapshot(List<Entry> groups, List<Invite> invites) {
+    private record Snapshot(List<Entry> groups, List<Invite> invites, List<GroupHome> homes) {
         static final Codec<Snapshot> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Entry.CODEC.listOf().optionalFieldOf("groups", List.of()).forGetter(Snapshot::groups),
                 Invite.CODEC.listOf().optionalFieldOf("invites", List.of())
-                        .forGetter(Snapshot::invites))
+                        .forGetter(Snapshot::invites),
+                GroupHome.CODEC.listOf().optionalFieldOf("homes", List.of())
+                        .forGetter(Snapshot::homes))
                 .apply(i, Snapshot::new));
     }
 
@@ -80,12 +98,15 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
     private final Map<String, Entry> groups = new LinkedHashMap<>();
     /** "groupId|uuid" → when it was sent. Invites persist: one lost to a restart is a puzzle. */
     private final Map<String, Long> invites = new LinkedHashMap<>();
+    /** "groupId|homename" → where. Shared, so it outlives any one member leaving. */
+    private final Map<String, com.sablednah.standards.core.Waypoint> homes = new LinkedHashMap<>();
 
     private StandardsGroups() {}
 
     private StandardsGroups(Snapshot snapshot) {
         snapshot.groups().forEach(g -> groups.put(g.id(), g));
         snapshot.invites().forEach(i -> invites.put(key(i.group(), i.player()), i.at()));
+        snapshot.homes().forEach(h -> homes.put(homeKey(h.group(), h.name()), h.where()));
     }
 
     private Snapshot snapshot() {
@@ -94,7 +115,12 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
             int split = k.indexOf('|');
             out.add(new Invite(k.substring(0, split), UUID.fromString(k.substring(split + 1)), at));
         });
-        return new Snapshot(List.copyOf(groups.values()), out);
+        List<GroupHome> savedHomes = new ArrayList<>();
+        homes.forEach((k, where) -> {
+            int split = k.indexOf('|');
+            savedHomes.add(new GroupHome(k.substring(0, split), k.substring(split + 1), where));
+        });
+        return new Snapshot(List.copyOf(groups.values()), out, savedHomes);
     }
 
     public static StandardsGroups get(MinecraftServer server) {
@@ -113,6 +139,10 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
      * longer resembles the group, which is fine until a second group takes the old name and the
      * two collide. An opaque id has neither problem.</p>
      */
+    private static String homeKey(String group, String name) {
+        return group + "|" + name.toLowerCase(java.util.Locale.ROOT);
+    }
+
     private static String freshId() {
         return UUID.randomUUID().toString().substring(0, 8);
     }
@@ -277,11 +307,49 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
                 : groups.values().stream().filter(g -> g.tag().equalsIgnoreCase(tag)).findFirst();
     }
 
+    // --- shared homes ---
+
+    public Optional<com.sablednah.standards.core.Waypoint> home(String groupId, String name) {
+        return Optional.ofNullable(homes.get(homeKey(groupId, name)));
+    }
+
+    public List<String> homeNames(String groupId) {
+        String prefix = groupId + "|";
+        return homes.keySet().stream()
+                .filter(k -> k.startsWith(prefix))
+                .map(k -> k.substring(prefix.length()))
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+    }
+
+    /** @return false if the group already has this many and this is a new name */
+    public boolean setHome(String groupId, String name,
+            com.sablednah.standards.core.Waypoint where, int limit) {
+        String key = homeKey(groupId, name);
+        if (limit >= 0 && !homes.containsKey(key) && homeNames(groupId).size() >= limit) {
+            return false;
+        }
+        homes.put(key, where);
+        setDirty();
+        return true;
+    }
+
+    public boolean deleteHome(String groupId, String name) {
+        if (homes.remove(homeKey(groupId, name)) == null) {
+            return false;
+        }
+        setDirty();
+        return true;
+    }
+
     public boolean disband(String groupId) {
         if (groups.remove(groupId) == null) {
             return false;
         }
         invites.keySet().removeIf(k -> k.startsWith(groupId + "|"));
+        // The homes go with it. Leaving them orphaned would let a new group with a recycled id
+        // inherit somebody else's base, which is exactly why ids are opaque and never reused.
+        homes.keySet().removeIf(k -> k.startsWith(groupId + "|"));
         setDirty();
         return true;
     }
