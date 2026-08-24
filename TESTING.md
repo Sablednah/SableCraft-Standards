@@ -148,7 +148,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [ ] `/group leave` as the **owner** — disbands, and the shared homes go with it
 - [ ] a non-owner tries `/group sethome` / `tag` / `rename` — refused
 - [ ] two groups try the same tag — the second is refused
-- [ ] `/tpa` to a group-mate — **no cooldown**, but the warmup still applies
+- [x] `/tpa` to a group-mate — **no cooldown**, but the warmup still applies
       (`groupTeleportSkipsWarmup = false`, deliberately: the warmup is the anti-combat-log half)
 - [ ] `/group create` a name that already exists — refused, and says which reason
 - [ ] restart the server — groups, members, tags and shared homes all survive
