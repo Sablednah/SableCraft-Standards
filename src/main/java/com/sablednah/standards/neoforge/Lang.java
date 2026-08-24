@@ -42,6 +42,12 @@ public final class Lang {
 
     // --- term.* : the nouns a server re-skins ---
     static {
+        // The colour of a parenthetical aside — coordinates, timestamps, counts. &8 sits at
+        // #555555, which on a transparent black chat background is close to unreadable, and an
+        // aside you cannot read is not an aside, it is noise. This is deliberately between &8 and
+        // &7 rather than equal to either: dimmer than the body so the hierarchy survives, light
+        // enough to actually read. One key, so an owner who disagrees changes it once.
+        def("term.dim", "&#8A8A8A");
         def("term.prefix", "&7[&bStandards&7]&r");
         def("term.home", "home");
         def("term.homes", "homes");
@@ -77,10 +83,10 @@ public final class Lang {
         def("msg.toggle.vanish", "Vanish");
         // Persisted switches are invisible by definition — say so on login, or
         // staff spend a week wondering why the server feels quiet.
-        def("msg.toggle.still_on", "{term.prefix} &eYou are {what}&7. &8({commands})");
+        def("msg.toggle.still_on", "{term.prefix} &eYou are {what}&7. {term.dim}({commands})");
         // Vanish quietly implies invulnerability, which reads as being stuck in god
         // mode — say so rather than leaving them to work it out.
-        def("msg.toggle.still_on_hidden", "{term.prefix} &eYou are {what} &7— hidden and unhittable. &8({commands})");
+        def("msg.toggle.still_on_hidden", "{term.prefix} &eYou are {what} &7— hidden and unhittable. {term.dim}({commands})");
     }
 
     // --- msg.tp.* : teleporting ---
@@ -109,19 +115,19 @@ public final class Lang {
         def("msg.tp.bottom", "{term.prefix} &7Down you go — &f{y}&7 blocks below where you were.");
         def("msg.tp.bottom_already", "&7Nothing below you — you are already at the bottom.");
         def("msg.tp.never_seen", "&cNo record of where &f{player}&c was last seen.");
-        def("msg.tp.to_offline", "{term.prefix} &7To where &f{player}&7 logged out &8({place}).");
+        def("msg.tp.to_offline", "{term.prefix} &7To where &f{player}&7 logged out {term.dim}({place}).");
         def("msg.tp.jump_nothing", "&cNothing in range to jump to.");
         def("msg.tp.jump_done", "{term.prefix} &7Jumped &f{blocks}&7 blocks.");
-        def("msg.tp.back_death_disabled", "&7Returning to where you died is not enabled here, so that spot was not saved. &8(/back again for your previous location.)");
+        def("msg.tp.back_death_disabled", "&7Returning to where you died is not enabled here, so that spot was not saved. {term.dim}(/back again for your previous location.)");
         def("msg.tp.back_none", "&7Nowhere to go back to.");
-        def("msg.tp.back_done", "{term.prefix} &7Returned to where you were &8({place}).");
-        def("msg.tp.back_death", "{term.prefix} &7Returned to where you died &8({place}).");
+        def("msg.tp.back_done", "{term.prefix} &7Returned to where you were {term.dim}({place}).");
+        def("msg.tp.back_death", "{term.prefix} &7Returned to where you died {term.dim}({place}).");
     }
 
     // --- msg.spawn.* ---
     static {
         def("msg.spawn.went", "{term.prefix} &7Back to {term.spawn}.");
-        def("msg.spawn.set", "{term.prefix} &7{term.spawn} set &8({place}).");
+        def("msg.spawn.set", "{term.prefix} &7{term.spawn} set {term.dim}({place}).");
         def("msg.spawn.went_bed", "{term.prefix} &7Home to where you last slept.");
         def("msg.spawn.no_bed", "&7You have no bed or respawn anchor set.");
     }
@@ -154,13 +160,13 @@ public final class Lang {
     // --- msg.gc.* : server health ---
     static {
         def("msg.gc.header", "{term.prefix} &7Server health:");
-        def("msg.gc.tps", " &7Tick rate: {colour}{tps} TPS&7 &8({ms} ms/tick)");
+        def("msg.gc.tps", " &7Tick rate: {colour}{tps} TPS&7 {term.dim}({ms} ms/tick)");
         def("msg.gc.memory", " &7Memory: &f{used}MB&7 used of &f{allocated}MB&7 allocated, "
-                + "&f{max}MB&7 max &8({percent}%)");
+                + "&f{max}MB&7 max {term.dim}({percent}%)");
         def("msg.gc.uptime", " &7Uptime: &f{uptime}&7, &f{players}&7/&f{max}&7 players");
         def("msg.gc.dimension", " &7{dimension}: &f{entities}&7 entities, &f{chunks}&7 chunks");
         def("msg.gc.worst_header", " &7Most numerous entities:");
-        def("msg.gc.worst_line", "  &8-&r &f{count}x&7 {type}");
+        def("msg.gc.worst_line", "  {term.dim}-&r &f{count}x&7 {type}");
     }
 
     // --- msg.kit.* ---
@@ -178,9 +184,9 @@ public final class Lang {
         def("msg.kit.deleted", "{term.prefix} &7Kit &f{name}&7 deleted.");
         def("msg.kit.empty_capture", "&cYou are not carrying anything to save.");
         def("msg.kit.name_rules", "&cKit names: 1-32 letters, numbers, _ or -.");
-        def("msg.kit.contents_header", "{term.prefix} &7Kit &f{name}&7 &8({cooldown})&7:");
+        def("msg.kit.contents_header", "{term.prefix} &7Kit &f{name}&7 {term.dim}({cooldown})&7:");
         def("msg.kit.no_cooldown", "no cooldown");
-        def("msg.kit.contents_line", " &8-&r &f{count}x&7 {item}");
+        def("msg.kit.contents_line", " {term.dim}-&r &f{count}x&7 {item}");
     }
 
     // --- msg.mail.* ---
@@ -190,28 +196,28 @@ public final class Lang {
         def("msg.mail.waiting", "{term.prefix} &e✉ You have &f{count}&e unread mail — &f/mail read");
         def("msg.mail.empty", "&7No mail.");
         def("msg.mail.full", "&c{player}'s mailbox is full.");
-        def("msg.mail.header", "{term.prefix} &7Mail &8({count})&7:");
-        def("msg.mail.line", " &8-&r &7{player} &8({ago} ago)&7: {message}");
-        def("msg.mail.line_new", " &e-&r &f{player} &8({ago} ago)&f: {message}");
+        def("msg.mail.header", "{term.prefix} &7Mail {term.dim}({count})&7:");
+        def("msg.mail.line", " {term.dim}-&r &7{player} {term.dim}({ago} ago)&7: {message}");
+        def("msg.mail.line_new", " &e-&r &f{player} {term.dim}({ago} ago)&f: {message}");
         def("msg.mail.cleared", "{term.prefix} &7Threw away &f{count}&7 letters.");
     }
 
     // --- msg.afk.* ---
     static {
         def("msg.afk.now_away", "&7* &f{player}&7 is now away.");
-        def("msg.afk.now_away_reason", "&7* &f{player}&7 is now away &8({reason})");
-        def("msg.afk.back", "&7* &f{player}&7 is back &8(away {duration})");
+        def("msg.afk.now_away_reason", "&7* &f{player}&7 is now away {term.dim}({reason})");
+        def("msg.afk.back", "&7* &f{player}&7 is back {term.dim}(away {duration})");
         def("msg.afk.kicked", "&cDisconnected after &f{duration}&c idle.");
     }
 
     // --- msg.pm.* : private messages ---
     static {
-        def("msg.pm.sent", "&8[&7me &8-> &f{player}&8]&7 {message}");
-        def("msg.pm.received", "&8[&f{player} &8-> &7me&8]&7 {message}");
+        def("msg.pm.sent", "{term.dim}[&7me {term.dim}-> &f{player}{term.dim}]&7 {message}");
+        def("msg.pm.received", "{term.dim}[&f{player} {term.dim}-> &7me{term.dim}]&7 {message}");
         // Dark grey is for parenthetical asides, not for words somebody has to read: the whole
         // line used to be &8, which on a transparent black chat background is close to invisible.
         // The [spy] marker stays dim because it IS an aside; the names and the message do not.
-        def("msg.pm.spy", "&8[spy] &7[&f{from}&7 → &f{to}&7] &7{message}");
+        def("msg.pm.spy", "{term.dim}[spy] &7[&f{from}&7 → &f{to}&7] &7{message}");
         def("msg.pm.self", "&7Talking to yourself is a sign you need a break.");
         def("msg.pm.refusing", "&c{player} is not accepting messages right now.");
         def("msg.pm.nobody_to_reply", "&7Nobody has messaged you yet.");
@@ -231,10 +237,10 @@ public final class Lang {
         def("msg.mod.bad_duration", "&cNot a duration I understand: &f{input}&c. "
                 + "&7Try 30m, 2h30m, 7d.");
         def("msg.mod.banned", "{term.prefix} &7Banned &f{player}&7 for &f{duration}&7. "
-                + "&8({reason})");
+                + "{term.dim}({reason})");
         def("msg.mod.ban_screen", "&cYou are banned for &f{duration}&c.\n&7{reason}");
         def("msg.mod.muted", "{term.prefix} &7Muted &f{player}&7 for &f{duration}&7. "
-                + "&8({reason})");
+                + "{term.dim}({reason})");
         def("msg.mod.muted_you", "&cYou have been muted for &f{duration}&c. &7{reason}");
         def("msg.mod.mute_blocked", "&cYou are muted for another &f{duration}&c. &7{reason}");
         def("msg.mod.mute_blocked_perm", "&cYou are muted. &7{reason}");
@@ -264,9 +270,9 @@ public final class Lang {
         def("term.list.and", "and");
 
         def("msg.tpa.sent", "{term.prefix} &7Asked &f{player}&7 if you may teleport to them. "
-                + "&8(expires in {sec}s)");
+                + "{term.dim}(expires in {sec}s)");
         def("msg.tpa.sent_here", "{term.prefix} &7Asked &f{player}&7 to teleport to you. "
-                + "&8(expires in {sec}s)");
+                + "{term.dim}(expires in {sec}s)");
         def("msg.tpa.received", "{term.prefix} &f{player}&7 would like to teleport to you.");
         def("msg.tpa.received_here", "{term.prefix} &f{player}&7 would like you to teleport to them.");
         def("msg.tpa.button_accept", "&a&l[Accept]");
@@ -302,7 +308,7 @@ public final class Lang {
         def("msg.tpa.accepted_here_wait", "{term.prefix} &7Teleporting to &f{player}&7 in "
                 + "&f{sec}s&7 — hold still.");
         def("msg.tpa.arrived_host", "{term.prefix} &f{player}&7 has arrived.");
-        def("msg.tpa.failed_host", "{term.prefix} &f{player}&7 did not make it &8({reason}).");
+        def("msg.tpa.failed_host", "{term.prefix} &f{player}&7 did not make it {term.dim}({reason}).");
         def("msg.tpa.reason_moved", "they moved");
         def("msg.tpa.reason_damaged", "they were attacked");
         def("msg.tpa.reason_unsafe", "nowhere safe to land");
@@ -312,24 +318,24 @@ public final class Lang {
         def("msg.tpa.denied_you", "{term.prefix} &f{player}&7 turned down your {term.tpa}.");
         def("msg.tpa.cancelled_by_you", "{term.prefix} &7Withdrew your {term.tpa} to &f{player}&7.");
         def("msg.tpa.cancelled_you", "{term.prefix} &f{player}&7 withdrew their {term.tpa}.");
-        def("msg.tpa.expired_sender", "&e\u231b Your {term.tpa} to &f{player}&e lapsed &8(no answer in time).");
-        def("msg.tpa.expired_target", "&e\u231b &f{player}&e's {term.tpa} lapsed &8(you did not answer in time).");
+        def("msg.tpa.expired_sender", "&e\u231b Your {term.tpa} to &f{player}&e lapsed {term.dim}(no answer in time).");
+        def("msg.tpa.expired_target", "&e\u231b &f{player}&e's {term.tpa} lapsed {term.dim}(you did not answer in time).");
 
         def("msg.tpa.toggle_name", "Accepting {term.tpas}");
         def("msg.tpa.list_header", "{term.prefix} &7Open {term.tpas}:");
-        def("msg.tpa.list_row", " &7-&r &f{player} &8({dir}, {sec}s left)");
+        def("msg.tpa.list_row", " &7-&r &f{player} {term.dim}({dir}, {sec}s left)");
         def("msg.tpa.dir_to_you", "to you");
         def("msg.tpa.dir_to_them", "you to them");
     }
 
     // --- msg.home.* ---
     static {
-        def("msg.home.set", "{term.prefix} &7{term.home} &f{name}&7 set &8({place}).");
-        def("msg.home.moved", "{term.prefix} &7{term.home} &f{name}&7 moved here &8({place}).");
+        def("msg.home.set", "{term.prefix} &7{term.home} &f{name}&7 set {term.dim}({place}).");
+        def("msg.home.moved", "{term.prefix} &7{term.home} &f{name}&7 moved here {term.dim}({place}).");
         def("msg.home.deleted", "{term.prefix} &7{term.home} &f{name}&7 deleted.");
         def("msg.home.unknown", "&cYou have no {term.home} called &f{name}&c. &7Try: {list}");
         def("msg.home.none", "&7You have no {term.homes} yet — &f/sethome&7 sets one.");
-        def("msg.home.list", "{term.prefix} &7Your {term.homes} &8({count}/{limit})&7: {list}");
+        def("msg.home.list", "{term.prefix} &7Your {term.homes} {term.dim}({count}/{limit})&7: {list}");
         def("msg.home.limit", "&cYou may only have &f{limit}&c {term.homes}. Delete one first, "
                 + "or overwrite it with &f/sethome {name}&c.");
         def("msg.home.name_rules", "&c{term.home} names: 1-32 letters, numbers, _ or -.");
@@ -339,14 +345,14 @@ public final class Lang {
 
     // --- msg.warp.* ---
     static {
-        def("msg.warp.set", "{term.prefix} &7{term.warp} &f{name}&7 set &8({place}).");
-        def("msg.warp.moved", "{term.prefix} &7{term.warp} &f{name}&7 moved here &8({place}).");
+        def("msg.warp.set", "{term.prefix} &7{term.warp} &f{name}&7 set {term.dim}({place}).");
+        def("msg.warp.moved", "{term.prefix} &7{term.warp} &f{name}&7 moved here {term.dim}({place}).");
         def("msg.warp.deleted", "{term.prefix} &7{term.warp} &f{name}&7 deleted.");
         def("msg.warp.unknown", "&cNo {term.warp} called &f{name}&c. &7Try: {list}");
         // "Try:" followed by nothing is worse than no hint at all.
         def("msg.warp.unknown_none", "&cNo {term.warp} called &f{name}&c. &7This server has no {term.warps} yet.");
         def("msg.warp.none", "&7This server has no {term.warps} yet.");
-        def("msg.warp.list", "{term.prefix} &7{term.warps} &8({count})&7: &f{list}");
+        def("msg.warp.list", "{term.prefix} &7{term.warps} {term.dim}({count})&7: &f{list}");
         def("msg.warp.went", "{term.prefix} &7Warped to &f{name}&7.");
         def("msg.warp.name_rules", "&c{term.warp} names: 1-32 letters, numbers, _ or -.");
     }
@@ -382,7 +388,7 @@ public final class Lang {
         def("msg.eco.admin_none", "&7Nobody matched — no {term.balance} changed.");
         def("msg.eco.admin_set", "{term.prefix} &7Set &f{player}&7's {term.balance} to &a{amount}&7.");
         def("msg.eco.baltop_header", "{term.prefix} &7Richest accounts:");
-        def("msg.eco.baltop_row", " &8{rank}.&r &f{player} &7— &a{amount}");
+        def("msg.eco.baltop_row", " {term.dim}{rank}.&r &f{player} &7— &a{amount}");
         def("msg.eco.baltop_unsupported", "&7The active economy cannot list accounts.");
         def("msg.eco.provider", "{term.prefix} &7Economy provider: &f{name}&7 (priority {priority}).");
         def("msg.eco.provider_none", "{term.prefix} &7No economy provider is registered.");

@@ -11,6 +11,7 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerPlayer;
@@ -74,6 +75,23 @@ public final class Feedback {
 
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
+
+            // &#RRGGBB — the vanilla palette has no shade between dark grey and grey, which is
+            // exactly the gap an aside wants to sit in. Available because colored() builds real
+            // Style objects rather than section signs, and rendered fine by a vanilla client.
+            if ((c == '&' || c == '§') && i + 7 < text.length() && text.charAt(i + 1) == '#') {
+                Integer rgb = parseHex(text, i + 2);
+                if (rgb != null) {
+                    if (!run.isEmpty()) {
+                        out.append(Component.literal(run.toString()).withStyle(style));
+                        run.setLength(0);
+                    }
+                    style = Style.EMPTY.withColor(TextColor.fromRgb(rgb));
+                    i += 7;
+                    continue;
+                }
+            }
+
             ChatFormatting code = (c == '&' || c == '§') && i + 1 < text.length()
                     ? ChatFormatting.getByCode(text.charAt(i + 1))
                     : null;
@@ -92,6 +110,19 @@ public final class Feedback {
             out.append(Component.literal(run.toString()).withStyle(style));
         }
         return out;
+    }
+
+    /** Six hex digits at {@code from}, or null if they are not six hex digits. */
+    private static Integer parseHex(String text, int from) {
+        int value = 0;
+        for (int i = from; i < from + 6; i++) {
+            int digit = Character.digit(text.charAt(i), 16);
+            if (digit < 0) {
+                return null;
+            }
+            value = value * 16 + digit;
+        }
+        return value;
     }
 
     /**
@@ -135,6 +166,13 @@ public final class Feedback {
         StringBuilder out = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
+            // Hex first, or "&#ff0000" leaves "#ff0000" behind and the colour smuggling only
+            // half fails — which is worse than not stripping at all, because it looks handled.
+            if ((c == '&' || c == '§') && i + 7 < text.length() && text.charAt(i + 1) == '#'
+                    && parseHex(text, i + 2) != null) {
+                i += 7;
+                continue;
+            }
             boolean isCode = (c == '&' || c == '§') && i + 1 < text.length()
                     && CODES.indexOf(text.charAt(i + 1)) >= 0;
             if (isCode) {

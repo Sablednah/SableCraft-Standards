@@ -235,6 +235,22 @@ public final class SelfTest {
                 Feedback.colored("plain words").getString().equals("plain words"));
         check("a trailing code produces no stray text",
                 Feedback.colored("done &").getString().equals("done &"));
+
+        // Hex colours: the palette has no shade between dark grey and grey, which is where an
+        // aside wants to sit. Text must survive, and the code must not leak into it.
+        check("a hex colour leaves the text intact",
+                Feedback.colored("&#8A8A8Adim words").getString().equals("dim words"));
+        check("a hex colour leaves no hash behind",
+                !Feedback.colored("&#8A8A8Adim").getString().contains("#"));
+        check("a malformed hex is left as ordinary text",
+                Feedback.colored("&#ZZZZZZnope").getString().equals("&#ZZZZZZnope"));
+        check("a short hex is left as ordinary text",
+                Feedback.colored("&#abc").getString().equals("&#abc"));
+        // And a player must not be able to smuggle one through.
+        check("hex is stripped from player text",
+                Feedback.stripCodes("&#ff0000RED").equals("RED"));
+        check("stripping hex leaves no hash behind",
+                !Feedback.stripCodes("&#ff0000RED").contains("#"));
     }
 
     /**
