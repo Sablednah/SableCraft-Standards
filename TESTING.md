@@ -269,10 +269,10 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 
 ## Permissions, with LuckPerms
 
-- [ ] TestBuddy (non-op, no grants) can use `/home` `/back` `/balance` `/pay` `/msg` `/afk` `/kit`
-- [ ] TestBuddy cannot use `/fly` `/god` `/invsee` `/eco` `/setwarp` `/bottom`
-- [ ] `lp user TestBuddy permission set standards.fly true` — works immediately
-- [ ] `lp group default permission set standards.craft true` — group-wide
+- [x] TestBuddy (non-op, no grants) can use `/home` `/back` `/balance` `/pay` `/msg` `/afk` `/kit`
+- [x] TestBuddy cannot use `/fly` `/god` `/invsee` `/eco` `/setwarp` `/bottom`
+- [x] `lp user TestBuddy permission set standards.fly true` — works immediately
+- [x] `lp group default permission set standards.craft true` — group-wide
 - [x] deop yourself — `/fly on` refuses
 - [x] deopped **while airborne** — you keep flying rather than dropping, and `/fly off` is
       still available so you can land. Losing a permission must never strand you
