@@ -26,6 +26,23 @@ public interface Group {
     String name();
 
     /**
+     * A short label for chat — three or four characters, {@code [TCB]} rather than
+     * {@code [The Crimson Brotherhood]}.
+     *
+     * <p>Separate from {@link #name()} because the two have different jobs. A name is read once,
+     * in a list or an info panel, and wants to be evocative. A tag is read on <em>every line of
+     * chat</em> and wants to be short — the classic Factions tag exists for exactly this, and a
+     * chat prefix carrying the full name is what makes people turn group tags off.</p>
+     *
+     * <p>Empty when a group has none, which providers without the concept can simply leave as the
+     * default. Consumers rendering a chat tag should fall back to the name only if they are
+     * prepared for it to be long, or omit the tag entirely.</p>
+     */
+    default java.util.Optional<String> tag() {
+        return java.util.Optional.empty();
+    }
+
+    /**
      * Whether this player belongs.
      *
      * <p><b>The cheap question, and the one to prefer.</b> A grief check runs on every block break

@@ -102,6 +102,21 @@ list, no `SavedData`.
 membership works fine for parties and factions and breaks on the first guild — and it breaks late,
 after the shape is set.
 
+### A tag is not a short name, it is a different field
+
+`Group.tag()` — three or four characters, `[TCB]` rather than `[The Crimson Brotherhood]`. Optional,
+defaulting to empty for providers without the concept.
+
+Separate from the name because the two are read in different places. **A name is read once**, in a
+list or an info panel, and wants to be evocative. **A tag is read on every line of chat**, and
+wants to be short. The classic Factions tag exists for exactly this, and a chat prefix carrying the
+full name is what makes people turn group tags off — at which point the whole rendering seam has
+been built for nothing.
+
+Tags are unique among live groups, case-insensitively, for the same reason names are: two groups
+both rendering as `[TCB]` is worse than either having no tag, because a reader cannot tell them
+apart and has no way to find out.
+
 ### Groups are renameable
 
 `/party rename` exists and players use it. Any config referencing a group must key on **kind**,
