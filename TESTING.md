@@ -100,8 +100,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] they are told you are arriving, and told again when you land
 - [x] `/tpahere TestBuddy` — accepted, **they** travel, and both sides get the right message
 - [x] accept, then walk during the countdown — cancelled, **and they are told why**
-- [ ] `/tpa`, accept, then have the host run away — you land where they *ended up*
-      (`tpaFollowTarget = false` to land where they were instead)
+- [ ] `/tpa`, they accept, then **they** walk off while **you stand still** — you land next to
+      wherever they ended up, not where they accepted from. (You moving cancels it; that is the
+      separate check above. `tpaFollowTarget = false` lands you where they accepted instead.)
 - [x] `/tpacancel` with nothing to cancel but a request waiting — offers an Accept button
 - [x] `/tpaccept` when you are the one waiting — tells you so
 - [x] let one lapse — ⌛ message at both ends
