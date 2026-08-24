@@ -486,6 +486,38 @@ public final class Lang {
         return FMLPaths.CONFIGDIR.get().resolve("standards").resolve("messages.yml");
     }
 
+    /**
+     * Add a message another mod owns, so it lands in the same {@code messages.yml}.
+     *
+     * <p>One catalogue for the whole server. A server owner re-skinning their vocabulary should
+     * not have to find three files, and a mod built on Standards should not ship a second string
+     * system that behaves almost-but-not-quite the same — different colour codes, different
+     * placeholder syntax, different merge rules on upgrade.</p>
+     *
+     * <p>Contributed keys get everything the built-in ones do: the {@code {term.*}} substitutions
+     * — including terms Standards itself defines, so a mod can say {@code {term.home}} and follow
+     * a rename it never knew about — the colour handling, the merge-on-upgrade, and
+     * {@code /standards reload}.</p>
+     *
+     * <p><b>Call during {@code FMLCommonSetupEvent}.</b> The catalogue is written and merged at
+     * {@code ServerAboutToStartEvent}, so anything contributed before then appears in the file on
+     * the same start; anything later is usable but will not show up for an owner to edit until the
+     * next one.</p>
+     *
+     * <p>Prefix keys with your mod id — {@code msg.factions.claimed} — or two mods will collide
+     * over {@code msg.home.set} and the loser will not find out.</p>
+     *
+     * @return false if that key is already taken, in which case the original stands
+     */
+    public static synchronized boolean contribute(String key, String template) {
+        if (DEFAULTS.containsKey(key)) {
+            Standards.LOGGER.error("Message key '{}' is already defined; ignoring the second", key);
+            return false;
+        }
+        DEFAULTS.put(key, template);
+        return true;
+    }
+
     /** The built-in catalogue, for checks that must look at every message. */
     public static Map<String, String> catalogue() {
         return Map.copyOf(DEFAULTS);

@@ -148,6 +148,12 @@ neoForge {
         "${mod_id}" {
             sourceSet(sourceSets.main)
         }
+        // The dev server loads Factions too. Testing a faction mod without the mod it hard-depends
+        // on would prove nothing, and a second dev server for it would need Standards installed
+        // anyway — so there is one server, and it has both.
+        factions {
+            sourceSet(project(':factions').sourceSets.main)
+        }
     }
 }
 
@@ -157,6 +163,11 @@ configurations {
 }
 
 dependencies {
+    // Factions on the RUNTIME classpath only. Not a compile dependency, and deliberately not:
+    // Standards must never know Factions exists. The arrow points the other way, through the
+    // groups and claims seams.
+    localRuntime project(':factions')
+
     // SnakeYAML powers messages.yml — the owner-editable string catalogue. Minecraft does not
     // ship it, so it is embedded in the mod jar (jar-in-jar).
     implementation 'org.yaml:snakeyaml:2.2'

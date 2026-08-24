@@ -338,9 +338,13 @@ public final class MoveCommands {
     /**
      * Turn an {@link Teleports.Attempt} into words.
      *
+     * <p>Public because a mod built on Standards doing its own teleport wants the same refusals
+     * worded the same way. Reimplementing them would mean a second set of strings drifting out of
+     * step with these, and a player being told two different things about the same cooldown.</p>
+     *
      * @return true if the teleport happened or was queued
      */
-    static boolean report(ServerPlayer player, Teleports.Attempt attempt) {
+    public static boolean report(ServerPlayer player, Teleports.Attempt attempt) {
         if (attempt.accepted()) {
             if (attempt.queued()) {
                 Feedback.chat(player, Lang.fmt("msg.tp.warmup", "sec", attempt.secondsLeft()));

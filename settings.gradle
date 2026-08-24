@@ -9,3 +9,10 @@ plugins {
 }
 
 rootProject.name = 'SableCraft-Standards'
+
+// Factions-ReForged lives in its own folder — its own repo, its own mod, its own release — but
+// its build is driven from here. It hard-depends on Standards and will be edited alongside it for
+// a long while, and two separate Gradle invocations to test one change is friction with nothing
+// to show for it.
+include('factions')
+project(':factions').projectDir = file('../Factions-ReForged')
