@@ -116,7 +116,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/vanish on` — invisible, not translucent
 - [x] Tab — you are off their list
 - [x] a mob near you stops pathing to you
-- [ ] their `/msg` to you fails; your `/msg` to them works
+- [x] their `/msg` to you fails with an ordinary "no player" error; your `/msg` to them works
+- [x] …and you are absent from **tab-completion** too — hiding someone from chat and the
+      player list leaks them straight back the moment anyone types `/msg s`
 - [x] spectral arrow — no glow outline
 - [x] they shoot you — arrows pass through, no bounce
 - [x] they walk into you — no shove, they phase through
