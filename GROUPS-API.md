@@ -3,9 +3,11 @@
 Who is in a group with whom, and who owns this chunk — asked of Standards, answered by whoever
 actually knows.
 
-**Status: designed, not built.** This is the specification agreed on 2026-08-20, written down so
-the next session starts from a decision rather than an argument. Nothing in `api/groups/` exists
-yet.
+**Status: the seam is built; nothing consumes it yet.** `api/groups/` exists as of 2026-08-24 —
+`GroupKind`, `Group`, `GroupProvider`, `Groups`, `ClaimProvider`, `Claims` — with 31 self-test
+checks. Standards does not yet render group tags or use groups in its own commands, no provider is
+registered, and `Factions-ReForged` does not exist. The specification below is what it was built
+to, and the decisions still stand.
 
 ## Why there is one at all
 
@@ -250,6 +252,21 @@ Everything claims actually need renders on an unmodded client:
   markers. Vanilla's own banner-on-map mechanic already gives players base markers for free.
 
 ---
+
+## Two boundaries that came out of building it
+
+**Online players only.** Every accessor takes a `ServerPlayer` rather than a UUID, so nothing
+answers for somebody absent. That is deliberate rather than an oversight: every consumer named so
+far — friendly fire, chat rendering, teleport rules, grief checks — involves a player who is
+present, and a computed kind often *cannot* answer for an absent one. If an offline question turns
+up it wants adding with its own contract rather than being faked from a stale cache.
+
+**Both facets fail open.** A group provider that throws leaves the player ungrouped; a claims
+provider that throws permits the block change. For claims especially that is the deliberate way
+round: a land mod erroring should not brick every player's ability to place a block. The cost is
+that a broken provider stops protecting rather than stops the server, which is the right trade for
+something sitting on the block-break path — but it does mean a silent failure looks like an
+unclaimed world, so providers must log rather than swallow.
 
 ## Stability
 

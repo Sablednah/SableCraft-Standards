@@ -68,6 +68,8 @@ public final class SelfTest {
         checkNoTermInflection();
         checkColourCodes();
         checkChatRouters();
+        checkGroups();
+        checkClaims();
         checkMoneyFormatting();
         checkCommandsParse(server);
         checkSafeLoc(server);
@@ -334,6 +336,168 @@ public final class SelfTest {
                 .toList();
         check("no message inflects a vocabulary term" + (offenders.isEmpty() ? "" : " " + offenders),
                 offenders.isEmpty());
+    }
+
+    /**
+     * The groups seam. Registers real providers and takes them out again — asserting a list is
+     * non-empty would pass for a seam that never calls anybody, and a fixture left registered
+     * changes the live server, which the chat decorators already proved the hard way.
+     *
+     * <p>{@code share()} is not exercised here: it needs two real players, and the self-test runs
+     * with nobody connected. That belongs to the RCON battery, which exists for exactly the
+     * questions this cannot answer.</p>
+     */
+    private void checkGroups() {
+        record Kind(String id, String displayName, boolean exclusive)
+                implements com.sablednah.standards.api.groups.GroupKind {}
+        record Fixed(com.sablednah.standards.api.groups.GroupKind kind, String id, String name,
+                java.util.Set<UUID> who)
+                implements com.sablednah.standards.api.groups.Group {
+            public boolean contains(UUID player) { return who.contains(player); }
+            public java.util.Collection<UUID> members() { return who; }
+        }
+
+        var partyKind = new Kind("selftest:party", "party", true);
+        var roleKind = new Kind("selftest:role", "role", false);
+        var thrower = new Kind("selftest:thrower", "boom", true);
+
+        var party = new Fixed(partyKind, "p1", "The Crew", java.util.Set.of());
+        var mod = new Fixed(roleKind, "r1", "moderator", java.util.Set.of());
+        var builder = new Fixed(roleKind, "r2", "builder", java.util.Set.of());
+
+        com.sablednah.standards.api.groups.GroupProvider parties =
+                new com.sablednah.standards.api.groups.GroupProvider() {
+                    public com.sablednah.standards.api.groups.GroupKind kind() { return partyKind; }
+                    public java.util.Collection<com.sablednah.standards.api.groups.Group>
+                            groupsOf(ServerPlayer p) { return List.of(party); }
+                    public java.util.Optional<com.sablednah.standards.api.groups.Group>
+                            byName(String n) { return java.util.Optional.of(party); }
+                };
+        com.sablednah.standards.api.groups.GroupProvider roles =
+                new com.sablednah.standards.api.groups.GroupProvider() {
+                    public com.sablednah.standards.api.groups.GroupKind kind() { return roleKind; }
+                    public java.util.Collection<com.sablednah.standards.api.groups.Group>
+                            groupsOf(ServerPlayer p) { return List.of(mod, builder); }
+                    public java.util.Optional<com.sablednah.standards.api.groups.Group>
+                            byName(String n) { return java.util.Optional.empty(); }
+                };
+        com.sablednah.standards.api.groups.GroupProvider boom =
+                new com.sablednah.standards.api.groups.GroupProvider() {
+                    public com.sablednah.standards.api.groups.GroupKind kind() { return thrower; }
+                    public java.util.Collection<com.sablednah.standards.api.groups.Group>
+                            groupsOf(ServerPlayer p) { throw new IllegalStateException("deliberate"); }
+                    public java.util.Optional<com.sablednah.standards.api.groups.Group>
+                            byName(String n) { return java.util.Optional.empty(); }
+                };
+
+        try {
+            check("a provider is accepted",
+                    com.sablednah.standards.api.groups.Groups.register(parties));
+            // Two mods disagreeing about who is in a party is not something to settle quietly.
+            check("a second provider for the same kind is refused",
+                    !com.sablednah.standards.api.groups.Groups.register(parties));
+            check("a different kind is accepted alongside",
+                    com.sablednah.standards.api.groups.Groups.register(roles));
+
+            // A null player is fine: these fixtures never look at it.
+            check("an exclusive kind has a primary",
+                    com.sablednah.standards.api.groups.Groups.primary(null, partyKind)
+                            .map(g -> g.name().equals("The Crew")).orElse(false));
+            // Asking for "the" role of somebody who is both moderator and builder has no answer,
+            // and picking one arbitrarily would be worse than saying so.
+            check("a non-exclusive kind has no primary",
+                    com.sablednah.standards.api.groups.Groups.primary(null, roleKind).isEmpty());
+            check("but all() returns every one of them",
+                    com.sablednah.standards.api.groups.Groups.all(null, roleKind).size() == 2);
+            check("all() across kinds returns them together",
+                    com.sablednah.standards.api.groups.Groups.all(null).size() == 3);
+
+            check("an unprovided kind is simply empty",
+                    com.sablednah.standards.api.groups.Groups.all(null, thrower).isEmpty());
+
+            com.sablednah.standards.api.groups.Groups.register(boom);
+            check("a throwing provider leaves the player ungrouped rather than killing the call",
+                    com.sablednah.standards.api.groups.Groups.all(null, thrower).isEmpty());
+            check("and does not stop the other kinds answering",
+                    com.sablednah.standards.api.groups.Groups.all(null).size() == 3);
+
+            check("kinds are listed", com.sablednah.standards.api.groups.Groups.kinds().size() == 3);
+            check("a kind can be found by id",
+                    com.sablednah.standards.api.groups.Groups.kind("selftest:role")
+                            .map(k -> !k.exclusive()).orElse(false));
+        } finally {
+            com.sablednah.standards.api.groups.Groups.unregister(partyKind);
+            com.sablednah.standards.api.groups.Groups.unregister(roleKind);
+            com.sablednah.standards.api.groups.Groups.unregister(thrower);
+        }
+        check("the test providers are gone again",
+                com.sablednah.standards.api.groups.Groups.kinds().stream()
+                        .noneMatch(k -> k.id().startsWith("selftest:")));
+    }
+
+    /** Claims: fail open, highest priority wins, and a thrower must not brick block-breaking. */
+    private void checkClaims() {
+        try {
+            com.sablednah.standards.api.groups.Claims.clear();
+            check("nothing claimed with no provider",
+                    com.sablednah.standards.api.groups.Claims.owner(null, null).isEmpty());
+            // Failing open is deliberate: a server with no land mod must behave as vanilla.
+            check("everything permitted with no provider",
+                    com.sablednah.standards.api.groups.Claims.mayModify(null, null, null));
+            check("and it says so",
+                    !com.sablednah.standards.api.groups.Claims.isAvailable());
+
+            com.sablednah.standards.api.groups.ClaimProvider low =
+                    claimFixture("selftest:low", 0, false);
+            com.sablednah.standards.api.groups.ClaimProvider high =
+                    claimFixture("selftest:high", 100, true);
+            com.sablednah.standards.api.groups.ClaimProvider boom =
+                    claimFixture("selftest:boom", 200, null);
+
+            check("a provider is taken",
+                    com.sablednah.standards.api.groups.Claims.register(low));
+            check("and answers", !com.sablednah.standards.api.groups.Claims.mayModify(null, null, null));
+            check("higher priority displaces it",
+                    com.sablednah.standards.api.groups.Claims.register(high));
+            check("and now answers instead",
+                    com.sablednah.standards.api.groups.Claims.mayModify(null, null, null));
+            check("lower priority is refused",
+                    !com.sablednah.standards.api.groups.Claims.register(low));
+            check("so the higher one still answers",
+                    com.sablednah.standards.api.groups.Claims.mayModify(null, null, null));
+
+            // A claims mod that errors must not stop every player placing a block.
+            com.sablednah.standards.api.groups.Claims.register(boom);
+            check("a throwing provider permits rather than refuses",
+                    com.sablednah.standards.api.groups.Claims.mayModify(null, null, null));
+            check("and reports wilderness rather than throwing",
+                    com.sablednah.standards.api.groups.Claims.owner(null, null).isEmpty());
+        } finally {
+            com.sablednah.standards.api.groups.Claims.clear();
+        }
+        check("claims are unprovided again",
+                !com.sablednah.standards.api.groups.Claims.isAvailable());
+    }
+
+    /** @param permits true, false, or null to throw */
+    private static com.sablednah.standards.api.groups.ClaimProvider claimFixture(
+            String id, int priority, Boolean permits) {
+        return new com.sablednah.standards.api.groups.ClaimProvider() {
+            public String id() { return id; }
+            public int priority() { return priority; }
+            public java.util.Optional<com.sablednah.standards.api.groups.Group> owner(
+                    net.minecraft.server.level.ServerLevel level,
+                    net.minecraft.world.level.ChunkPos chunk) {
+                if (permits == null) throw new IllegalStateException("deliberate");
+                return java.util.Optional.empty();
+            }
+            public boolean mayModify(ServerPlayer player,
+                    net.minecraft.server.level.ServerLevel level,
+                    net.minecraft.core.BlockPos pos) {
+                if (permits == null) throw new IllegalStateException("deliberate");
+                return permits;
+            }
+        };
     }
 
     private void checkMoneyFormatting() {
