@@ -153,6 +153,28 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [ ] `/group create` a name that already exists — refused, and says which reason
 - [ ] restart the server — groups, members, tags and shared homes all survive
 
+## Factions — the sibling mod
+
+Nothing here has been run by a player. Both mods load, the group kind and claims provider both
+register, and the commands parse — that is all that is known.
+
+- [ ] `/f create <name>`, `/f claim` — the chunk you stand in becomes yours
+- [ ] walk out of it — the action bar says **Wilderness**, and says the name walking back in
+- [ ] `/f borders`, and separately **hold a compass** — the outline appears either way
+- [ ] the outline follows the *shape* of the land, not a grid on every chunk
+- [ ] `/f map` — the chat grid, with you as `+` in the middle
+- [ ] **`/f map item`** — a real map item, one pixel per chunk, edges bright and interiors dim.
+      It must **not** repaint itself with terrain as you walk (it is locked)
+- [ ] a second player tries to break a block in your claim — refused, and told whose it is
+- [ ] `/f ally <them>` — says the alliance is pending until they offer back; then they do
+- [ ] `/f enemy <them>` — effective immediately, one-sided
+- [ ] `/f peaceful` — cannot declare enemies, and cannot be declared upon
+- [ ] `/f sethome` outside your land — refused; inside — works, and `/f home` uses the warmup
+- [ ] `/f claim` past the limit — refused, and names the per-member arithmetic
+- [ ] `/f claim` a chunk not touching your land — refused (`mustBeConnected`)
+- [ ] faction tag in chat, after adding `factions:faction` to `groupTagKinds`
+- [ ] restart — factions, claims, relations and homes all survive
+
 ## Homes and warps
 
 - [x] `/sethome` then `/home` — the unnamed default
