@@ -59,7 +59,10 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/vanish` `/v` — see the vanish section below
 - [x] `/tptoggle off` **[2P]** — TestBuddy's `/tpa` to you says you are not accepting
 - [x] `/msgtoggle off` **[2P]** — same for `/msg`
-- [ ] `/socialspy on` **[2P]** — you see their private messages
+- [ ] `/socialspy on` **[3P]** — TestBuddy and TestThird `/msg` each other; you see it, and
+      **neither of them can tell.** Two players cannot test this at all: every message between
+      you and TestBuddy is one you would receive anyway, so spying is indistinguishable from
+      being talked to. `TestClient.cmd third` starts the bystander.
 
 ## Getting about
 

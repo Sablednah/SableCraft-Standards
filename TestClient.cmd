@@ -4,6 +4,7 @@ rem TestClient.cmd - launch a dev client for two-player testing.
 rem
 rem   TestClient.cmd            -> TestBuddy   (the second player)
 rem   TestClient.cmd main       -> Sablednah   (you)
+rem   TestClient.cmd third      -> TestThird   (a bystander, for /socialspy and friends)
 rem
 rem Double-click for TestBuddy, or from PowerShell: .\TestClient.cmd main
 rem
@@ -25,6 +26,7 @@ cd /d "%~dp0"
 set "TASK=runClientBuddy"
 set "WHO=TestBuddy"
 if /i "%~1"=="main" set "TASK=runClientMain" & set "WHO=Sablednah"
+if /i "%~1"=="third" set "TASK=runClientThird" & set "WHO=TestThird"
 
 set "JAVA_HOME=%USERPROFILE%\curseforge\minecraft\Install\runtime\java-runtime-delta\windows-x64\java-runtime-delta"
 if not exist "%JAVA_HOME%\bin\java.exe" (
@@ -53,6 +55,7 @@ rem ---------------------------------------------------------------------
 set "RUNDIR=run%WHO%"
 if /i "%WHO%"=="TestBuddy" set "RUNDIR=runBuddy"
 if /i "%WHO%"=="Sablednah" set "RUNDIR=runMain"
+if /i "%WHO%"=="TestThird" set "RUNDIR=runThird"
 powershell -NoProfile -Command ^
   "$d = '%RUNDIR%'; $f = Join-Path $d 'options.txt';" ^
   "New-Item -ItemType Directory -Force -Path $d | Out-Null;" ^

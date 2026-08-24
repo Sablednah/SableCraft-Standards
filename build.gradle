@@ -82,6 +82,19 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        // A THIRD pair of hands. Two players cannot test /socialspy at all: every private
+        // message between them is one the spy is already a party to, so there is no way to tell
+        // spying from simply being talked to. The same is true of anything where a bystander
+        // must NOT see something — ignores between two other people, party chat, a faction
+        // channel. One more client makes those observable rather than argued about.
+        clientThird {
+            client()
+            programArguments.addAll '--username', 'TestThird',
+                    '--quickPlayMultiplayer', "127.0.0.1:${project.dev_server_port}".toString()
+            gameDirectory = file('runThird')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         // Your own dev client, for two-player testing against the dev server. Separate from
         // 'client' because that one uses run/ as its game directory — which the dev server is
         // already using, and the two then fight over logs/latest.log on drvfs.
