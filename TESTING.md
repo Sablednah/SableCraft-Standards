@@ -133,6 +133,26 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] relog while vanished — still hidden
 - [x] `/vanish off` — reappear cleanly, no ghost
 
+## Groups — the built-in lightweight ones
+
+- [x] `/group create <name>` — you own it
+- [x] `/group invite`, and they `/group accept` — membership sticks
+- [x] `/group tag SBL` — the tag renders in chat as `[SBL] name: message`
+- [x] `/group sethome base` as the owner, then a **member** runs `/ghome` — they reach a home
+      they never set, which is the point of the whole feature
+- [x] `/ghome` with exactly one home needs no name
+- [ ] `/ghome` with several — asks which, rather than guessing
+- [ ] `/ghomes` lists them
+- [ ] `/group rename` — the chat tag survives, because config keys on the kind and not the name
+- [ ] `/group kick`, and `/group leave` as a member
+- [ ] `/group leave` as the **owner** — disbands, and the shared homes go with it
+- [ ] a non-owner tries `/group sethome` / `tag` / `rename` — refused
+- [ ] two groups try the same tag — the second is refused
+- [ ] `/tpa` to a group-mate — **no cooldown**, but the warmup still applies
+      (`groupTeleportSkipsWarmup = false`, deliberately: the warmup is the anti-combat-log half)
+- [ ] `/group create` a name that already exists — refused, and says which reason
+- [ ] restart the server — groups, members, tags and shared homes all survive
+
 ## Homes and warps
 
 - [x] `/sethome` then `/home` — the unnamed default
