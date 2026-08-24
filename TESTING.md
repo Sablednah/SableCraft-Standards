@@ -53,7 +53,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/fly on` twice — says "already on" rather than silently succeeding
 - [x] `/fly off` while airborne — you drop, rather than hanging there
 - [x] `/god off` — damage lands again immediately
-- [ ] `/fly TestBuddy on` **[2P]** — they are told who did it
+- [x] `/fly TestBuddy on` **[2P]** — they are told who did it
 - [x] `/fly @a off` — reports a count, not one name
 - [x] `/god` / `/god on` — take damage, then don't. Try lava, fall, starvation
 - [x] `/vanish` `/v` — see the vanish section below
@@ -230,7 +230,7 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 
 - [x] `/heal` while burning — healed **and** extinguished
 - [x] `/feed` `/eat`, `/rest`
-- [ ] `/heal TestBuddy` **[2P]** — they are told who did it
+- [x] `/heal TestBuddy` **[2P]** — they are told who did it
 - [x] `/speed 2`, `/speed 5` while flying (sets fly speed), `/speed walk 2`, `/speed reset`
 - [x] `/speed 50` — refused, names the ceiling
 - [x] die and respawn with speed set — it should still be set
