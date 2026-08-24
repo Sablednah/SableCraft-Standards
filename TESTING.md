@@ -143,7 +143,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/ghome` with exactly one home needs no name
 - [ ] `/ghome` with several — asks which, rather than guessing
 - [ ] `/ghomes` lists them
-- [ ] `/group rename` — the chat tag survives, because config keys on the kind and not the name
+- [x] `/group rename` — the chat tag survives, because config keys on the kind and not the name
 - [ ] `/group kick`, and `/group leave` as a member
 - [ ] `/group leave` as the **owner** — disbands, and the shared homes go with it
 - [ ] a non-owner tries `/group sethome` / `tag` / `rename` — refused
