@@ -263,7 +263,9 @@ always work, and `lp user <you> permission set luckperms.* true` from there fixe
 
 - [x] `/gc` `/tps` `/lag` `/mem` — TPS coloured by health, memory, uptime, entities per dimension
 - [x] bare `/smite` at a block
-- [ ] `/smite TestBuddy` **[2P]**
+- [x] `/smite TestBuddy` **[2P]** — the target is told **nothing**, deliberately: unlike a
+      switch, a smite is self-evident, and naming the caster turns an act of God into an
+      admin with a command
 - [x] `/standards reload` after editing `messages.yml` — text changes without a restart
 - [x] edit `term.balance` to "credits" — every money message follows
 

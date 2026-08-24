@@ -37,6 +37,19 @@ public final class GameMasterCommands {
 
     private static final double LOOK_RANGE = 192.0D;
 
+    /**
+     * {@code /smite [players]} — lightning on a target, or wherever you are looking.
+     *
+     * <p><b>The target is deliberately told nothing.</b> Every switch in this mod names whoever
+     * changed it, because flight or invulnerability appearing from nowhere reads as a glitch. A
+     * smite is the opposite: entirely self-evident, with a sound, a flash and a large hole in
+     * your health bar. Naming the caster would only turn an act of God into an admin with a
+     * command, and that joke is most of why this exists.</p>
+     *
+     * <p>Noticed during testing as an inconsistency with {@code /fly} and {@code /heal}, and kept
+     * on purpose. If {@code /smite} ever becomes a moderation tool rather than a toy, revisit
+     * this — anything staff do to a player in anger should be accountable.</p>
+     */
     public static LiteralArgumentBuilder<CommandSourceStack> smite() {
         return Commands.literal("smite")
                 .requires(StandardsPermissions.require(StandardsPermissions.SMITE))
