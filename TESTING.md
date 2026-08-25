@@ -193,7 +193,7 @@ register, and the commands parse — that is all that is known.
 - [x] borders stand on the ground rather than at your feet — walk a claim across a hill
 - [x] `/f request <name>` from a factionless player — officers online are told, and only them
 - [x] `/f requests`, then `/f accept` — they are in, everyone is told, and the request is gone
-- [ ] `/f decline` — they are told, and they can ask again
+- [x] `/f decline` — they are told, and they can ask again
 - [ ] with `officersMayAccept = false`, an officer cannot `/f accept` or even `/f requests`
 - [ ] ask two factions, join one — the other request is gone
 - [x] `/f status` with nothing going on — says so, rather than an empty header
