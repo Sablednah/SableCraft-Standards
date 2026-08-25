@@ -183,7 +183,7 @@ register, and the commands parse — that is all that is known.
 - [x] `/f map` — the chat grid, with you as `+` in the middle
 - [x] **`/f map item`** — a real map item, one pixel per chunk, edges bright and interiors dim
 - [x] `/f map item 2` / `4` / `8` — zoomed, covering 64 / 32 / 16 chunks, outline still one pixel
-- [ ] an atlas must **not** repaint itself with terrain as you walk (it is locked) — carry one
+- [x] an atlas must **not** repaint itself with terrain as you walk (it is locked) — carry one
       across a few hundred blocks and check it is unchanged
 - [x] `/f autoclaim` — walking takes each chunk
 - [x] `/f autoclaim` away from your own land with `mustBeConnected` — says why **once**, then
