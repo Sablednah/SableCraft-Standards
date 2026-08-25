@@ -203,7 +203,7 @@ register, and the commands parse — that is all that is known.
 - [ ] `/f ally <them>` — says the alliance is pending until they offer back; then they do
 - [ ] `/f enemy <them>` — effective immediately, one-sided
 - [ ] `/f peaceful` — cannot declare enemies, and cannot be declared upon
-- [ ] `/f sethome` outside your land — refused; inside — works, and `/f home` uses the warmup
+- [x] `/f sethome` outside your land — refused; inside — works, and `/f home` uses the warmup
 - [ ] `/f claim` past the limit — refused, and names the per-member arithmetic
 - [ ] `/f claim` a chunk not touching your land — refused (`mustBeConnected`)
 - [ ] faction tag in chat, after adding `factions:faction` to `groupTagKinds`
