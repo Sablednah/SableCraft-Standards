@@ -176,9 +176,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 Nothing here has been run by a player. Both mods load, the group kind and claims provider both
 register, and the commands parse — that is all that is known.
 
-- [ ] `/f create <name>`, `/f claim` — the chunk you stand in becomes yours
+- [x] `/f create <name>`, `/f claim` — the chunk you stand in becomes yours
 - [ ] walk out of it — the action bar says **Wilderness**, and says the name walking back in
-- [ ] `/f borders`, and separately **hold a compass** — the outline appears either way
+- [x] `/f borders`, and separately **hold a compass** — the outline appears either way
 - [ ] the outline follows the *shape* of the land, not a grid on every chunk
 - [ ] `/f map` — the chat grid, with you as `+` in the middle
 - [ ] **`/f map item`** — a real map item, one pixel per chunk, edges bright and interiors dim.
