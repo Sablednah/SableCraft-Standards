@@ -197,7 +197,7 @@ register, and the commands parse — that is all that is known.
 - [ ] with `officersMayAccept = false`, an officer cannot `/f accept` or even `/f requests`
 - [ ] ask two factions, join one — the other request is gone
 - [x] `/f status` with nothing going on — says so, rather than an empty header
-- [ ] `/f status` after one side offers an alliance — **offered to us** on their side, **waiting
+- [x] `/f status` after one side offers an alliance — **offered to us** on their side, **waiting
       on** on yours, and the two lines do not swap
 - [x] `/f status` after a one-sided `/f enemy` — **you declared on** for them, **declared on you**
       for the target, and both lines once it is mutual
