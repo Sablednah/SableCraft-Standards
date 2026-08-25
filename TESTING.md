@@ -189,12 +189,12 @@ register, and the commands parse — that is all that is known.
 - [ ] `/f autoclaim` into land you cannot take — **silent** through somebody else's, once for
       `mustBeConnected`, and it switches itself **off** at the claim limit
 - [x] borders stand on the ground rather than at your feet — walk a claim across a hill
-- [ ] `/f request <name>` from a factionless player — officers online are told, and only them
-- [ ] `/f requests`, then `/f accept` — they are in, everyone is told, and the request is gone
+- [x] `/f request <name>` from a factionless player — officers online are told, and only them
+- [x] `/f requests`, then `/f accept` — they are in, everyone is told, and the request is gone
 - [ ] `/f decline` — they are told, and they can ask again
 - [ ] with `officersMayAccept = false`, an officer cannot `/f accept` or even `/f requests`
 - [ ] ask two factions, join one — the other request is gone
-- [ ] `/f status` with nothing going on — says so, rather than an empty header
+- [x] `/f status` with nothing going on — says so, rather than an empty header
 - [ ] `/f status` after one side offers an alliance — **offered to us** on their side, **waiting
       on** on yours, and the two lines do not swap
 - [ ] `/f status` after a one-sided `/f enemy` — **you declared on** for them, **declared on you**
