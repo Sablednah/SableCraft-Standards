@@ -133,6 +133,21 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] relog while vanished — still hidden
 - [x] `/vanish off` — reappear cleanly, no ghost
 
+## Before a release
+
+- [x] SnakeYAML is bundled jar-in-jar and declared in the metadata — the classic works-in-dev,
+      fails-on-a-real-server trap
+- [x] the server starts with **no permissions mod at all**, on NeoForge's `default_handler`.
+      That is the commonest configuration in the world and the dev server has had LuckPerms
+      since session three, so the path had never run
+- [ ] a **player** on that server, with no permissions mod: everyone-nodes work, op-gated ones
+      work for an op and refuse for a non-op, and the home limit falls back to `defaultLimit`
+- [ ] the built jar on a server that is **not** the dev environment — `messages.yml` written,
+      commands registered, no missing-class errors from the bundled YAML
+- [ ] a logo. `logoFile` is commented out and there is no icon, so the mods list and any
+      CurseForge page show a blank tile
+- [ ] decide the version. `0.1.0` is honest for a first release; `1.0.0` claims more
+
 ## Groups — the built-in lightweight ones
 
 - [x] `/group create <name>` — you own it
