@@ -101,6 +101,22 @@ the first week.
 `Projectile.getOwner()`. Standards already resolves projectile ownership for the vanish
 pass-through, so there is a pattern to follow rather than invent.
 
+### Nothing environmental tags at all
+
+Fall damage, drowning, cactus, fire, **freezing**. None of it has an attacker, so none of it is
+combat, so none of it may close an escape hatch.
+
+That sounds obvious until you notice the failure it prevents, which was found by accident: a player
+trapped in powder snow inside somebody else’s claim cannot break out — claim protection is working
+exactly as intended — and their only way out is a teleport. Tag them for the freezing damage and
+the teleport closes too. They are now stuck in a hole, taking damage, with every exit shut by two
+features that are each behaving correctly.
+
+So the rule is not "damage starts a tag", it is **"an attacker starts a tag"**. Resolve the source
+to a player or a mob first; if there is nobody behind it, there is no combat and no tag. Worth a
+self-test check, because the naive implementation is a single `LivingIncomingDamageEvent` handler
+that never asks the question.
+
 ### Pets: the tag follows intent to harm a player
 
 Decided deliberately, and it is **directional**:
