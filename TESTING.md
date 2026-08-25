@@ -181,8 +181,14 @@ register, and the commands parse — that is all that is known.
 - [x] `/f borders`, and separately **hold a compass** — the outline appears either way
 - [ ] the outline follows the *shape* of the land, not a grid on every chunk
 - [ ] `/f map` — the chat grid, with you as `+` in the middle
-- [ ] **`/f map item`** — a real map item, one pixel per chunk, edges bright and interiors dim.
-      It must **not** repaint itself with terrain as you walk (it is locked)
+- [x] **`/f map item`** — a real map item, one pixel per chunk, edges bright and interiors dim
+- [x] `/f map item 2` / `4` / `8` — zoomed, covering 64 / 32 / 16 chunks, outline still one pixel
+- [ ] an atlas must **not** repaint itself with terrain as you walk (it is locked) — carry one
+      across a few hundred blocks and check it is unchanged
+- [x] `/f autoclaim` — walking takes each chunk
+- [ ] `/f autoclaim` into land you cannot take — **silent** through somebody else's, once for
+      `mustBeConnected`, and it switches itself **off** at the claim limit
+- [x] borders stand on the ground rather than at your feet — walk a claim across a hill
 - [ ] a second player tries to break a block in your claim — refused, and told whose it is
 - [ ] `/f ally <them>` — says the alliance is pending until they offer back; then they do
 - [ ] `/f enemy <them>` — effective immediately, one-sided
