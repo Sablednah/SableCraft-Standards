@@ -64,6 +64,7 @@ public final class GroupCommands {
                                 .suggests(GroupCommands::suggestInvites)
                                 .executes(ctx -> answer(ctx, false))))
                 .then(Commands.literal("leave").executes(GroupCommands::leave))
+                .then(Commands.literal("disband").executes(GroupCommands::disband))
                 .then(Commands.literal("kick")
                         .then(Commands.argument("player", StringArgumentType.word())
                                 .executes(GroupCommands::kick)))
@@ -314,16 +315,41 @@ public final class GroupCommands {
             return 0;
         }
         StandardsGroups.Entry entry = mine.get();
-        boolean owner = entry.owner().equals(player.getUUID());
+        // An owner walking out takes everyone's shared homes with them, so it needs a word they
+        // had to choose. /group leave and /group disband are one keystroke apart on a command
+        // whose two meanings are "I am done with this" and "nobody has this any more".
+        //
+        // Only while there is somebody to strand, though: an owner alone in a group they made by
+        // mistake would otherwise have to learn a second command to get out of it, which is
+        // friction protecting nothing.
+        if (entry.owner().equals(player.getUUID()) && entry.members().size() > 1) {
+            Feedback.chat(player, Lang.get("msg.group.owner_must_disband"));
+            return 0;
+        }
+        boolean last = entry.owner().equals(player.getUUID());
         // Told BEFORE the group goes, or the announcement has nobody to reach.
-        announce(ctx, entry, owner
-                ? Lang.fmt("msg.group.disbanded", "name", entry.name())
-                : Lang.fmt("msg.group.member_left", "player", player.getName().getString()),
+        announce(ctx, entry,
+                Lang.fmt("msg.group.member_left", "player", player.getName().getString()),
                 player.getUUID());
         store.leave(entry.id(), player.getUUID());
-        Feedback.chat(player, owner
+        Feedback.chat(player, last
                 ? Lang.fmt("msg.group.you_disbanded", "name", entry.name())
                 : Lang.fmt("msg.group.you_left", "name", entry.name()));
+        return 1;
+    }
+
+    /** Ends it for everybody. The owner's only route out of a group that still has people in it. */
+    private static int disband(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        Optional<StandardsGroups.Entry> owned = owned(ctx, player);
+        if (owned.isEmpty()) {
+            return 0;
+        }
+        StandardsGroups.Entry entry = owned.get();
+        announce(ctx, entry, Lang.fmt("msg.group.disbanded", "name", entry.name()),
+                player.getUUID());
+        store(ctx).disband(entry.id());
+        Feedback.chat(player, Lang.fmt("msg.group.you_disbanded", "name", entry.name()));
         return 1;
     }
 

@@ -160,6 +160,7 @@ public final class Lang {
         def("msg.group.info_tag", " {term.dim}[{tag}]&7");
         def("msg.group.bad_name", "&cGive it a name with letters in it.");
         def("msg.group.bad_tag", "&cGive it a tag with letters in it.");
+        def("msg.group.owner_must_disband", "&cYou cannot walk away from a {term.group} that still has people in it. {term.dim}(/group disband ends it for everyone)");
         def("msg.tp.set_unreachable", "{term.prefix} &7Saved — but there is nothing to stand on there, so anyone who cannot fly will be told it is unsafe.");
         def("msg.tp.top_ceiling", "{term.prefix} &7Nothing above you but the ceiling — that is as high as this place goes.");
         def("msg.tp.blocked", "{term.prefix} &7There is &f{block}&7 in the way, and blocks like that are usually there on purpose.");

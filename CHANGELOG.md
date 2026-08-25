@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed
+
+- **`/group disband` is now its own command, and `/group leave` refuses to do it.** An owner
+  walking out took every member's shared homes with them, on a word one keystroke away from the
+  one that means "I am done with this". Factions already refused the same move; groups now agree
+  with it. An owner *alone* in a group still just leaves — friction there protects nobody, and
+  would only mean learning a second command to undo a mistake.
+
 ### Fixed
 
 - **An unedited message now follows the mod on upgrade.** `messages.known` recorded only *which*

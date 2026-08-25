@@ -633,6 +633,7 @@ public final class SelfTest {
                 "group accept Crew",
                 "group deny Crew",
                 "group leave",
+                "group disband",
                 "group kick Steve",
                 "group rename Crew",
                 "group tag TCB",
