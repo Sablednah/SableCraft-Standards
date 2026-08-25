@@ -201,7 +201,7 @@ register, and the commands parse — that is all that is known.
       on** on yours, and the two lines do not swap
 - [ ] `/f status` after a one-sided `/f enemy` — **you declared on** for them, **declared on you**
       for the target, and both lines once it is mutual
-- [ ] a second player tries to break a block in your claim — refused, and told whose it is
+- [x] a second player tries to break a block in your claim — refused, and told whose it is
 - [ ] `/f ally <them>` — says the alliance is pending until they offer back; then they do
 - [ ] `/f enemy <them>` — effective immediately, one-sided
 - [ ] `/f peaceful` — cannot declare enemies, and cannot be declared upon
