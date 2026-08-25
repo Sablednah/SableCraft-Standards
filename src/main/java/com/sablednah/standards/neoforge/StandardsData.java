@@ -128,6 +128,21 @@ public final class StandardsData extends SavedData {
         }
     }
 
+    /**
+     * Remember a name for somebody who is not here.
+     *
+     * <p>For anything holding a player identity the server has never seen log in — an imported
+     * ledger, a seeded test world. Without it every offline lookup answers with a truncated UUID,
+     * and a feature that reads correctly for real players quietly reads as gibberish for the
+     * rest.</p>
+     */
+    public void rememberName(UUID player, String name) {
+        if (!name.equals(names.get(player))) {
+            names.put(player, name);
+            setDirty();
+        }
+    }
+
     public Optional<String> nameOf(UUID player) {
         return Optional.ofNullable(names.get(player));
     }
