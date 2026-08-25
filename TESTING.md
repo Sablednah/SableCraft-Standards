@@ -199,11 +199,11 @@ register, and the commands parse — that is all that is known.
 - [x] `/f status` with nothing going on — says so, rather than an empty header
 - [ ] `/f status` after one side offers an alliance — **offered to us** on their side, **waiting
       on** on yours, and the two lines do not swap
-- [ ] `/f status` after a one-sided `/f enemy` — **you declared on** for them, **declared on you**
+- [x] `/f status` after a one-sided `/f enemy` — **you declared on** for them, **declared on you**
       for the target, and both lines once it is mutual
 - [x] a second player tries to break a block in your claim — refused, and told whose it is
 - [x] `/f ally <them>` — says the alliance is pending until they offer back; then they do
-- [ ] `/f enemy <them>` — effective immediately, one-sided
+- [x] `/f enemy <them>` — effective immediately, one-sided
 - [ ] `/f peaceful` — cannot declare enemies, and cannot be declared upon
 - [x] `/f sethome` outside your land — refused; inside — works, and `/f home` uses the warmup
 - [x] `/f claim` past the limit — refused, and names the per-member arithmetic
