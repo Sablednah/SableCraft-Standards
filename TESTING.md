@@ -163,7 +163,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/group leave` as the **owner** of a group with members — **refused**, and points at
       `/group disband`
 - [x] `/group disband` — ends it, tells the members, and the shared homes go with it
-- [ ] `/group leave` as an owner who is **alone** — just leaves, no second command to learn
+- [x] `/group leave` as an owner who is **alone** — just leaves, no second command to learn
 - [x] a non-owner tries `/group sethome` / `tag` / `rename` — refused
 - [x] two groups try the same tag — the second is refused
 - [x] `/tpa` to a group-mate — **no cooldown**, but the warmup still applies
