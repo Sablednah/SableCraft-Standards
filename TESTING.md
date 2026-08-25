@@ -162,14 +162,14 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] `/group kick`, and `/group leave` as a member
 - [x] `/group leave` as the **owner** of a group with members — **refused**, and points at
       `/group disband`
-- [ ] `/group disband` — ends it, tells the members, and the shared homes go with it
+- [x] `/group disband` — ends it, tells the members, and the shared homes go with it
 - [ ] `/group leave` as an owner who is **alone** — just leaves, no second command to learn
 - [x] a non-owner tries `/group sethome` / `tag` / `rename` — refused
 - [x] two groups try the same tag — the second is refused
 - [x] `/tpa` to a group-mate — **no cooldown**, but the warmup still applies
       (`groupTeleportSkipsWarmup = false`, deliberately: the warmup is the anti-combat-log half)
 - [x] `/group create` a name that already exists — refused, and says which reason
-- [ ] restart the server — groups, members, tags and shared homes all survive
+- [x] restart the server — groups, members, tags and shared homes all survive
 
 ## Factions — the sibling mod
 
