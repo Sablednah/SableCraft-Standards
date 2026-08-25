@@ -177,7 +177,7 @@ Nothing here has been run by a player. Both mods load, the group kind and claims
 register, and the commands parse — that is all that is known.
 
 - [x] `/f create <name>`, `/f claim` — the chunk you stand in becomes yours
-- [ ] walk out of it — the action bar says **Wilderness**, and says the name walking back in
+- [x] walk out of it — the action bar says **Wilderness**, and says the name walking back in
 - [x] `/f borders`, and separately **hold a compass** — the outline appears either way
 - [ ] the outline follows the *shape* of the land, not a grid on every chunk
 - [x] `/f map` — the chat grid, with you as `+` in the middle
