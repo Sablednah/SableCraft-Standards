@@ -2,8 +2,16 @@
 
 Whether a player is in combat, so that nothing lets them walk out of one.
 
-**Status: designed, not built.** Specification agreed 2026-08-20. Nothing in `api/combat/` exists
-yet — but see below, because Standards already ships a narrow, holed version of this.
+**Status: specified, and scheduled for 1.1.** Agreed 2026-08-20, deliberately held out of 1.0.0.
+
+Nothing in `api/combat/` exists yet — but see below, because Standards already ships a narrow,
+holed version of this, and the hole is the reason the API is worth building rather than a reason
+to rush it.
+
+Held back because `movement.cancelOnDamage` already covers the warmup window, which is most of the
+value; because the API's one known consumer is LegendQuest, which has not asked for it yet; and
+because it is purely additive, so nothing in 1.0.0 forecloses any of it. Holding a release for a
+feature nobody is waiting on is how releases slip.
 
 ## Why there is one at all
 
