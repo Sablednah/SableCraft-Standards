@@ -179,7 +179,7 @@ register, and the commands parse — that is all that is known.
 - [x] `/f create <name>`, `/f claim` — the chunk you stand in becomes yours
 - [x] walk out of it — the action bar says **Wilderness**, and says the name walking back in
 - [x] `/f borders`, and separately **hold a compass** — the outline appears either way
-- [ ] the outline follows the *shape* of the land, not a grid on every chunk
+- [x] the outline follows the *shape* of the land, not a grid on every chunk
 - [x] `/f map` — the chat grid, with you as `+` in the middle
 - [x] **`/f map item`** — a real map item, one pixel per chunk, edges bright and interiors dim
 - [x] `/f map item 2` / `4` / `8` — zoomed, covering 64 / 32 / 16 chunks, outline still one pixel
