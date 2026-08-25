@@ -493,6 +493,10 @@ its own risk category. It has earned that status.
 - `GROUPS-API.md` — **designed, not built.** Group membership by kind and chunk claim queries;
   also the decisions on FTB (Teams out, compatibility kept), where `Factions-ReForged` sits, and
   why there will be no minimap.
-- `COMBAT-API.md` — **designed, not built.** Combat tagging, and why `movement.cancelOnDamage`
-  today only protects the warmup window.
+- `COMBAT-API.md` — **specified, scheduled for 1.1.** Combat tagging, and why
+  `movement.cancelOnDamage` today only protects the warmup window.
+- `PERMISSIONS.md` — **specified, scheduled for 1.2.** A built-in permission handler for servers
+  with no permissions mod. Note the framing correction it opens with: NeoForge's `PermissionAPI`
+  is already the Vault-equivalent and the owner picks the active handler in `neoforge-server.toml`,
+  so this is one more handler rather than an arbitration layer.
 - `CROSS-VERSION.md` — the plan for living on several Minecraft lines at once.
