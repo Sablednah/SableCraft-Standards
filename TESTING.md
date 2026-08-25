@@ -213,7 +213,17 @@ register, and the commands parse — that is all that is known.
 - [x] `/f claim` a chunk not touching your land — refused (`mustBeConnected`)
 - [x] faction tag in chat, after adding `factions:faction` to `groupTagKinds` — beside the group
       tag, both rendering, neither swallowing the other
-- [ ] restart — factions, claims, relations and homes all survive
+- [ ] `/f chat` cycles public → faction → ally → public, and each says where you are talking
+- [ ] a **muted** player cannot talk in faction chat, by `/f chat` or by `/f c` — the whole reason
+      it goes through the router
+- [ ] `/f c <message>` reaches faction members and nobody else; `/f ca` reaches allies too
+- [ ] faction chat clears your AFK marker, same as public chat
+- [ ] the channel resets to public on reconnect — never come back still talking to your faction
+- [ ] `/f chatspy` shows an outsider's faction chat, marked as overheard
+- [ ] `/f money deposit` / `withdraw` / `pay` — and a non-officer cannot withdraw
+- [ ] set `claimCost` above 0, restart: `/f claim` spends from the bank, refuses when short, and
+      `/f unclaim` refunds at the position price
+- [ ] restart — factions, claims, relations, homes **and bank balances** all survive
 
 ## Homes and warps
 
