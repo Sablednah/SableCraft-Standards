@@ -206,7 +206,7 @@ register, and the commands parse — that is all that is known.
 - [ ] `/f enemy <them>` — effective immediately, one-sided
 - [ ] `/f peaceful` — cannot declare enemies, and cannot be declared upon
 - [x] `/f sethome` outside your land — refused; inside — works, and `/f home` uses the warmup
-- [ ] `/f claim` past the limit — refused, and names the per-member arithmetic
+- [x] `/f claim` past the limit — refused, and names the per-member arithmetic
 - [x] `/f claim` a chunk not touching your land — refused (`mustBeConnected`)
 - [ ] faction tag in chat, after adding `factions:faction` to `groupTagKinds`
 - [ ] restart — factions, claims, relations and homes all survive
