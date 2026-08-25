@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **An unedited message now follows the mod on upgrade.** `messages.known` recorded only *which*
+  keys had been offered, so a wording fix in a new version reached servers that had never run the
+  old one and nobody else — the file kept the old text forever with nothing to suggest why. It now
+  records the value shipped alongside each key, which is what lets an upgrade tell an owner's edit
+  from a line nobody has touched: untouched lines are rewritten, edited ones are left alone.
+  *Upgrading installs have no record of what they were shipped, so the first start after this
+  change only takes the record; refreshing begins from the next one.*
+- **A group name or tag could carry colour codes into everyone's chat.** They are printed on other
+  people's screens by the chat decorator, so they are untrusted input in the same way a chat line
+  is — arriving through a door nobody was watching. Codes are now stripped where the group is
+  stored, so every route in is covered. `&k` was the sharp end: an obfuscated tag is unreadable
+  noise on every line its members speak, and `&k&l` measured four of the five allowed characters
+  while displaying none.
+
 ## 1.0.0 — first release
 
 Server essentials for NeoForge 1.21.11, and an economy other mods can drive. **Everything works on

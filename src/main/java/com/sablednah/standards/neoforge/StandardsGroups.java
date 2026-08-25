@@ -214,8 +214,26 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
     // --- writing ---
 
     /** @return the new group, or empty if that name is taken or they are already in one */
-    public Optional<Entry> create(String name, UUID owner) {
-        if (byName(name).isPresent() || of(owner).isPresent()) {
+    /**
+     * A name or tag as it will actually be stored.
+     *
+     * <p>Colour codes come out. A group name and its tag are printed in other people's chat by
+     * the decorator, so leaving them in hands any player a formatting channel into everybody
+     * else's screen — the same hole {@code stripCodes} closes for chat itself, arriving through
+     * a different door. {@code &k} is the sharp end: an obfuscated tag is unreadable noise on
+     * every line its members speak, and a tag of {@code &k} alone measures four characters and
+     * displays none.</p>
+     *
+     * <p>Done here rather than in the commands so that every route in gets it — the commands are
+     * the only caller today, and the day they are not is not the day to remember this.</p>
+     */
+    public static String clean(String text) {
+        return com.sablednah.standards.neoforge.Feedback.stripCodes(text).trim();
+    }
+
+    public Optional<Entry> create(String rawName, UUID owner) {
+        String name = clean(rawName);
+        if (name.isEmpty() || byName(name).isPresent() || of(owner).isPresent()) {
             return Optional.empty();
         }
         Entry entry = new Entry(freshId(), name, owner, List.of(owner), "");
@@ -284,7 +302,8 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
      *
      * @return false if another group already uses that tag
      */
-    public boolean setTag(String groupId, String tag) {
+    public boolean setTag(String groupId, String rawTag) {
+        String tag = clean(rawTag);
         Entry entry = groups.get(groupId);
         if (entry == null) {
             return false;
@@ -362,9 +381,10 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
      *
      * @return false if the new name is taken by a different group
      */
-    public boolean rename(String groupId, String newName) {
+    public boolean rename(String groupId, String rawName) {
+        String newName = clean(rawName);
         Entry entry = groups.get(groupId);
-        if (entry == null) {
+        if (entry == null || newName.isEmpty()) {
             return false;
         }
         Optional<Entry> clash = byName(newName);

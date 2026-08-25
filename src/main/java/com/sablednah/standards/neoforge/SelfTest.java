@@ -71,6 +71,7 @@ public final class SelfTest {
         checkGroups();
         checkClaims();
         checkTeleportRelief();
+        checkGroupNamesAreText();
         checkAccessFallback();
         checkMoneyFormatting();
         checkCommandsParse(server);
@@ -519,6 +520,23 @@ public final class SelfTest {
         // If this ever defaults on, somebody has made escaping a fight free for anyone who
         // remembered to make a group first.
         check("group mates do NOT skip the warmup by default", !mates.warmup());
+    }
+
+    /**
+     * A group name and its tag are printed on other people's screens, so they are untrusted input
+     * in exactly the way a chat line is — and arrived through a door nobody was watching.
+     */
+    private void checkGroupNamesAreText() {
+        check("a group name cannot carry colour",
+                StandardsGroups.clean("&cEvil").equals("Evil"));
+        check("a group tag cannot be obfuscated",
+                StandardsGroups.clean("&kTCB").equals("TCB"));
+        // Four characters by String.length, none of them visible. Measured raw, it passes the
+        // five-character limit and renders as an invisible tag on every line its members speak.
+        check("an all-formatting tag cleans to nothing",
+                StandardsGroups.clean("&k&l").isEmpty());
+        check("an ampersand in a name survives",
+                StandardsGroups.clean("Salt & Pepper").equals("Salt & Pepper"));
     }
 
     /**

@@ -241,10 +241,14 @@ public final class GroupCommands {
 
     private static int create(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
-        String name = StringArgumentType.getString(ctx, "name");
+        String name = StandardsGroups.clean(StringArgumentType.getString(ctx, "name"));
+        if (name.isEmpty()) {
+            Feedback.chat(player, Lang.get("msg.group.bad_name"));
+            return 0;
+        }
         Optional<StandardsGroups.Entry> made = store(ctx).create(name, player.getUUID());
         if (made.isEmpty()) {
-            // Two reasons it can fail, and telling them which one saves a guess.
+            // Two reasons left, and telling them which one saves a guess.
             Feedback.chat(player, store(ctx).of(player.getUUID()).isPresent()
                     ? Lang.get("msg.group.already_in_one")
                     : Lang.fmt("msg.group.name_taken", "name", name));
@@ -355,9 +359,13 @@ public final class GroupCommands {
 
     private static int rename(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
-        String name = StringArgumentType.getString(ctx, "name");
+        String name = StandardsGroups.clean(StringArgumentType.getString(ctx, "name"));
         Optional<StandardsGroups.Entry> owned = owned(ctx, player);
         if (owned.isEmpty()) {
+            return 0;
+        }
+        if (name.isEmpty()) {
+            Feedback.chat(player, Lang.get("msg.group.bad_name"));
             return 0;
         }
         if (!store(ctx).rename(owned.get().id(), name)) {
@@ -377,7 +385,12 @@ public final class GroupCommands {
             return 0;
         }
         // "-" clears it. A bare /group tag would be ambiguous with asking what the tag is.
-        String wanted = tag.equals("-") ? "" : tag;
+        // Measured after cleaning, or "&k" would spend four of the five on nothing visible.
+        String wanted = tag.equals("-") ? "" : StandardsGroups.clean(tag);
+        if (!tag.equals("-") && wanted.isEmpty()) {
+            Feedback.chat(player, Lang.get("msg.group.bad_tag"));
+            return 0;
+        }
         int max = 5;
         if (wanted.length() > max) {
             Feedback.chat(player, Lang.fmt("msg.group.tag_too_long", "max", max));

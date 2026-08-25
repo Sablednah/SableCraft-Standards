@@ -158,6 +158,8 @@ public final class Lang {
         def("msg.group.list_yours", "{term.prefix} &7You are in &f{name}&7.");
         def("msg.group.list_none_yours", "{term.prefix} &7You are not in any of them. {term.dim}(/group create <name>)");
         def("msg.group.info_tag", " {term.dim}[{tag}]&7");
+        def("msg.group.bad_name", "&cGive it a name with letters in it.");
+        def("msg.group.bad_tag", "&cGive it a tag with letters in it.");
         def("msg.tp.set_unreachable", "{term.prefix} &7Saved — but there is nothing to stand on there, so anyone who cannot fly will be told it is unsafe.");
         def("msg.tp.top_ceiling", "{term.prefix} &7Nothing above you but the ceiling — that is as high as this place goes.");
         def("msg.tp.blocked", "{term.prefix} &7There is &f{block}&7 in the way, and blocks like that are usually there on purpose.");
@@ -554,9 +556,9 @@ public final class Lang {
             // your changes, so "absent from the file" cannot mean "new" — without a record of
             // what we have already offered, every restart would helpfully undo that trimming.
             // New means new to this installation, not merely missing.
-            Set<String> seen = readSeen();
+            Map<String, String> seen = readSeen();
             List<String> added = DEFAULTS.keySet().stream()
-                    .filter(key -> !loaded.containsKey(key) && !seen.contains(key))
+                    .filter(key -> !loaded.containsKey(key) && !seen.containsKey(key))
                     .toList();
             // No guard on an empty seen-set. A server upgrading from a version without this
             // bookkeeping has no record, and the choice is between re-offering keys someone may
@@ -566,6 +568,28 @@ public final class Lang {
                 appendMissing(path, added);
                 added.forEach(key -> loaded.put(key, DEFAULTS.get(key)));
                 Standards.LOGGER.info("Added {} new message key(s) to messages.yml", added.size());
+            }
+
+
+            // An unedited line follows the mod; an edited one is the owner's and stays. Both
+            // halves matter: without this, a wording fix reaches only servers that have never
+            // started the old version, and a key whose default changed renders the old text
+            // forever with nothing to suggest why. Rewriting everything instead would throw
+            // away translations on the first upgrade, which is the worse mistake by far.
+            List<String> refreshed = DEFAULTS.keySet().stream()
+                    .filter(key -> {
+                        String shipped = seen.get(key);
+                        return shipped != null                       // known format, we wrote it
+                                && loaded.containsKey(key)           // still in the file
+                                && shipped.equals(loaded.get(key))   // untouched since we wrote it
+                                && !shipped.equals(DEFAULTS.get(key)); // and we have changed it
+                    })
+                    .toList();
+            if (!refreshed.isEmpty()) {
+                int done = refreshUnedited(path, refreshed);
+                refreshed.forEach(key -> loaded.put(key, DEFAULTS.get(key)));
+                Standards.LOGGER.info("Updated {} unedited message(s) in messages.yml to this "
+                        + "version's wording", done);
             }
             writeSeen();
 
@@ -578,32 +602,53 @@ public final class Lang {
         }
     }
 
-    /** Every key this installation has already offered the owner. */
-    private static Set<String> readSeen() {
+    /**
+     * What this installation was last <em>shipped</em>, key by key.
+     *
+     * <p>Not just which keys have been offered. Storing the default we wrote is what lets an
+     * upgrade tell an owner's edit apart from a line nobody has touched — see
+     * {@link #refreshUnedited}. Older files hold bare key names with no value; those are read as
+     * "offered, default unknown", which simply means they are never refreshed.</p>
+     */
+    private static Map<String, String> readSeen() {
         Path path = file().resolveSibling("messages.known");
+        Map<String, String> out = new LinkedHashMap<>();
         try {
             if (!Files.exists(path)) {
-                return Set.of();
+                return out;
             }
-            return new LinkedHashSet<>(Files.readAllLines(path).stream()
-                    .map(String::trim)
-                    .filter(line -> !line.isEmpty() && !line.startsWith("#"))
-                    .toList());
+            for (String line : Files.readAllLines(path)) {
+                String trimmed = line.trim();
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                    continue;
+                }
+                int split = trimmed.indexOf('\u0000');
+                if (split < 0) {
+                    out.put(trimmed, null); // old format: key only
+                } else {
+                    out.put(trimmed.substring(0, split), trimmed.substring(split + 1));
+                }
+            }
+            return out;
         } catch (IOException e) {
             // Unreadable means "assume we have offered everything" — the safe direction is to
             // add nothing, never to re-add what somebody deleted on purpose.
             Standards.LOGGER.warn("Could not read messages.known — not merging this run", e);
-            return new LinkedHashSet<>(DEFAULTS.keySet());
+            DEFAULTS.forEach((k, v) -> out.put(k, v));
+            return out;
         }
     }
 
     private static void writeSeen() {
         Path path = file().resolveSibling("messages.known");
+        StringBuilder sb = new StringBuilder();
+        sb.append("# What Standards last wrote into messages.yml, key and value.\n");
+        sb.append("# Bookkeeping, not config. Deleting it makes the next start re-add every key\n");
+        sb.append("# you have trimmed out, and stops unedited messages being refreshed on\n");
+        sb.append("# upgrade — the values here are how an edit is told from an untouched line.\n");
+        DEFAULTS.forEach((k, v) -> sb.append(k).append('\u0000').append(v).append('\n'));
         try {
-            Files.writeString(path, "# Keys Standards has already written into messages.yml.\n"
-                    + "# Bookkeeping, not config — deleting it makes the next start re-add every\n"
-                    + "# key you have trimmed out of messages.yml.\n"
-                    + String.join("\n", DEFAULTS.keySet()) + "\n");
+            Files.writeString(path, sb.toString());
         } catch (IOException e) {
             Standards.LOGGER.warn("Could not write messages.known", e);
         }
@@ -624,6 +669,40 @@ public final class Lang {
             sb.append(render(key, DEFAULTS.get(key)));
         }
         Files.writeString(path, sb.toString(), java.nio.file.StandardOpenOption.APPEND);
+    }
+
+    /**
+     * Replace the value of keys the owner has not touched, in place.
+     *
+     * <p>Line-oriented rather than a YAML round-trip, because a round-trip would reformat the
+     * whole file — losing the comments, the section headings and the ordering that make it worth
+     * editing by hand. Anything not found as a plain {@code key: value} line is left alone: it
+     * means somebody has reformatted that entry, and an entry somebody has reformatted is one
+     * they have taken ownership of.</p>
+     *
+     * @return how many were actually rewritten
+     */
+    private static int refreshUnedited(Path path, List<String> keys) throws IOException {
+        List<String> lines = new java.util.ArrayList<>(Files.readAllLines(path));
+        Set<String> wanted = new LinkedHashSet<>(keys);
+        int changed = 0;
+        for (int i = 0; i < lines.size() && !wanted.isEmpty(); i++) {
+            String line = lines.get(i);
+            int colon = line.indexOf(':');
+            if (colon < 0) {
+                continue;
+            }
+            String key = line.substring(0, colon).trim();
+            if (!wanted.remove(key)) {
+                continue;
+            }
+            lines.set(i, render(key, DEFAULTS.get(key)).stripTrailing());
+            changed++;
+        }
+        if (changed > 0) {
+            Files.writeString(path, String.join("\n", lines) + "\n");
+        }
+        return changed;
     }
 
     /** One {@code key: "value"} line, escaped for YAML. Shared so both writers agree. */
