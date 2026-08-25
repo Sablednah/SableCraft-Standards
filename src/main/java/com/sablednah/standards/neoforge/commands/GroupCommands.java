@@ -205,11 +205,12 @@ public final class GroupCommands {
                 .map(u -> names.nameOf(u).orElse(u.toString().substring(0, 8)))
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(java.util.stream.Collectors.joining(", "));
+        // A group with no tag shows nothing rather than "[none]" — an empty bracket is noise on
+        // every line that mentions a group that never wanted one.
         Feedback.chat(player, Lang.fmt("msg.group.info",
                 "name", entry.name(),
-                "tag", entry.tag().isEmpty() ? Lang.get("msg.group.no_tag") : entry.tag(),
+                "tag", entry.tag().isEmpty() ? "" : Lang.fmt("msg.group.info_tag", "tag", entry.tag()),
                 "owner", names.nameOf(entry.owner()).orElse("?"),
-                "count", entry.members().size(),
                 "members", members));
         return 1;
     }
@@ -226,6 +227,13 @@ public final class GroupCommands {
                 "list", all.stream().map(StandardsGroups.Entry::name)
                         .sorted(String.CASE_INSENSITIVE_ORDER)
                         .collect(java.util.stream.Collectors.joining(", "))));
+        // Answer the question people actually came with. /group list shows the SERVER's groups,
+        // and bare /group shows yours — a distinction obvious only once somebody has explained
+        // it. Saying both here means nobody has to be told.
+        Optional<StandardsGroups.Entry> mine = store(ctx).of(player.getUUID());
+        Feedback.chat(player, mine
+                .map(g -> Lang.fmt("msg.group.list_yours", "name", g.name()))
+                .orElseGet(() -> Lang.get("msg.group.list_none_yours")));
         return all.size();
     }
 

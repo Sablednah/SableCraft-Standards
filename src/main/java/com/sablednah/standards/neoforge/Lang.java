@@ -148,8 +148,16 @@ public final class Lang {
         def("msg.group.no_homes_yet", "{term.prefix} &f{name}&7 has no shared {term.homes} yet. {term.dim}(/group sethome <name>)");
         def("msg.group.which_home", "{term.prefix} &7Which one? &f{list}");
         def("msg.group.homes", "{term.prefix} &7{term.homes} for &f{name}&7 {term.dim}({count})&7: &f{list}");
-        def("msg.group.list", "{term.prefix} &7{term.groups} {term.dim}({count})&7: &f{list}");
-        def("msg.group.info", "{term.prefix} &f{name}&7 {term.dim}[{tag}]&7 — owner &f{owner}&7, {term.dim}({count})&7: &f{members}");
+        // "groups (2)" reads as YOUR groups, and going from (1) to (2) after founding one looks
+        // exactly like being in two at once — which is impossible, and was reported as a bug on
+        // the strength of this line alone. Say whose list it is.
+        def("msg.group.list", "{term.prefix} &7All {term.groups} on this server {term.dim}({count})&7: &f{list}");
+        // No member count: "1 members" is the same plural trap as "creditss", and the list is
+        // right there to be counted.
+        def("msg.group.info", "{term.prefix} &f{name}&7{tag} — owner &f{owner}&7, with &f{members}");
+        def("msg.group.list_yours", "{term.prefix} &7You are in &f{name}&7.");
+        def("msg.group.list_none_yours", "{term.prefix} &7You are not in any of them. {term.dim}(/group create <name>)");
+        def("msg.group.info_tag", " {term.dim}[{tag}]&7");
         def("msg.tp.set_unreachable", "{term.prefix} &7Saved — but there is nothing to stand on there, so anyone who cannot fly will be told it is unsafe.");
         def("msg.tp.top_ceiling", "{term.prefix} &7Nothing above you but the ceiling — that is as high as this place goes.");
         def("msg.tp.blocked", "{term.prefix} &7There is &f{block}&7 in the way, and blocks like that are usually there on purpose.");
