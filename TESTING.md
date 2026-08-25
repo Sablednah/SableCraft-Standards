@@ -195,7 +195,7 @@ register, and the commands parse — that is all that is known.
 - [x] `/f requests`, then `/f accept` — they are in, everyone is told, and the request is gone
 - [x] `/f decline` — they are told, and they can ask again
 - [ ] with `officersMayAccept = false`, an officer cannot `/f accept` or even `/f requests`
-- [ ] ask a faction, then found your own — the request is gone, and `/f requests` no longer
+- [x] ask a faction, then found your own — the request is gone, and `/f requests` no longer
       shows you (the two-player version of "join one, the other clears")
 - [ ] ask two factions, join one — the other request is gone *(needs a third account: two
       factions plus a factionless asker)*
