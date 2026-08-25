@@ -189,7 +189,7 @@ register, and the commands parse — that is all that is known.
 - [x] `/f autoclaim` away from your own land with `mustBeConnected` — says why **once**, then
       stays quiet while it stays true
 - [ ] `/f autoclaim` through somebody else's territory — **silent**, no chat at all
-- [ ] `/f autoclaim` up to the claim limit — switches itself **off** and says so
+- [x] `/f autoclaim` up to the claim limit — switches itself **off** and says so
 - [x] borders stand on the ground rather than at your feet — walk a claim across a hill
 - [x] `/f request <name>` from a factionless player — officers online are told, and only them
 - [x] `/f requests`, then `/f accept` — they are in, everyone is told, and the request is gone
