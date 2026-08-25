@@ -108,6 +108,29 @@ for players who had mods. See [CHAT-API.md](CHAT-API.md#the-cost-a-decorated-lin
 
 ---
 
+## Permissions, and one thing to know first
+
+Standards asks NeoForge's `PermissionAPI` for every check, so it works the same with LuckPerms, with
+any other handler, or with none at all.
+
+**With no permissions mod**, NeoForge answers every question with the node's own default — op-gated
+nodes for operators, everyone-nodes for everyone, and *nothing grantable*. That is fine for almost
+all of the mod, but five commands default to **nobody** on purpose, because they are capabilities a
+mod hands out temporarily rather than things every player has:
+
+`/craft` `/anvil` `/grindstone` `/enderchest` `/trashcan`
+
+On a server with no way to grant anything, "nobody" means nobody, ever — and the commands simply do
+not appear. If that is your server, say who they are for:
+
+```toml
+stationAccess = "ops"        # or "everyone", or the default "nobody"
+backOnDeathAccess = "nobody" # /back returning you to where you died
+```
+
+A permissions mod overrides both in either direction; these only decide the answer where nothing
+else can.
+
 ## Permissions
 
 Standards registers nodes through NeoForge's `PermissionAPI`, so **[LuckPerms]** (which has a

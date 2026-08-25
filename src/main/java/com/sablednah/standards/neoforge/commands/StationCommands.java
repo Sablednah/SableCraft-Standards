@@ -29,7 +29,11 @@ public final class StationCommands {
     public static LiteralArgumentBuilder<CommandSourceStack> station(
             String name, PermissionNode<Boolean> node, Consumer<ServerPlayer> open) {
         return Commands.literal(name)
-                .requires(StandardsPermissions.require(node))
+                // requireOr, not require: these nodes are Default.NOBODY, so on a server with no
+                // permissions mod they can never be granted and the command simply never exists.
+                // stationAccess lets such a server say who they are for. See requireOr.
+                .requires(StandardsPermissions.requireOr(node,
+                        com.sablednah.standards.StandardsConfig.STATION_ACCESS::get))
                 .executes(ctx -> run(ctx, open));
     }
 

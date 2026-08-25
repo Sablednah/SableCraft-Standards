@@ -63,6 +63,13 @@ you open still animates.
 composed server-side and sent as system messages, so client-side reporting and blocking do not
 apply to them. Undecorated chat is untouched. See `CHAT-API.md`.
 
+### With no permissions mod
+
+Everything works, because Standards asks NeoForge's `PermissionAPI` rather than any particular
+mod. But NeoForge's default handler cannot *grant* anything, so the five portable workstations —
+which default to "nobody" on purpose — never appear at all. `stationAccess` and
+`backOnDeathAccess` let such a server say who they are for. A permissions mod overrides both.
+
 ### For other mods
 
 Five seams, all soft dependencies: `Economy`, `Chat` decorators and routers, `PlayerSwitches`,

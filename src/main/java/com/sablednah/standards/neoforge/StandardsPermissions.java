@@ -237,6 +237,42 @@ public final class StandardsPermissions {
      * permission level instead. Without that second half, {@code /fly Steve on} from a command
      * block — the case this whole mod was built for — would silently never run.
      */
+    /**
+     * As {@link #require}, with a config-driven fallback for nodes nobody can otherwise hold.
+     *
+     * <p><b>Why this exists.</b> The workstations and {@code /back} on death default to
+     * {@code Default.NOBODY} on purpose — they are capabilities a mod hands out temporarily, not
+     * things every player has. That works while a permissions mod is installed to grant them.</p>
+     *
+     * <p>Without one, NeoForge's default handler answers every question with the node's own
+     * default, so "nobody" means <em>nobody, ever</em>. Decision 7 saves us from the worst of it —
+     * a failed {@code requires()} hides the command entirely, so it does not sit in tab-complete
+     * taunting people. But the result is that a documented feature is silently absent: an owner
+     * reads that Standards has {@code /craft}, installs it, and the command does not exist, with
+     * nothing anywhere explaining why.</p>
+     *
+     * <p>So an owner with no permissions mod can say who these are for. A permissions mod still
+     * overrides it in both directions — this only decides the answer where nothing else can.</p>
+     */
+    public static java.util.function.Predicate<CommandSourceStack> requireOr(
+            PermissionNode<Boolean> node, java.util.function.Supplier<String> access) {
+        return source -> require(node).test(source) || allowedBy(source, access.get());
+    }
+
+    /** The same fallback, for the direct {@link #has} checks that are not command gates. */
+    public static boolean hasOr(ServerPlayer player, PermissionNode<Boolean> node,
+            java.util.function.Supplier<String> access) {
+        return has(player, node) || allowedBy(player.createCommandSourceStack(), access.get());
+    }
+
+    private static boolean allowedBy(CommandSourceStack source, String access) {
+        return switch (access == null ? "nobody" : access.toLowerCase(java.util.Locale.ROOT)) {
+            case "everyone" -> true;
+            case "ops" -> Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(source);
+            default -> false;
+        };
+    }
+
     public static java.util.function.Predicate<CommandSourceStack> require(PermissionNode<Boolean> node) {
         return source -> source.getEntity() instanceof ServerPlayer player
                 ? has(player, node)

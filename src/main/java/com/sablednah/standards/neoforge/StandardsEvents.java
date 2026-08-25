@@ -597,7 +597,8 @@ public final class StandardsEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         PlayerState state = StandardsAttachments.of(player);
         if (!StandardsConfig.BACK_ON_DEATH.get()
-                || !StandardsPermissions.has(player, StandardsPermissions.BACK_ON_DEATH)) {
+                || !StandardsPermissions.hasOr(player, StandardsPermissions.BACK_ON_DEATH,
+                        StandardsConfig.BACK_ON_DEATH_ACCESS::get)) {
             // Remember THAT they died even though we will not record WHERE, so /back can explain
             // itself rather than silently sending them to their last warp. See deathNotRecorded.
             state.setDeathNotRecorded(true);

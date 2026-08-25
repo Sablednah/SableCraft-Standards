@@ -71,6 +71,7 @@ public final class SelfTest {
         checkGroups();
         checkClaims();
         checkTeleportRelief();
+        checkAccessFallback();
         checkMoneyFormatting();
         checkCommandsParse(server);
         checkSafeLoc(server);
@@ -518,6 +519,17 @@ public final class SelfTest {
         // If this ever defaults on, somebody has made escaping a fight free for anyone who
         // remembered to make a group first.
         check("group mates do NOT skip the warmup by default", !mates.warmup());
+    }
+
+    /**
+     * The config fallback for nodes nobody can otherwise hold. Its defaults matter more than its
+     * mechanics: shipping with stations open would hand every player a portable ender chest.
+     */
+    private void checkAccessFallback() {
+        check("stations default to nobody",
+                com.sablednah.standards.StandardsConfig.STATION_ACCESS.get().equalsIgnoreCase("nobody"));
+        check("back-on-death defaults to nobody",
+                com.sablednah.standards.StandardsConfig.BACK_ON_DEATH_ACCESS.get().equalsIgnoreCase("nobody"));
     }
 
     private void checkMoneyFormatting() {

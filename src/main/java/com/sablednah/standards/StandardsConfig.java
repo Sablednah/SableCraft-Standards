@@ -38,6 +38,8 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_SMITE;
     public static final ModConfigSpec.BooleanValue VANISH_INVULNERABLE;
     public static final ModConfigSpec.BooleanValue VANISH_PICKUP;
+    public static final ModConfigSpec.ConfigValue<String> STATION_ACCESS;
+    public static final ModConfigSpec.ConfigValue<String> BACK_ON_DEATH_ACCESS;
     public static final ModConfigSpec.BooleanValue ENABLE_GROUPS;
     public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> CHAT_GROUP_KINDS;
     public static final ModConfigSpec.IntValue GROUP_INVITE_TIMEOUT;
@@ -130,6 +132,24 @@ public final class StandardsConfig {
                         "collect the loot. Turn it on if vanish is meant to be a free camera that",
                         "can still tidy up.")
                 .define("vanishPickup", false);
+        STATION_ACCESS = BUILDER
+                .comment("Who may use the portable workstations — /craft, /anvil, /grindstone,",
+                        "/enderchest, /trashcan — when no permissions mod is installed.",
+                        "  nobody   (default) only a permissions mod can grant them. This is what",
+                        "           lets a LegendQuest skill hand a builder a workbench for twenty",
+                        "           seconds and take it back.",
+                        "  ops      operators may use them.",
+                        "  everyone anyone may.",
+                        "A permissions mod still overrides this either way — it only decides the",
+                        "answer for servers that have no way to grant anything, where 'nobody'",
+                        "means the commands can never be used by anybody at all.")
+                .define("stationAccess", "nobody");
+        BACK_ON_DEATH_ACCESS = BUILDER
+                .comment("Who may use /back to return to where they died, with no permissions mod.",
+                        "Same three values as stationAccess, and the same reasoning: returning to",
+                        "your corpse is a real gameplay decision, so it defaults to nobody — but on",
+                        "a server that cannot grant permissions, nobody means nobody, ever.")
+                .define("backOnDeathAccess", "nobody");
         ENABLE_GROUPS = BUILDER
                 .comment("The built-in lightweight groups: /group and its subcommands, plus the",
                         "standards:group kind offered through the groups API.",
