@@ -89,10 +89,10 @@ For Standards:
    (`mc1.21.11`, `mc26.1`, …).
 2. **Bump `gradle.properties` and nothing else** to retarget. `minecraft_version`,
    `minecraft_version_range`, `neo_version`, and the JDK if the line moved.
-3. **The jar carries its Minecraft version** — `standards-0.1.0+mc1.21.11.jar`. Already set up in
-   `build.gradle`. Two files both called `standards-0.1.0.jar` are indistinguishable in a mods
+3. **The jar carries its Minecraft version** — `standards-1.0.0+mc1.21.11.jar`. Already set up in
+   `build.gradle`. Two files both called `standards-1.0.0.jar` are indistinguishable in a mods
    folder or on a releases page, and this cost nothing to do from the start. The version *inside*
-   `neoforge.mods.toml` stays a plain `0.1.0`.
+   `neoforge.mods.toml` stays a plain `1.0.0`.
 4. **Cherry-pick features forward and back.** With a small hand-written divergence set, this stays
    cheap. Revisit the single-tree question once there are three lines and two drops of evidence
    about whether the divergence set is growing or shrinking.

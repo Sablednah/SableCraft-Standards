@@ -146,7 +146,7 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
       commands registered, no missing-class errors from the bundled YAML
 - [ ] a logo. `logoFile` is commented out and there is no icon, so the mods list and any
       CurseForge page show a blank tile
-- [ ] decide the version. `0.1.0` is honest for a first release; `1.0.0` claims more
+- [x] decide the version — **1.0.0**
 
 ## Groups — the built-in lightweight ones
 

@@ -73,8 +73,8 @@ export PATH="$JAVA_HOME/bin:$PATH"
 - Versions and metadata live in `gradle.properties` and expand into
   `src/main/templates/META-INF/neoforge.mods.toml` at build time. **Never edit a generated
   mods.toml.**
-- The jar carries its Minecraft version (`standards-0.1.0+mc1.21.11.jar`); the version *inside*
-  `neoforge.mods.toml` stays a plain `0.1.0`. See `CROSS-VERSION.md`.
+- The jar carries its Minecraft version (`standards-1.0.0+mc1.21.11.jar`); the version *inside*
+  `neoforge.mods.toml` stays a plain `1.0.0`. See `CROSS-VERSION.md`.
 
 ## Verifying changes: `SelfTest`
 
