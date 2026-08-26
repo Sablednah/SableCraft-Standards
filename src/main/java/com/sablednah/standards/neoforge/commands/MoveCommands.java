@@ -6,6 +6,8 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import java.util.List;
+
 import com.sablednah.standards.core.Waypoint;
 import com.sablednah.standards.neoforge.Feedback;
 import com.sablednah.standards.neoforge.Lang;
@@ -62,8 +64,62 @@ public final class MoveCommands {
         return Commands.literal("back")
                 .requires(StandardsPermissions.require(StandardsPermissions.BACK))
                 .executes(ctx -> back(ctx, 1))
+                // Before the argument, so brigadier tries the literal first — otherwise "list"
+                // would be offered to IntegerArgumentType, fail to parse, and read as a typo.
+                .then(Commands.literal("list").executes(MoveCommands::backList))
                 .then(Commands.argument("steps", IntegerArgumentType.integer(1))
                         .executes(ctx -> back(ctx, IntegerArgumentType.getInteger(ctx, "steps"))));
+    }
+
+    /**
+     * {@code /back list} — what the trail actually holds.
+     *
+     * <h3>Why the depth argument needed this</h3>
+     *
+     * <p>{@code /back} is a stack, not a bookmark: every teleport pushes an entry and {@code /back}
+     * pops the newest. So two idle {@code /jump}s after a {@code /home} put two rungs between you
+     * and the place you meant, and {@code /back 3} is the answer — if you happened to be counting.
+     * Nobody is counting. The depth argument existed and was unusable, which is a worse state than
+     * not having it.</p>
+     *
+     * <p>Each row carries the dimension, the coordinates and <b>how far away it is</b>, because
+     * distance is what people actually recognise a place by — "the one 40 blocks away" is a
+     * thought somebody has, and "the one at -122, 71, 908" is not. Distance is omitted across
+     * dimensions, where the number would be arithmetic rather than information.</p>
+     */
+    private static int backList(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        PlayerState state = StandardsAttachments.of(player);
+        List<Waypoint> trail = state.backTrail();
+        List<String> labels = state.backTrailLabels();
+        if (trail.isEmpty()) {
+            Feedback.chat(player, Lang.get("msg.tp.back_none"));
+            return 0;
+        }
+        Feedback.chat(player, Lang.fmt("msg.tp.back_list_header", "count", trail.size()));
+        for (int i = 0; i < trail.size(); i++) {
+            Waypoint w = trail.get(i);
+            boolean sameWorld = w.dimension().equals(player.level().dimension());
+            String distance = sameWorld
+                    ? Lang.fmt("msg.tp.back_list_distance", "blocks",
+                            (int) Math.round(Math.sqrt(
+                                    player.position().distanceToSqr(w.x(), w.y(), w.z()))))
+                    : "";
+            // Only the newest entry can be the death site — the flag is a single boolean about
+            // the top of the stack, so labelling any other row would be a guess.
+            String death = i == 0 && state.backWasDeath()
+                    ? Lang.get("msg.tp.back_list_death") : "";
+            Feedback.chat(player, Lang.fmt("msg.tp.back_list_row",
+                    "n", i + 1,
+                    "world", w.dimension().identifier().getPath(),
+                    "x", (int) Math.floor(w.x()),
+                    "y", (int) Math.floor(w.y()),
+                    "z", (int) Math.floor(w.z()),
+                    "distance", distance,
+                    "death", death,
+                    "label", i < labels.size() ? labels.get(i) : ""));
+        }
+        return trail.size();
     }
 
     /**

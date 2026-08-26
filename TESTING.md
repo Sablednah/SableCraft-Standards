@@ -147,6 +147,10 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] a logo — `src/main/resources/standards.png` at 256x256, `logoFile` set, and it lands in
       the jar
 - [ ] check the mods list actually renders it in game
+- [x] `/back list` — numbered, with dimension, coordinates, distance and the command that made
+      each entry; `/back <n>` then picks one
+- [x] a teleport from **another mod** is labelled without that mod knowing — `/f home` shows as
+      `/f home` in the trail
 - [x] decide the version — **1.0.0**
 
 ## Groups — the built-in lightweight ones

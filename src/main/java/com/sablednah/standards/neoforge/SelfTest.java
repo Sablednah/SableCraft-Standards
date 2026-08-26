@@ -604,7 +604,7 @@ public final class SelfTest {
         for (String command : List.of(
                 "fly", "fly on", "fly off", "fly toggle", "fly @a on",
                 "god", "god on", "god @a off",
-                "top", "jump", "j", "back", "back 2",
+                "top", "jump", "j", "back", "back 2", "back list",
                 "home", "sethome", "sethome base", "delhome base", "homes",
                 "warp", "warps", "setwarp spawnpoint", "delwarp spawnpoint",
                 "tpa Steve", "call Steve", "tpahere Steve",

@@ -33,6 +33,27 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
  */
 public final class StandardsEvents {
 
+
+    /**
+     * Note which command a player is running, so a teleport made during it can say so.
+     *
+     * <p>Cleared straight after. The event fires around the whole dispatch, so a teleport queued
+     * with a warmup lands long after this has gone — {@link Teleports} therefore takes the label
+     * when the teleport is <em>requested</em>, not when it arrives.</p>
+     */
+    @SubscribeEvent
+    static void onCommand(net.neoforged.neoforge.event.CommandEvent event) {
+        var source = event.getParseResults().getContext().getSource();
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            return;
+        }
+        CommandTrace.begin(player.getUUID(), event.getParseResults().getReader().getString());
+        // Cleared next tick rather than here: the dispatcher has not run yet when this fires, so
+        // clearing now would clear it before the command it describes has done anything.
+        player.level().getServer().execute(() -> CommandTrace.end(player.getUUID()));
+    }
+
     @SubscribeEvent
     static void onServerStarting(ServerAboutToStartEvent event) {
         // messages.yml: written with the full catalogue on first run, merged thereafter.

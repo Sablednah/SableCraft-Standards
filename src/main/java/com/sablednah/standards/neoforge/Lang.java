@@ -173,6 +173,13 @@ public final class Lang {
         def("msg.tp.jump_done", "{term.prefix} &7Jumped &f{blocks}&7 blocks.");
         def("msg.tp.back_death_disabled", "&7Returning to where you died is not enabled here, so that spot was not saved. {term.dim}(/back again for your previous location.)");
         def("msg.tp.back_none", "&7Nowhere to go back to.");
+        def("msg.tp.back_list_header",
+                "{term.prefix} &7Where you have been {term.dim}({count})&7 — &f/back <n>&7 to pick one:");
+        def("msg.tp.back_list_row",
+                " {term.dim}{n}.&r &f{world} {x} {y} {z}{distance}{death} {term.dim}{label}");
+        def("msg.tp.back_list_distance", " &7({blocks} away)");
+        def("msg.tp.back_list_death", " &c(died here)");
+        def("msg.tp.back_list_unknown", "");
         def("msg.tp.back_done", "{term.prefix} &7Returned to where you were {term.dim}({place}).");
         def("msg.tp.back_death", "{term.prefix} &7Returned to where you died {term.dim}({place}).");
     }

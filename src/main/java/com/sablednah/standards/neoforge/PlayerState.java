@@ -30,6 +30,11 @@ public class PlayerState {
             Codec.BOOL.optionalFieldOf("fly", false).forGetter(PlayerState::fly),
             Codec.BOOL.optionalFieldOf("god", false).forGetter(PlayerState::god),
             Waypoint.CODEC.listOf().optionalFieldOf("back", List.of()).forGetter(s -> List.copyOf(s.back)),
+            // A parallel list rather than a record per entry, purely so an existing save loads:
+            // a file written before labels existed simply has none, and every row reads "unknown"
+            // instead of the attachment failing to decode and taking the whole trail with it.
+            Codec.STRING.listOf().optionalFieldOf("backLabels", List.of())
+                    .forGetter(s -> List.copyOf(s.backLabels)),
             Codec.BOOL.optionalFieldOf("backWasDeath", false).forGetter(PlayerState::backWasDeath),
             Codec.BOOL.optionalFieldOf("deathNotRecorded", false).forGetter(PlayerState::deathNotRecorded),
             Codec.BOOL.optionalFieldOf("refusingTeleports", false).forGetter(PlayerState::refusingTeleports),
@@ -46,6 +51,8 @@ public class PlayerState {
     private boolean god;
     /** Most recent first. Bounded by the configured history depth. */
     private final List<Waypoint> back = new ArrayList<>();
+    /** What put each entry there — "/home base", "/f home" — newest first, same order as back. */
+    private final List<String> backLabels = new ArrayList<>();
     /** Whether the newest entry in {@link #back} is a death site, purely so the message can say so. */
     private boolean backWasDeath;
     /**
@@ -78,13 +85,20 @@ public class PlayerState {
     /** The default for a player who has never had state. */
     public PlayerState() {}
 
-    private PlayerState(boolean fly, boolean god, List<Waypoint> back, boolean backWasDeath,
+    private PlayerState(boolean fly, boolean god, List<Waypoint> back, List<String> backLabels,
+            boolean backWasDeath,
             boolean deathNotRecorded,
             boolean refusingTeleports, boolean vanished, float walkSpeed, float flySpeed,
             boolean refusingMessages, boolean socialSpy, List<java.util.UUID> ignored) {
         this.fly = fly;
         this.god = god;
         this.back.addAll(back);
+        this.backLabels.addAll(backLabels);
+        // A save from before labels existed has a shorter list. Padded rather than left ragged,
+        // so every read is positional and nothing has to remember the two can disagree.
+        while (this.backLabels.size() < this.back.size()) {
+            this.backLabels.add("");
+        }
         this.backWasDeath = backWasDeath;
         this.deathNotRecorded = deathNotRecorded;
         this.refusingTeleports = refusingTeleports;
@@ -193,7 +207,13 @@ public class PlayerState {
      * configured depth, so {@code /back 1} is always the most recent departure.
      */
     public void pushBack(Waypoint where, boolean death) {
+        pushBack(where, death, "");
+    }
+
+    /** @param label what put this entry here, for {@code /back list}; empty if unknown. */
+    public void pushBack(Waypoint where, boolean death, String label) {
         back.addFirst(where);
+        backLabels.addFirst(label == null ? "" : label);
         backWasDeath = death;
         if (death) {
             deathNotRecorded = false;
@@ -201,7 +221,23 @@ public class PlayerState {
         int limit = StandardsConfig.BACK_HISTORY.get();
         while (back.size() > limit) {
             back.removeLast();
+            backLabels.removeLast();
         }
+    }
+
+    /**
+     * The whole trail, newest first, for {@code /back list}.
+     *
+     * <p>A copy: the caller is showing it, not editing it, and handing out the live list would
+     * let a display quietly become a way to lose your way home.</p>
+     */
+    public List<Waypoint> backTrail() {
+        return List.copyOf(back);
+    }
+
+    /** What put each trail entry there, same order and length as {@link #backTrail()}. */
+    public List<String> backTrailLabels() {
+        return List.copyOf(backLabels);
     }
 
     /** The n-th previous location, 1-based, without consuming it. */
@@ -214,6 +250,10 @@ public class PlayerState {
         Optional<Waypoint> found = peekBack(depth);
         found.ifPresent(w -> {
             back.remove(depth - 1);
+            // In step, or every later /back list would name the wrong command for every row.
+            if (depth - 1 < backLabels.size()) {
+                backLabels.remove(depth - 1);
+            }
             if (depth == 1) backWasDeath = false;
         });
         return found;

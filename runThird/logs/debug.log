@@ -378,3 +378,8 @@
 [26Aug2026 18:01:16.225] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] TestThird was shot by Skeleton
 [26Aug2026 18:01:16.226] [Render thread/INFO] [net.minecraft.advancements.AdvancementTree/]: Loaded 41 advancements
 [26Aug2026 18:01:35.638] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestThird is now away.
+[26Aug2026 18:19:08.193] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Rcon] Restarting - logo
+[26Aug2026 18:19:08.395] [Render thread/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Unloading configs type SERVER
+[26Aug2026 18:19:08.531] [Render thread/WARN] [net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl/]: Client disconnected with reason: Disconnected
+[26Aug2026 18:25:45.859] [Render thread/DEBUG] [net.neoforged.fml.classloading.transformation.ClassTransformStatistics/]: Transformed/total loaded classes: 411/8451 (4.86%) and 32 parsed for mixin
+[26Aug2026 18:25:45.880] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Stopping!

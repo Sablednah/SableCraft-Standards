@@ -225,7 +225,8 @@ public final class Teleports {
         double z = exact ? destination.z() : target.getZ() + 0.5D;
 
         if (recordBack) {
-            StandardsAttachments.of(player).pushBack(Waypoint.of(player), false);
+            StandardsAttachments.of(player).pushBack(Waypoint.of(player), false,
+                    CommandTrace.current(player));
         }
 
         Vec3 from = player.position();
