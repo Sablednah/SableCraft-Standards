@@ -267,6 +267,7 @@ Needs a JDK 21.
 ## Where to look next
 
 - [`CHANGELOG.md`](CHANGELOG.md) — what changed, and why it changed.
+- [`CURSEFORGE.md`](CURSEFORGE.md) — the project description, kept here so it is versioned with the mod it describes.
 - [`COMMANDS.md`](COMMANDS.md) — the full EssentialsX / FTB catalogue with keep-or-skip notes.
 - [`ECONOMY-API.md`](ECONOMY-API.md), [`CHAT-API.md`](CHAT-API.md),
   [`GROUPS-API.md`](GROUPS-API.md) — the seams other mods build on.
