@@ -68,52 +68,6 @@
 	#Off also stops Standards registering itself as an economy provider,
 	#which is what you want if a dedicated economy mod is installed.
 	economy = true
-	#Who may use the portable workstations — /craft, /anvil, /grindstone,
-	#/enderchest, /trashcan — when no permissions mod is installed.
-	#  nobody   (default) only a permissions mod can grant them. This is what
-	#           lets a LegendQuest skill hand a builder a workbench for twenty
-	#           seconds and take it back.
-	#  ops      operators may use them.
-	#  everyone anyone may.
-	#A permissions mod still overrides this either way — it only decides the
-	#answer for servers that have no way to grant anything, where 'nobody'
-	#means the commands can never be used by anybody at all.
-	stationAccess = "nobody"
-	#Who may use /back to return to where they died, with no permissions mod.
-	#Same three values as stationAccess, and the same reasoning: returning to
-	#your corpse is a real gameplay decision, so it defaults to nobody — but on
-	#a server that cannot grant permissions, nobody means nobody, ever.
-	backOnDeathAccess = "nobody"
-	#The built-in lightweight groups: /group and its subcommands, plus the
-	#standards:group kind offered through the groups API.
-	#Turn it off on a pack running a faction mod — that mod registers its own
-	#kind, and two group systems side by side is exactly the confusion the API
-	#exists to prevent.
-	groups = true
-	#Seconds a group invite stays open. 0 means it never expires.
-	#Off by default: on a small server an invite that quietly evaporates is
-	#more annoying than one that lingers, and the person who sent it is not
-	#told either way. Set it if invites are piling up.
-	# Default: 0
-	# Range: 0 ~ 2592000
-	groupInviteTimeoutSeconds = 0
-	#Shared homes a group may have. -1 for no limit.
-	#Set by the owner, reachable by every member, and separate from personal
-	#homes on purpose: 'my bedroom' and 'our base' are different things, and
-	#merging them would mean nobody can have a private home any more.
-	# Default: 3
-	# Range: -1 ~ 10000
-	groupHomeLimit = 3
-	#Teleporting to somebody in your own group ignores the teleport cooldown.
-	#On by default. The cooldown is a rate limit against strangers; inside a
-	#group it is friction with nothing to protect.
-	groupTeleportSkipsCooldown = true
-	#...and ignores the warmup countdown too.
-	#OFF by default, and the two are separate on purpose. The warmup is the
-	#anti-combat-log half — it is what stops somebody escaping a fight — and
-	#your own group is exactly who you would arrange that with. Turn it on for
-	#a co-operative server where nobody is fighting anybody.
-	groupTeleportSkipsWarmup = false
 
 #Teleporting: every command that moves a player goes through these.
 [teleport]
@@ -217,16 +171,6 @@
 	#an undecorated line is left entirely alone, keeping vanilla's hover cards
 	#and team colours — which is why off is the default.
 	alwaysFormat = false
-	#Which group kinds put a tag in chat, outermost first.
-	#Kind ids, from whichever mods provide them — standards:group,
-	#legendquest:party, factions:faction. Empty means no group tags at all.
-	#Order is yours: the first listed renders furthest from the name.
-	#A group with no short tag set is skipped rather than rendered by its
-	#full name — [The Crimson Brotherhood] on every line is what makes people
-	#turn this off.
-	#Kind ids, never group names: players rename their groups, and a rename
-	#that silently drops the styling is a bug found on somebody else's server.
-	groupTagKinds = ["standards:group"]
 
 #Homes.
 [homes]
