@@ -36,6 +36,13 @@ That is a standing instruction from the owner, not a licensing constraint.
 | Mod id | `standards`, package `com.sablednah.standards` |
 | Display name | **SableCraft Standards** (`mod_name`); everyone says *Standards* |
 
+**Standards drives a sibling build.** `../Factions-ReForged` is a separate mod, a separate repo and
+a separate release, but `settings.gradle` includes it as `:factions` and the dev server loads both —
+testing a faction mod without the mod it hard-depends on proves nothing. It is the first real
+consumer of the groups, claims, chat-router and economy seams, and it found bugs in all of them.
+`./deploy.sh` ships both, because a new Standards beside an old Factions starts and *then*
+misbehaves somewhere unrelated.
+
 This is the **fifth** mod in the series. `../MobHealth-Forge` is the canonical template,
 `../LegendQuest-ReForged` is the closest architectural relative (commands, permissions, messages,
 optional client), `../CityWorld-ReForged/PORTING.md` is the richest source of verified 1.21.11 API
@@ -353,7 +360,18 @@ CurseForge's bundled JDK 21:
 ```
 .\TestClient.cmd            -> TestBuddy   (runClientBuddy, runBuddy/)
 .\TestClient.cmd main       -> Sablednah   (runClientMain,  runMain/)
+.\TestClient.cmd third      -> TestThird   (runClientThird, runThird/)
 ```
+
+**Three clients, and the third is not optional for some things.** Any rule with *two* sides and a
+bystander needs three people to observe: `/socialspy`, a request only some ranks are told about, and
+"ask two factions, join one". With two accounts you can usually only prove the adjacent case and
+guess at the real one.
+
+⚠ **`if cond set A=1 & set B=2` in a `.cmd` file does not do what it reads like.** `cmd.exe` splits
+on `&` before evaluating the `if`, so everything after it runs unconditionally. This silently broke
+`TestClient.cmd` for months: `WHO` always ended up `TestThird` whatever was typed, so the default
+launch ran TestBuddy's task in the third client's directory. Parenthesise, one command per line.
 
 **Mute the clients.** `TestClient.cmd` zeroes every `soundCategory_*` in the client's run
 directory before launching. Two clients and a server on one machine play the same sound two or
@@ -475,6 +493,25 @@ and, better, a real consumer on the other side of the seam before it is called d
 Both mods independently arrived at treating **"first time real user input reaches this code"** as
 its own risk category. It has earned that status.
 
+## The other category: the server is right and the client was never told
+
+Three bugs in one afternoon, all the same shape, none of them reachable by `SelfTest` — because
+the self-test has no client. Minecraft **predicts** an interaction locally before the server rules
+on it, so a cancelled action has already happened on screen:
+
+- a denied **lever** still threw its redstone spark, and a denied **door** could sit there looking
+  open;
+- a denied **placement** consumed the item from the hotbar, and only a relog brought it back. This
+  is the alarming one: *"the mod ate my items"* is the worst thing a protection feature can appear
+  to do, and nobody who believes it stops to check;
+- a refusal aimed at `entity.blockPosition()` puffed its particles at **ankle height**, because for
+  an entity that is the block under its feet.
+
+So when cancelling anything a player did: **resend what they were told**. Block state (and its
+neighbours — a door is two blocks), inventory, and put the feedback where the cursor was. Doors and
+buttons will still visibly twitch; that twitch *is* the correction landing and cannot be prevented
+from the server.
+
 ## Gotchas already paid for
 
 - **Static initialisation order.** A `static final` collection declared *after* the fields that
@@ -488,15 +525,31 @@ its own risk category. It has earned that status.
 - The first build after changing `accesstransformer.cfg` re-runs the neoform runtime and takes
   10+ minutes. It is working, not hung. (Standards has no AT yet — keep it that way if you can.)
 
+## Status lines rot, and they rot quietly
+
+`README.md` claimed the groups and claims seams were "designed, not built" two days after they
+shipped and were being driven by two mods. `GROUPS-API.md` was worse — *"no provider is registered,
+and `Factions-ReForged` does not exist"*, all three untrue.
+
+Nobody notices, because a doc that undersells is never contradicted by a failure. **Sweep the
+status lines whenever something ships**: `grep -n "^\*\*Status:" *.md`, plus "not built", "does not
+exist", "nothing consumes", "yet". Worth doing before any release.
+
 ## Where to look next
 
 - `COMMANDS.md` — the full EssentialsX/FTB catalogue with keep/skip recommendations. **This is the
   open decision list**; the owner is working through it.
 - `ECONOMY-API.md` — how LegendQuest and ZombieMod hook the economy.
 - `CHAT-API.md` — the decorator seam, and the stated cost that a decorated line is not signed.
-- `GROUPS-API.md` — **designed, not built.** Group membership by kind and chunk claim queries;
-  also the decisions on FTB (Teams out, compatibility kept), where `Factions-ReForged` sits, and
-  why there will be no minimap.
+- `GROUPS-API.md` — **built and in use**, by Standards' own `/group` and by Factions. Group
+  membership by kind and chunk claim queries; also the decisions on FTB (Teams out, compatibility
+  kept) and why there will be no minimap. Note the two halves behave oppositely on purpose: a group
+  kind takes exactly one provider, claims take the highest priority and **fail open**.
+- `../Factions-ReForged/POWER.md` — **designed, not built.** Power, the faction bank's other half
+  and the standard, with the real 2012 numbers rather than the remembered ones. Also two findings
+  that belong *here* rather than there: the original blocked `/home`, `/spawn` and `/tpa` outright
+  inside enemy territory (combat logging solved in 2012, by gating other plugins' commands), and
+  `/f stuck` is the answer to being trapped in a claim without holing the protection.
 - `COMBAT-API.md` — **specified, scheduled for 1.1.** Combat tagging, and why
   `movement.cancelOnDamage` today only protects the warmup window.
 - `PERMISSIONS.md` — **specified, scheduled for 1.2.** A built-in permission handler for servers
