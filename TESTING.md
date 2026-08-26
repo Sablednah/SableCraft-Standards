@@ -217,7 +217,7 @@ register, and the commands parse — that is all that is known.
 - [x] the same for a door, a button, a lever and a furnace
 - [x] a **pressure plate** still works for them — the deliberate hole
 - [x] item frames and armour stands: cannot take from, cannot break
-- [ ] with `anyoneMayRotateFrames = true`: a stranger can **turn** an occupied frame, still
+- [x] with `anyoneMayRotateFrames = true`: a stranger can **turn** an occupied frame, still
       cannot take from it, and still cannot fill an empty one
 - [x] an **ally** can open the door and the chest, and **cannot** build or break
       (`alliesMayBuild = false`)
