@@ -215,11 +215,13 @@ register, and the commands parse — that is all that is known.
       tag, both rendering, neither swallowing the other
 - [x] a stranger right-clicks a **chest** in your claim — refused, and told whose it is
 - [x] the same for a door, a button, a lever and a furnace
-- [ ] a **pressure plate** still works for them — the deliberate hole
+- [x] a **pressure plate** still works for them — the deliberate hole
 - [ ] item frames and armour stands: cannot take from, cannot break
 - [x] an **ally** can open the door and the chest, and **cannot** build or break
       (`alliesMayBuild = false`)
 - [ ] animals are still feedable and boats usable in somebody else's claim
+- [ ] a denied click puffs **red particles at the block** and thuds, seen only by them
+- [ ] a denied lever or door does not stay looking flipped — the client's guess is corrected
 - [ ] `/f chat` cycles public → faction → ally → public, and each says where you are talking
 - [ ] a **muted** player cannot talk in faction chat, by `/f chat` or by `/f c` — the whole reason
       it goes through the router
