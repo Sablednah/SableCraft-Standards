@@ -230,7 +230,7 @@ register, and the commands parse — that is all that is known.
 - [x] a denied lever or door does not stay looking flipped — the client's guess is corrected
       *(a door still swings and slams and a button still bounces: that IS the correction landing,
       and client-side prediction cannot be prevented from the server)*
-- [ ] `/f chat` cycles public → faction → ally → public, and each says where you are talking
+- [x] `/f chat` cycles public → faction → ally → public, and each says where you are talking
 - [ ] a **muted** player cannot talk in faction chat, by `/f chat` or by `/f c` — the whole reason
       it goes through the router
 - [ ] `/f c <message>` reaches faction members and nobody else; `/f ca` reaches allies too
