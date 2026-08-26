@@ -255,10 +255,8 @@ register, and the commands parse — that is all that is known.
       they are offline
 - [ ] set `claimCost` above 0, restart: `/f claim` spends from the bank, refuses when short, and
       `/f unclaim` refunds at the position price
-- [x] restart — factions, claims, relations, tags and homes all survive (10 factions, 67 claims,
-      4 allies, 2 enemies, 2 peaceful, 1 home, before and after)
-- [ ] restart with **money actually in a bank** — every balance was zero, so the one field added
-      since the last persistence check is the one it did not test
+- [x] restart — factions, claims, relations, tags, homes **and bank balances** all survive
+      (10 factions, 67 claims, 4 allies, 2 enemies, 2 peaceful, 1 home, 903 in the bank)
 
 ## Homes and warps
 
