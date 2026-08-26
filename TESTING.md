@@ -213,11 +213,11 @@ register, and the commands parse — that is all that is known.
 - [x] `/f claim` a chunk not touching your land — refused (`mustBeConnected`)
 - [x] faction tag in chat, after adding `factions:faction` to `groupTagKinds` — beside the group
       tag, both rendering, neither swallowing the other
-- [ ] a stranger right-clicks a **chest** in your claim — refused, and told whose it is
-- [ ] the same for a door, a button, a lever and a furnace
+- [x] a stranger right-clicks a **chest** in your claim — refused, and told whose it is
+- [x] the same for a door, a button, a lever and a furnace
 - [ ] a **pressure plate** still works for them — the deliberate hole
 - [ ] item frames and armour stands: cannot take from, cannot break
-- [ ] an **ally** can open the door and the chest, and **cannot** break a block
+- [x] an **ally** can open the door and the chest, and **cannot** build or break
       (`alliesMayBuild = false`)
 - [ ] animals are still feedable and boats usable in somebody else's claim
 - [ ] `/f chat` cycles public → faction → ally → public, and each says where you are talking
