@@ -243,11 +243,11 @@ register, and the commands parse — that is all that is known.
 - [x] a bank cannot be pushed negative — an over-withdrawal and an over-payment both refuse
       rather than clamping
 - [ ] a **non-officer** cannot withdraw or pay, but can still deposit
-- [ ] `/f money pay <faction> <amount> <reason>` — the reason reaches them, and a colour code in
+- [x] `/f money pay <faction> <amount> <reason>` — the reason reaches them, and a colour code in
       it arrives as text
 - [ ] `/f status` with **no faction** lists invitations you can act on and requests you are
       waiting on, and says so plainly when there are neither
-- [ ] `/pay <player> <amount> <reason>` in Standards — shown to both, and carried in the mail when
+- [x] `/pay <player> <amount> <reason>` in Standards — shown to both, and carried in the mail when
       they are offline
 - [ ] set `claimCost` above 0, restart: `/f claim` spends from the bank, refuses when short, and
       `/f unclaim` refunds at the position price
