@@ -229,7 +229,7 @@ register, and the commands parse — that is all that is known.
       relog undoes
 - [x] with `blockTnt = false`, TNT breaks claimed blocks again — the siege tool working
 - [x] and with TNT allowed, a **creeper** is still blocked — separate config, separate branch
-- [ ] animals are still feedable and boats usable in somebody else's claim
+- [x] animals are still feedable in somebody else's claim — adults to breed, babies to grow
 - [x] a denied click puffs **red particles at the block** and thuds, seen only by them
 - [x] a denied lever or door does not stay looking flipped — the client's guess is corrected
       *(a door still swings and slams and a button still bounces: that IS the correction landing,
