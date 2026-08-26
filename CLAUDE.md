@@ -362,7 +362,11 @@ one to exist, because a fresh client generates its own `options.txt` on first st
 new run directory is exactly the one that would come up at full volume.
 
 **Each Windows client needs its own build directory**, via `-PwinClient=<name>` →
-`build-win-<name>/`. Without it the client's `:createMinecraftArtifacts` tries to replace
+`build-win-<name>/`, **and every subproject needs it too.** `layout.buildDirectory` is
+per-project, so the root redirection says nothing about `:factions` — which then tries to write
+`Factions-ReForged/build/libs/` while the WSL server holds that jar open, and fails with
+`Unable to delete file`. The `-P` property reaches every project in the build, so each one just
+has to test for it. Without it the client's `:createMinecraftArtifacts` tries to replace
 `build/moddev/artifacts/neoforge-*.jar` while the running dev server holds it open, and fails with
 `Unable to delete file` / `AccessDeniedException`. A separate `--project-cache-dir` is *not*
 enough — that separates lock files, not build outputs. Both are set in `TestClient.cmd`.
