@@ -14,8 +14,9 @@ description='''
 ${mod_description}
 '''
 displayURL="https://github.com/Sablednah/SableCraft-Standards"
-# TODO: artwork. Add src/main/resources/standards.png and put logoFile back —
-# naming a file that does not exist is worse than having no logo.
+logoFile="standards.png"
+# 256x256, which is what the mods list actually draws at — a larger source is jar weight for
+# pixels nobody sees. Not blurred, so the pixel-art blocks in it stay crisp at that size.
 
 # The mod's only mixin: /vanish answers vanilla's own visibility question rather than fighting
 # the entity tracker with packets. See ServerPlayerVanishMixin for why, and check it first on a

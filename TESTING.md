@@ -144,8 +144,9 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
       work for an op and refuse for a non-op, and the home limit falls back to `defaultLimit`
 - [ ] the built jar on a server that is **not** the dev environment — `messages.yml` written,
       commands registered, no missing-class errors from the bundled YAML
-- [ ] a logo. `logoFile` is commented out and there is no icon, so the mods list and any
-      CurseForge page show a blank tile
+- [x] a logo — `src/main/resources/standards.png` at 256x256, `logoFile` set, and it lands in
+      the jar
+- [ ] check the mods list actually renders it in game
 - [x] decide the version — **1.0.0**
 
 ## Groups — the built-in lightweight ones
