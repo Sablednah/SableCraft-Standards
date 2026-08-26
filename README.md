@@ -1,4 +1,4 @@
-# SableCraft Standards
+<img src="docs/banner.png" alt="SableCraft Standards" width="640">
 
 *Do you have Standards?*
 
