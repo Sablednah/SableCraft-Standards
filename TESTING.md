@@ -249,7 +249,7 @@ register, and the commands parse — that is all that is known.
 - [ ] a **non-officer** cannot withdraw or pay, but can still deposit
 - [x] `/f money pay <faction> <amount> <reason>` — the reason reaches them, and a colour code in
       it arrives as text
-- [ ] `/f status` with **no faction** lists invitations you can act on and requests you are
+- [x] `/f status` with **no faction** lists invitations you can act on and requests you are
       waiting on, and says so plainly when there are neither
 - [x] `/pay <player> <amount> <reason>` in Standards — shown to both, and carried in the mail when
       they are offline
