@@ -239,7 +239,10 @@ register, and the commands parse — that is all that is known.
 - [x] `/f chatspy` shows an outsider's faction chat, marked as overheard
 - [x] a spy does **not** count as an audience — a lone member still hears "nobody else is
       listening", or the message would quietly announce that somebody is watching
-- [ ] `/f money deposit` / `withdraw` / `pay` — and a non-officer cannot withdraw
+- [x] `/f money deposit` / `withdraw` / `pay`, and the balance on `/f status`
+- [x] a bank cannot be pushed negative — an over-withdrawal and an over-payment both refuse
+      rather than clamping
+- [ ] a **non-officer** cannot withdraw or pay, but can still deposit
 - [ ] set `claimCost` above 0, restart: `/f claim` spends from the bank, refuses when short, and
       `/f unclaim` refunds at the position price
 - [ ] restart — factions, claims, relations, homes **and bank balances** all survive
