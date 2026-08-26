@@ -227,7 +227,8 @@ register, and the commands parse — that is all that is known.
 - [x] TNT cannot be **placed** inside a claim at all — the place guard catches it first
 - [ ] a refused **placement** leaves the item in your hand — no phantom consumption that only a
       relog undoes
-- [ ] with `blockTnt = false`, TNT breaks claimed blocks again but creepers still do not
+- [x] with `blockTnt = false`, TNT breaks claimed blocks again — the siege tool working
+- [ ] and with TNT allowed, a **creeper** is still blocked — separate config, separate branch
 - [ ] animals are still feedable and boats usable in somebody else's claim
 - [x] a denied click puffs **red particles at the block** and thuds, seen only by them
 - [x] a denied lever or door does not stay looking flipped — the client's guess is corrected
