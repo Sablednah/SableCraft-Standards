@@ -88,6 +88,15 @@ feature.
   rank gets `standards.craft`; a blacksmith class gets `standards.anvil` from a LegendQuest skill.
 - **`/setkit <name> armour|hotbar|inventory|all`** captures what you are wearing and carrying, so
   kits are made by equipping yourself rather than by writing item ids into a file.
+- **`/back` is a stack, not a bookmark.** Every teleport pushes an entry and `/back` pops the
+  newest, so `/back <n>` reaches further — and **`/back list`** shows what is actually on it, with
+  the distance and the command that made each stop. Other mods' teleports are labelled too, without
+  those mods knowing: the label is taken at the dispatcher.
+- **`/pay` takes a reason** — `/pay Steve 500 half of what we dug` — carried into the mailbox when
+  they are offline, so a payment made on Tuesday still explains itself on Friday.
+- **`/group disband` is separate from `/group leave`.** An owner walking out would take everybody's
+  shared homes with them, which is too much for a word one keystroke from "I am done with this". An
+  owner *alone* still just leaves.
 
 ---
 
@@ -237,6 +246,12 @@ permission check that gates the typed command.
 
 ---
 
+## Mods built on this
+
+- **[Factions ReForged](https://github.com/Sablednah/Factions-ReForged)** — chunk claims, particle
+  borders, diplomacy and a faction bank. The first real consumer of the groups, claims, chat and
+  economy seams, and the reason several of them got fixed.
+
 ## Building from source
 
 Needs a JDK 21.
@@ -248,6 +263,16 @@ Needs a JDK 21.
 ```
 
 ---
+
+## Where to look next
+
+- [`CHANGELOG.md`](CHANGELOG.md) — what changed, and why it changed.
+- [`COMMANDS.md`](COMMANDS.md) — the full EssentialsX / FTB catalogue with keep-or-skip notes.
+- [`ECONOMY-API.md`](ECONOMY-API.md), [`CHAT-API.md`](CHAT-API.md),
+  [`GROUPS-API.md`](GROUPS-API.md) — the seams other mods build on.
+- [`COMBAT-API.md`](COMBAT-API.md) — combat tagging, specified for 1.1.
+- [`PERMISSIONS.md`](PERMISSIONS.md) — a built-in permission handler, specified for 1.2.
+- [`CROSS-VERSION.md`](CROSS-VERSION.md) — living on several Minecraft lines at once.
 
 ## Credits
 

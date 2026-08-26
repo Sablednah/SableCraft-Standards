@@ -1,14 +1,37 @@
 # Changelog
 
-## Unreleased
+## 1.0.1
+
+Everything here came out of walking through every command by hand with two and then three real
+clients. None of it was reachable by the self-test, which is excellent at "does this compute the
+right answer" and blind to "has anything ever called it".
+
+### Added
+
+- **`/back list`.** `/back` is a stack, not a bookmark: every teleport pushes an entry and `/back`
+  pops the newest, so two idle `/jump`s after a `/home` put two rungs between you and the place you
+  meant. `/back <n>` was the answer and was unusable, because using it meant counting in your head.
+  Each row now carries the dimension, the coordinates, **how far away it is** — "the one 40 blocks
+  away" is a thought somebody has, "the one at -122, 71, 908" is not — and **the command that made
+  it**.
+- **A reason on `/pay`.** `/pay Steve 500 half of what we dug`. Money that turns up with no
+  explanation is money the recipient treats as a bug, and it is carried into the mailbox when they
+  are offline, so a payment made on Tuesday still explains itself on Friday.
+- **A logo**, at last.
 
 ### Changed
 
+- **Teleport trail entries are labelled by the command that made them**, taken at the dispatcher
+  rather than passed as a parameter. Any mod that teleports a player during a command gets a
+  labelled entry without knowing this exists — Factions' `/f home` shows up as `/f home` and
+  Factions has never heard of the mechanism.
+- **`/group disband` is now its own command, and `/group leave` refuses to do it.**
+
 - **`/group disband` is now its own command, and `/group leave` refuses to do it.** An owner
-  walking out took every member's shared homes with them, on a word one keystroke away from the
-  one that means "I am done with this". Factions already refused the same move; groups now agree
-  with it. An owner *alone* in a group still just leaves — friction there protects nobody, and
-  would only mean learning a second command to undo a mistake.
+  An owner walking out took every member's shared homes with them, on a word one keystroke away
+  from the one that means "I am done with this". Factions already refused the same move; groups
+  now agree with it. An owner *alone* in a group still just leaves — friction there protects
+  nobody, and would only mean learning a second command to undo a mistake.
 
 ### Fixed
 
