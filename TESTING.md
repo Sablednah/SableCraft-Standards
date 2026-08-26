@@ -225,7 +225,7 @@ register, and the commands parse — that is all that is known.
 - [x] a creeper on the **wilderness side** of your wall craters the wilderness and leaves the wall
 - [x] TNT lit outside and thrown in does nothing to claimed blocks (`blockTnt = true`)
 - [x] TNT cannot be **placed** inside a claim at all — the place guard catches it first
-- [ ] a refused **placement** leaves the item in your hand — no phantom consumption that only a
+- [x] a refused **placement** leaves the item in your hand — no phantom consumption that only a
       relog undoes
 - [x] with `blockTnt = false`, TNT breaks claimed blocks again — the siege tool working
 - [x] and with TNT allowed, a **creeper** is still blocked — separate config, separate branch
