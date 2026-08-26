@@ -236,7 +236,9 @@ register, and the commands parse — that is all that is known.
 - [ ] `/f c <message>` reaches faction members and nobody else; `/f ca` reaches allies too
 - [ ] faction chat clears your AFK marker, same as public chat
 - [ ] the channel resets to public on reconnect — never come back still talking to your faction
-- [ ] `/f chatspy` shows an outsider's faction chat, marked as overheard
+- [x] `/f chatspy` shows an outsider's faction chat, marked as overheard
+- [x] a spy does **not** count as an audience — a lone member still hears "nobody else is
+      listening", or the message would quietly announce that somebody is watching
 - [ ] `/f money deposit` / `withdraw` / `pay` — and a non-officer cannot withdraw
 - [ ] set `claimCost` above 0, restart: `/f claim` spends from the bank, refuses when short, and
       `/f unclaim` refunds at the position price
