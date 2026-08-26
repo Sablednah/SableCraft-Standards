@@ -76,7 +76,13 @@ public final class EconomyCommands {
                 .then(Commands.argument("player", StringArgumentType.word())
                         .suggests(EconomyCommands::suggestKnownPlayers)
                         .then(Commands.argument("amount", StringArgumentType.word())
-                                .executes(EconomyCommands::pay)));
+                                .executes(EconomyCommands::pay)
+                                // Optional, and greedy so it can be a sentence. Money that turns
+                                // up with no explanation is money the recipient treats as a bug —
+                                // and a payment that refers to something (rent, a ransom, half of
+                                // what we dug) is only worth making if it can say so.
+                                .then(Commands.argument("reason", StringArgumentType.greedyString())
+                                        .executes(EconomyCommands::pay))));
     }
 
     /** {@code /eco give|take|set <player> <amount>} — the admin tree. */
@@ -268,17 +274,28 @@ public final class EconomyCommands {
             });
             return 0;
         }
+        // Their words, so the same rule public chat follows: text, never formatting.
+        String note = "";
+        try {
+            note = Feedback.stripCodes(StringArgumentType.getString(ctx, "reason")).trim();
+        } catch (IllegalArgumentException noReason) {
+            // The argument is optional; absent is the common case and not an error.
+        }
+        String noteFragment = note.isEmpty() ? "" : Lang.fmt("msg.eco.pay_note", "reason", note);
+
         // The stored spelling, not what they typed — so paying "steve" credits Steve and says so.
         String shownName = payee != null ? payee.getName().getString()
                 : StandardsData.get(server).nameOf(payeeId).orElse(payeeName);
         Feedback.chat(payer, Lang.fmt(payee != null ? "msg.eco.paid" : "msg.eco.paid_offline",
                 "amount", Economy.format(result.amount()),
                 "player", shownName,
+                "note", noteFragment,
                 "balance", Economy.format(Economy.balance(payer.getUUID()))));
         if (payee != null) {
             Feedback.chat(payee, Lang.fmt("msg.eco.received",
                     "player", payer.getName().getString(),
                     "amount", Economy.format(result.amount()),
+                    "note", noteFragment,
                     "balance", Economy.format(Economy.balance(payeeId))));
         } else if (StandardsConfig.ENABLE_MAIL.get()) {
             // Money that turns up with no explanation is money the recipient assumes is a bug, and
@@ -287,7 +304,8 @@ public final class EconomyCommands {
             // from the payer, so /mail read names them and a reply goes to the right person.
             Mailbox.get(server).send(payeeId, payer.getUUID(), payer.getName().getString(),
                     Lang.fmt("msg.eco.paid_you_offline",
-                            "amount", Economy.format(result.amount())));
+                            "amount", Economy.format(result.amount()),
+                            "note", noteFragment));
         }
         return 1;
     }

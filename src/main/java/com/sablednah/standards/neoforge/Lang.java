@@ -418,13 +418,17 @@ public final class Lang {
         def("msg.eco.balance_self", "{term.prefix} &7Your {term.balance}: &a{amount}");
         def("msg.eco.balance_other", "{term.prefix} &f{player}&7's {term.balance}: &a{amount}");
         def("msg.eco.no_account", "&c{player} has no account.");
-        def("msg.eco.paid_offline", "{term.prefix} &7Paid &a{amount}&7 to &f{player}&7, who is offline — they will be told when they next log in. New {term.balance}: &a{balance}");
-        def("msg.eco.paid_you_offline", "paid you &a{amount}&7 while you were away.");
+        def("msg.eco.paid_offline", "{term.prefix} &7Paid &a{amount}&7 to &f{player}&7{note}&7, who is offline — they will be told when they next log in. New {term.balance}: &a{balance}");
+        def("msg.eco.paid_you_offline", "paid you &a{amount}&7 while you were away{note}&7.");
         def("msg.eco.unknown_player", "&cNo player called &f{player}&c has been seen on this server.");
-        def("msg.eco.paid", "{term.prefix} &7Paid &a{amount}&7 to &f{player}&7. "
+        def("msg.eco.paid", "{term.prefix} &7Paid &a{amount}&7 to &f{player}&7{note}&7. "
                 + "New {term.balance}: &a{balance}");
-        def("msg.eco.received", "{term.prefix} &f{player}&7 paid you &a{amount}&7. "
+        def("msg.eco.received", "{term.prefix} &f{player}&7 paid you &a{amount}&7{note}&7. "
                 + "New {term.balance}: &a{balance}");
+        // A fragment rather than a second template, so a server that wants the note somewhere
+        // else moves one key instead of four. Empty when nobody gave a reason, which is most
+        // payments — the line has to read cleanly without it.
+        def("msg.eco.pay_note", " {term.dim}— {reason}");
         def("msg.eco.insufficient", "&cYou only have &f{balance}&c — that costs &f{amount}&c.");
         def("msg.eco.invalid_amount", "&cThat is not an amount I can pay: &f{input}");
         def("msg.eco.not_positive", "&cPay a positive amount.");
