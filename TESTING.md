@@ -234,7 +234,7 @@ register, and the commands parse — that is all that is known.
 - [x] a **muted** player cannot talk in faction chat, by `/f chat` or by `/f c` — the whole reason
       it goes through the router
 - [ ] `/f c <message>` reaches faction members and nobody else; `/f ca` reaches allies too
-- [ ] faction chat clears your AFK marker, same as public chat
+- [x] faction chat clears your AFK marker, same as public chat
 - [x] the channel resets to public on reconnect — never come back still talking to your faction
 - [x] `/f chatspy` shows an outsider's faction chat, marked as overheard
 - [x] a spy does **not** count as an audience — a lone member still hears "nobody else is
