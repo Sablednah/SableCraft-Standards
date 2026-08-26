@@ -316,3 +316,16 @@
 [26Aug2026 17:22:08.267] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestThird is now away.
 [26Aug2026 17:22:53.817] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is back (away 3m 27s)
 [26Aug2026 17:23:24.933] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is now away.
+[26Aug2026 17:24:49.389] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is back (away 1m 23s)
+[26Aug2026 17:25:30.608] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Standards] Asked to join tbf. (they will be told)
+[26Aug2026 17:25:55.012] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Standards] You joined tbf.
+[26Aug2026 17:26:36.060] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is now away.
+[26Aug2026 17:27:11.610] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is back (away 35s)
+[26Aug2026 17:27:24.930] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * sablednah is back (away 19m 47s)
+[26Aug2026 17:27:42.725] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is now away.
+[26Aug2026 17:28:19.386] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is back (away 36s)
+[26Aug2026 17:28:49.375] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is now away.
+[26Aug2026 17:28:51.613] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * sablednah is now away.
+[26Aug2026 17:29:20.765] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Rcon] Restarting - officers may accept again
+[26Aug2026 17:29:20.949] [Render thread/DEBUG] [net.neoforged.fml.config.ConfigTracker/CONFIG]: Unloading configs type SERVER
+[26Aug2026 17:29:21.053] [Render thread/WARN] [net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl/]: Client disconnected with reason: Disconnected
