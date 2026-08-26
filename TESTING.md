@@ -221,6 +221,10 @@ register, and the commands parse — that is all that is known.
       cannot take from it, and still cannot fill an empty one
 - [x] an **ally** can open the door and the chest, and **cannot** build or break
       (`alliesMayBuild = false`)
+- [ ] a **creeper** blows up inside your claim — no blocks broken, but you still take the damage
+- [ ] a creeper on the **wilderness side** of your wall craters the wilderness and leaves the wall
+- [ ] TNT lit outside and thrown in does nothing to claimed blocks (`blockTnt = true`)
+- [ ] with `blockTnt = false`, TNT breaks claimed blocks again but creepers still do not
 - [ ] animals are still feedable and boats usable in somebody else's claim
 - [x] a denied click puffs **red particles at the block** and thuds, seen only by them
 - [x] a denied lever or door does not stay looking flipped — the client's guess is corrected
