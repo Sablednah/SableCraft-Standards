@@ -102,3 +102,26 @@
 [26Aug2026 17:28:51.613] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * sablednah is now away.
 [26Aug2026 17:29:20.765] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Rcon] Restarting - officers may accept again
 [26Aug2026 17:29:21.053] [Render thread/WARN] [net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl/]: Client disconnected with reason: Disconnected
+[26Aug2026 17:44:06.657] [Render thread/INFO] [net.minecraft.client.gui.screens.ConnectScreen/]: Connecting to 127.0.0.1, 25569
+[26Aug2026 17:44:07.559] [Render thread/WARN] [net.minecraft.client.multiplayer.ClientPacketListener/]: Ignoring chat session from sablednah due to missing Services public key
+[26Aug2026 17:44:07.560] [Render thread/WARN] [net.minecraft.client.multiplayer.ClientPacketListener/]: Ignoring chat session from TestBuddy due to missing Services public key
+[26Aug2026 17:44:07.560] [Render thread/WARN] [net.minecraft.client.multiplayer.ClientPacketListener/]: Ignoring chat session from TestThird due to missing Services public key
+[26Aug2026 17:44:07.561] [Render thread/INFO] [net.minecraft.advancements.AdvancementTree/]: Loaded 2 advancements
+[26Aug2026 17:44:09.025] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * sablednah is now away.
+[26Aug2026 17:44:13.303] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Standards] tbf — 0 chunks, 2 members
+[26Aug2026 17:44:13.305] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT]  - Bank ₡0 (next chunk ₡30)
+[26Aug2026 17:44:13.316] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT]  - At peace with everyone, and nobody is waiting on you.
+[26Aug2026 17:44:22.765] [Render thread/INFO] [net.minecraft.client.renderer.DynamicUniformStorage/]: Resizing Chunk Sections UBO, capacity limit of 512 reached during a single frame. New capacity will be 1024.
+[26Aug2026 17:44:33.339] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is now away.
+[26Aug2026 17:44:34.460] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is back (away 1s)
+[26Aug2026 17:44:38.899] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * sablednah is back (away 30s)
+[26Aug2026 17:45:41.131] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is now away.
+[26Aug2026 17:45:41.132] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestThird is now away.
+[26Aug2026 17:46:11.092] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Standards] sablednah wants to join. (/f accept sablednah — or /f decline)
+[26Aug2026 17:46:21.136] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is back (away 39s)
+[26Aug2026 17:46:47.540] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Standards] tbf [none] — allied , 0 chunks, (2): TestBuddy, TestThird
+[26Aug2026 17:46:51.124] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * TestBuddy is now away.
+[26Aug2026 17:46:58.903] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] * sablednah is now away.
+[26Aug2026 17:47:05.185] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Standards] Let sablednah in.
+[26Aug2026 17:47:05.186] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Standards] sablednah joined.
+[26Aug2026 17:47:25.554] [Render thread/INFO] [net.minecraft.client.gui.components.ChatComponent/]: [System] [CHAT] [Standards] Nobody is waiting to join.
