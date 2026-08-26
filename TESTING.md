@@ -202,8 +202,8 @@ register, and the commands parse — that is all that is known.
       shows you (the two-player version of "join one, the other clears")
 - [x] ask two factions, join one — the other request is gone (three accounts: two factions and a
       factionless asker)
-- [x] with `officersMayAccept = true` again, an **officer** is told a request arrived and can
-      answer it — the gate governs who hears, not only who acts
+- [x] with `officersMayAccept = true` again, an **officer** is told a request arrived, can read
+      `/f requests` and can answer it — the gate governs who hears, not only who acts
 - [x] `/f status` with nothing going on — says so, rather than an empty header
 - [x] `/f status` after one side offers an alliance — **offered to us** on their side, **waiting
       on** on yours, and the two lines do not swap
