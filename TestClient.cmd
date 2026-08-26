@@ -23,10 +23,21 @@ rem ---------------------------------------------------------------------
 setlocal
 cd /d "%~dp0"
 
+rem Parenthesised, and one command per line. `if cond set A=1 & set B=2` does NOT do what it
+rem reads like: cmd.exe splits on `&` before evaluating the if, so everything after it runs
+rem unconditionally. The one-line form left WHO as TestThird whatever you typed, while TASK
+rem stayed on TestBuddy's - so the default launch ran the buddy client in the third client's
+rem directory, and `third` never reached its own task at all.
 set "TASK=runClientBuddy"
 set "WHO=TestBuddy"
-if /i "%~1"=="main" set "TASK=runClientMain" & set "WHO=Sablednah"
-if /i "%~1"=="third" set "TASK=runClientThird" & set "WHO=TestThird"
+if /i "%~1"=="main" (
+    set "TASK=runClientMain"
+    set "WHO=Sablednah"
+)
+if /i "%~1"=="third" (
+    set "TASK=runClientThird"
+    set "WHO=TestThird"
+)
 
 set "JAVA_HOME=%USERPROFILE%\curseforge\minecraft\Install\runtime\java-runtime-delta\windows-x64\java-runtime-delta"
 if not exist "%JAVA_HOME%\bin\java.exe" (
@@ -52,8 +63,9 @@ rem Done here rather than by hand because a fresh client writes a default
 rem options.txt the first time it starts - so a run directory that does not
 rem exist yet is exactly the one that would come up loud.
 rem ---------------------------------------------------------------------
-set "RUNDIR=run%WHO%"
-if /i "%WHO%"=="TestBuddy" set "RUNDIR=runBuddy"
+rem Must match gameDirectory in build.gradle for each run config, or the mute below writes
+rem options.txt into a directory the client never opens.
+set "RUNDIR=runBuddy"
 if /i "%WHO%"=="Sablednah" set "RUNDIR=runMain"
 if /i "%WHO%"=="TestThird" set "RUNDIR=runThird"
 powershell -NoProfile -Command ^
