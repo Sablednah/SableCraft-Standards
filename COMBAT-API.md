@@ -9,7 +9,7 @@ holed version of this, and the hole is the reason the API is worth building rath
 to rush it.
 
 Held back because `movement.cancelOnDamage` already covers the warmup window, which is most of the
-value; because the API's one known consumer is LegendQuest, which has not asked for it yet; and
+value; because its known consumers — LegendQuest, and now Factions — have not asked for it yet; and
 because it is purely additive, so nothing in 1.0.0 forecloses any of it. Holding a release for a
 feature nobody is waiting on is how releases slip.
 
@@ -232,4 +232,8 @@ Nothing here is stable until it is built. When it is, `api/combat/` follows the 
 `api/economy/`.
 
 Related: [`GROUPS-API.md`](GROUPS-API.md), [`ECONOMY-API.md`](ECONOMY-API.md),
-[`CHAT-API.md`](CHAT-API.md).
+[`CHAT-API.md`](CHAT-API.md), and
+[Factions ReForged's `POWER.md`](https://github.com/Sablednah/Factions-ReForged/blob/main/POWER.md),
+which found the 2012 plugin blocking `/home`, `/spawn` and `/tpa` outright inside enemy territory —
+a cheaper answer to the same question than a damage-driven tag, and one that wants building here
+rather than there.

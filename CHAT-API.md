@@ -138,3 +138,11 @@ then stays entirely vanilla.
 | `alwaysFormat` | Apply the format even with nothing to add. **Off by default** — an undecorated line is left entirely alone, keeping vanilla's hover cards and team colours. |
 
 That last default matters: with no decorator mods installed, Standards changes chat **not at all**.
+
+## Who uses it
+
+- **Standards** renders group tags through `NameDecorator`, ordered by `groupTagKinds`.
+- **[Factions ReForged](https://github.com/Sablednah/Factions-ReForged)** contributes a faction tag
+  on the decorator side, and is the first real consumer of `ChatRouter` — its faction and ally
+  channels go through the seam rather than cancelling `ServerChatEvent` themselves, which is what
+  stops a muted player switching channel and talking.

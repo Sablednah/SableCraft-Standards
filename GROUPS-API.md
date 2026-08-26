@@ -3,11 +3,19 @@
 Who is in a group with whom, and who owns this chunk — asked of Standards, answered by whoever
 actually knows.
 
-**Status: the seam is built; nothing consumes it yet.** `api/groups/` exists as of 2026-08-24 —
-`GroupKind`, `Group`, `GroupProvider`, `Groups`, `ClaimProvider`, `Claims` — with 31 self-test
-checks. Standards does not yet render group tags or use groups in its own commands, no provider is
-registered, and `Factions-ReForged` does not exist. The specification below is what it was built
-to, and the decisions still stand.
+**Status: built, and in use.** `api/groups/` shipped on 2026-08-24 — `GroupKind`, `Group`,
+`GroupProvider`, `Groups`, `ClaimProvider`, `Claims` — with 31 self-test checks. Since then it has
+grown two real consumers on each side, which is what the specification below was waiting for:
+
+- **Standards drives it itself.** `/group` registers a `standards:group` provider, and group tags
+  render in chat through the decorator seam, ordered by `groupTagKinds`.
+- **[Factions ReForged](https://github.com/Sablednah/Factions-ReForged) registers both** — a
+  `factions:faction` group kind and a `factions:claims` provider — and its block, interaction and
+  explosion protection all ask `Claims` rather than reaching into its own store, so if the seam is
+  wrong it is wrong for us first.
+
+The decisions below still stand, and the two seams behave oppositely on purpose: a **group kind**
+has exactly one provider, and **claims** take the highest-priority one and fail open.
 
 ## Why there is one at all
 
