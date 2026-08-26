@@ -231,7 +231,7 @@ register, and the commands parse — that is all that is known.
       *(a door still swings and slams and a button still bounces: that IS the correction landing,
       and client-side prediction cannot be prevented from the server)*
 - [x] `/f chat` cycles public → faction → ally → public, and each says where you are talking
-- [ ] a **muted** player cannot talk in faction chat, by `/f chat` or by `/f c` — the whole reason
+- [x] a **muted** player cannot talk in faction chat, by `/f chat` or by `/f c` — the whole reason
       it goes through the router
 - [ ] `/f c <message>` reaches faction members and nobody else; `/f ca` reaches allies too
 - [ ] faction chat clears your AFK marker, same as public chat
