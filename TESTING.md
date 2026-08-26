@@ -253,7 +253,7 @@ register, and the commands parse — that is all that is known.
       waiting on, and says so plainly when there are neither
 - [x] `/pay <player> <amount> <reason>` in Standards — shown to both, and carried in the mail when
       they are offline
-- [ ] set `claimCost` above 0, restart: `/f claim` spends from the bank, refuses when short, and
+- [x] set `claimCost` above 0, restart: `/f claim` spends from the bank, refuses when short, and
       `/f unclaim` refunds at the position price
 - [x] restart — factions, claims, relations, tags, homes **and bank balances** all survive
       (10 factions, 67 claims, 4 allies, 2 enemies, 2 peaceful, 1 home, 903 in the bank)
