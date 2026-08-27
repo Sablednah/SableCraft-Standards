@@ -91,14 +91,30 @@ public final class Combat {
         long expiry = System.currentTimeMillis() + seconds * 1000L;
         Map<CombatKind, CombatTag> mine =
                 TAGS.computeIfAbsent(player.getUUID(), id -> new EnumMap<>(CombatKind.class));
-        // Extend, never shorten. A later, briefer tag must not rescue somebody who is fleeing.
-        CombatTag existing = mine.get(kind);
-        if (existing != null && existing.expiresAt() >= expiry) {
-            return Optional.of(existing);
-        }
         CombatTag fresh = new CombatTag(kind, expiry, source == null ? "" : source);
-        mine.put(kind, fresh);
-        return Optional.of(fresh);
+        CombatTag kept = longer(mine.get(kind), fresh);
+        mine.put(kind, kept);
+        return Optional.of(kept);
+    }
+
+    /**
+     * Of two tags for the same kind, the one that ends later.
+     *
+     * <p>Extracted so the rule can be checked without two clients, a zombie and four seconds of
+     * good luck. It is the sort of rule that is invisible until it is wrong and then decides a
+     * fight, so it should not depend on somebody managing to arrange the collision by hand.</p>
+     *
+     * @param existing what is already in force, or null
+     * @param fresh    what has just happened
+     */
+    public static CombatTag longer(CombatTag existing, CombatTag fresh) {
+        if (existing == null) {
+            return fresh;
+        }
+        if (fresh == null) {
+            return existing;
+        }
+        return existing.expiresAt() >= fresh.expiresAt() ? existing : fresh;
     }
 
     /** In any kind of combat. */

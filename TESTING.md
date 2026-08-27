@@ -152,10 +152,11 @@ TestBuddy's or TestThird's side, or deny yourself the node.
 - [x] **fall damage** does not tag, so `/home` still works — the one that matters, and what stops
       a player trapped in a claim being stuck
 - [ ] the same for drowning, freezing and fire
-- [ ] a tag that is **extended, not overwritten** — take a player hit, then immediately a mob hit,
-      and the longer one should still be running
-- [ ] **dying** clears it — respawn and `/home` immediately
-- [ ] **logging out and back in** clears it
+- [x] a tag is **extended, not overwritten** — covered by the self-test rather than by hand, since
+      arranging the collision needs two clients, a zombie and four seconds of luck. To see it live,
+      set `pvpSeconds = 120` and the countdown after a mob bite still reads ~110, not 8
+- [x] **dying** clears it — respawn and `/home` immediately
+- [x] **logging out and back in** clears it
 - [ ] with `pveBlocksTeleport = true`, a mob hit *does* block, and the message says so
 - [ ] an **op** is never blocked — the bypass node working as intended
 - [ ] `combat.log = true` shows the classification: who, kind, cause, seconds

@@ -542,6 +542,17 @@ public final class SelfTest {
                 com.sablednah.standards.api.combat.CombatKind.PVE, now + 8_000, "test");
         check("a longer tag outlasts a shorter one",
                 longTag.remaining(now) > shortTag.remaining(now));
+
+        // The rule itself, rather than an arrangement of it. Twelve seconds of PvP followed by a
+        // zombie for eight is still twelve — and the reverse, so order cannot matter.
+        check("a shorter tag arriving second does not shorten the fight",
+                com.sablednah.standards.api.combat.Combat.longer(longTag, shortTag) == longTag);
+        check("a longer tag arriving second does extend it",
+                com.sablednah.standards.api.combat.Combat.longer(shortTag, longTag) == longTag);
+        check("the first tag of a kind is simply taken",
+                com.sablednah.standards.api.combat.Combat.longer(null, shortTag) == shortTag);
+        check("nothing arriving does not clear what is running",
+                com.sablednah.standards.api.combat.Combat.longer(longTag, null) == longTag);
         check("an expired tag reports zero remaining",
                 new com.sablednah.standards.api.combat.CombatTag(
                         com.sablednah.standards.api.combat.CombatKind.PVP, now - 1, "test")
