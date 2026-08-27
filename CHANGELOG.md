@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.1.0
+
+**The combat API**, plus the seam it turned out to need. Both were built because two other mods
+asked for them the same day, which is the only reason to build an API at all.
+
+### Added
+
+- **`api.combat` — combat tagging.** Being hit by a player puts you in a fight, and while it lasts
+  the escape hatches are closed. A teleport out of a fight is not a clever play; it is the fight
+  not happening, and whoever was winning has no recourse.
+
+  Three rules, each invisible until it is wrong. **An attacker starts a tag, not damage** — fall,
+  drowning, cactus, fire and freezing never tag anybody, which is what stops a player trapped in a
+  protected claim being sealed in by the very feature meant to protect them. **Tags extend, never
+  overwrite** — twelve seconds of PvP then a zombie for eight is still twelve, or a shorter tag
+  would rescue exactly the person fleeing. **Pets are directional** — their wolf biting you is
+  them fighting you through a proxy, but you hitting their wolf is not, so nobody can lock you in
+  combat by shoving a pet in front of you.
+
+  Per-kind durations and per-kind teleport blocking. `pveBlocksTeleport` is **off** by default: on
+  a peaceful server a skeleton must not block `/home`, while a player hitting you must.
+  `standards.combat.bypass` for staff, a permission rather than an op check.
+
+- **`api.combat.Harm` — may this player harm that one?** Asked once, centrally, for player-on-player
+  damage, so a mod that only deals damage needs no code at all. The explicit call is for hostile
+  things that are *not* damage — a curse, a snare, a summon aimed at somebody — which cancelling a
+  damage event never stopped. Before this, a faction that had declared itself peaceful was peaceful
+  against arrows and defenceless against spells.
+
+  **Any veto denies**, unlike every other seam here, because a refusal is a promise rather than a
+  bid. A broken provider fails open: a mod with a bug must not be able to switch combat off for a
+  whole server.
+
+- **`Claims.pvpAllowed(level, pos)`** — the *place* half of the same question, for safe zones and
+  war zones. Standards checks both ends of a shot, or a safe zone is one bowshot from useless.
+
+- **`Combat.playerBehind(damageSource)`**, public on purpose: resolving who was really behind a hit
+  through arrows and pets is something several mods need, and two implementations of it eventually
+  disagree in a way nobody can reproduce.
+
+### Notes
+
+LegendQuest builds against this, and Factions registers `factions:pvp` on it.
+
 ## 1.0.1
 
 Everything here came out of walking through every command by hand with two and then three real
