@@ -164,6 +164,30 @@ Dev server is on `power.mode = "both"`, `maxPerPlayer = 10`, `perDeath = 2`,
       is the first thing anybody would try
 - [ ] `/f power <player>` for somebody else, including offline
 
+## The standard (Factions)
+
+Dev server: `regenWithStandard = 1.0`, `regenWithoutStandard = 0.5`,
+`regenWithCapturedStandard = 0.25`.
+
+- [ ] place a banner on your own land **under open sky**, look at it, `/f standard` — it is
+      designated, named in-world, and the message says its colour
+- [ ] a banner **indoors** or under any block is refused, and says why
+- [ ] a banner on **somebody else's land**, or wilderness, is refused
+- [ ] `/f standard` with nothing in front of you reports where yours stands
+- [ ] your faction's **name wears its banner colour** in `/f who`, `/f list` and `/f status` —
+      while the map, borders and territory messages stay relation-coloured
+- [ ] power comes back **twice as fast** with a standard up as without
+- [ ] an **enemy can break it**, where they can break nothing else of yours
+- [ ] a **non-enemy cannot** — neutral, allied and peaceful all refused
+- [ ] taking it is announced **to the whole server**, and your faction is told the regen dropped
+- [ ] the dropped banner is **named for its owner** and keeps its pattern
+- [ ] the thief plants it on **their** land under sky, `/f standard` — flown as a trophy, they get
+      the extra regen, and **you are told where it is**
+- [ ] holding it in a **chest pays nothing** — the bonus is for flying it, not owning it
+- [ ] take your own flag back and re-plant it — it is yours again, not a trophy
+- [ ] disbanding a faction takes its flag with it, including one somebody else was flying
+- [ ] all of it survives a restart
+
 ## Combat (1.1)
 
 ⚠ **An op has `standards.combat.bypass` by default, so you can never be blocked.** Test from
