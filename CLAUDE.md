@@ -411,10 +411,18 @@ safe — it only stops build daemons.
 rename over the same file is still denied, because the holder's sharing mode permits writes but not
 delete. Probe with an actual `mv there && mv back`.
 
-**Your real modpack instance cannot join the dev server.** It carries LegendQuest, ZombieMod,
+**⚠ Compiling with the dev server running takes minutes; stopped, it takes seconds.** Measured on
+2026-08-27: `:factions:compileJava` went from **6m22s** to **7s** purely by stopping `runServer`
+first. The server holds jars open and drvfs makes every write contend with it. If a build seems to
+have hung, stop the server before reaching for `wsl --shutdown`.
+
+**Your real modpack instance cannot join the dev server**, unless you make the mod lists match. It carries LegendQuest, ZombieMod,
 CityWorld and the FTB mods; NeoForge refuses when required-mod lists disagree ("bad network
-protocol"). Either use a dev client, or keep a stripped CurseForge instance whose `mods/` matches
-`run/mods/` exactly.
+protocol"). Either use a dev client, or copy the instance's extra jars into `run/mods/` so the two agree —
+which is what was done on 2026-08-27, and the dev server now carries LuckPerms, CityWorld,
+LegendQuest and ZombieMod alongside Standards and Factions from source. That makes it a real
+integration environment, and worth knowing: **LuckPerms being present changes permission
+resolution**, so if an op-gated feature stops biting, check it before suspecting the feature.
 
 **Offline UUIDs are case-sensitive.** `online-mode=false` derives the UUID from
 `OfflinePlayer:<name>` verbatim, so `Sablednah` and `sablednah` are different players and an
