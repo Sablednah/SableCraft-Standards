@@ -140,6 +140,30 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] the server starts with **no permissions mod at all**, on NeoForge's `default_handler`.
       That is the commonest configuration in the world and the dev server has had LuckPerms
       since session three, so the path had never run
+## Power (Factions)
+
+Dev server is on `power.mode = "both"`, `maxPerPlayer = 10`, `perDeath = 2`,
+`perMinuteOnline = 0.2` (five minutes a point), `freezeSecondsAfterDeath = 30`.
+
+- [ ] `/f power` — yours out of the max, and what the faction holds against its entitlement
+- [ ] die to a **mob** — lose 2, and be told; `/f power` agrees
+- [ ] die to a **player** — same
+- [ ] die to **fall damage or lava** — lose **nothing**. Falling in your own lava is not a raid
+- [ ] kill mobs and watch power come back faster than the clock alone (`perExperience`)
+- [ ] power does **not** regenerate for 30s after a death, then does
+- [ ] power stops at the maximum and does not overshoot
+- [ ] with everyone at full power, entitlement equals `chunksPerMember × members` exactly —
+      nothing changed by switching power on
+- [ ] die enough that the faction goes **over** its entitlement — `/f status` says how many chunks
+      are exposed, and every online member is told
+- [ ] an **enemy** takes one of those chunks — refused until they `/f enemy` you, refused unless it
+      is on your **border**, and refused once your overreach reaches zero
+- [ ] the victim is told the moment land changes hands, not when they walk home
+- [ ] a **peaceful** faction can neither take nor be taken from
+- [ ] power survives a restart, and is **not** cleared by disbanding — leaving to wipe your losses
+      is the first thing anybody would try
+- [ ] `/f power <player>` for somebody else, including offline
+
 ## Combat (1.1)
 
 ⚠ **An op has `standards.combat.bypass` by default, so you can never be blocked.** Test from
