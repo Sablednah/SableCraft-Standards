@@ -2,16 +2,100 @@
 
 Whether a player is in combat, so that nothing lets them walk out of one.
 
-**Status: specified, and scheduled for 1.1.** Agreed 2026-08-20, deliberately held out of 1.0.0.
+**Status: built.** `api/combat/` shipped on 2026-08-27 — `CombatKind`, `CombatTag`, `Combat`,
+`CombatTagEvent` — with tagging, teleport blocking and a bypass permission, under 345 self-test
+checks. Everything below the design sections describes what is there now; the combat-log NPC at
+the end is the one part still deliberately deferred.
 
-Nothing in `api/combat/` exists yet — but see below, because Standards already ships a narrow,
-holed version of this, and the hole is the reason the API is worth building rather than a reason
-to rush it.
+The rest of this document is the reasoning, kept because the decisions still stand and each of
+them is the sort that looks arbitrary until somebody re-derives it.
 
-Held back because `movement.cancelOnDamage` already covers the warmup window, which is most of the
-value; because its known consumers — LegendQuest, and now Factions — have not asked for it yet; and
-because it is purely additive, so nothing in 1.0.0 forecloses any of it. Holding a release for a
-feature nobody is waiting on is how releases slip.
+---
+
+## Using it from another mod
+
+Add Standards as a `compileOnly` dependency — the API is a soft dependency and every call is safe
+to make, but guard the *class* if your mod must run without Standards installed at all.
+
+### Say that something was an act of combat
+
+```java
+import com.sablednah.standards.api.combat.Combat;
+import com.sablednah.standards.api.combat.CombatKind;
+
+// The configured duration for a skill tag (default 10s).
+Combat.tag(player, CombatKind.SKILL, "legendquest:curse");
+
+// Or one you have decided, because only you know a channelled ritual from a quick blast.
+Combat.tag(player, CombatKind.SKILL, "legendquest:ritual", 30);
+```
+
+`source` is a short id used in logs and nothing else. With `combat.log = true` a server owner sees
+`Combat: Sablednah -> skill via legendquest:ritual (30s)`, which is the difference between tuning
+and guessing when somebody asks why a spell does or does not lock them in.
+
+**Tagging both sides is your job**, because only you know who the aggressor was. A curse is an act
+of combat for the caster as well as the target on most servers — call it twice.
+
+### Ask whether somebody is fighting
+
+```java
+Combat.isInCombat(player);                      // any kind
+Combat.isInCombat(player, CombatKind.PVP);      // one kind
+Combat.remaining(player);                       // millis, for your own countdown
+Combat.current(player, CombatKind.PVP);         // the live tag, with its source
+Combat.clear(player);                           // your own escape effect, an arena, an admin tool
+```
+
+`Combat.blockingTeleport(player)` answers the narrower question Standards itself asks — is there a
+tag whose kind is configured to close escape hatches — so a mod adding its own teleport can refuse
+for the same reasons and with the same config.
+
+### Resolve who was really behind a hit
+
+```java
+Combat.playerBehind(damageSource);   // Optional<ServerPlayer>, through arrows and pets
+Combat.hasAttacker(damageSource);    // false for fall, drowning, fire, freezing
+```
+
+**Public on purpose.** Anything deciding "was this a player's doing" needs the same answer, and two
+implementations of it eventually disagree — which is a bug nobody can reproduce because it depends
+on whether an arrow or a wolf was involved. Factions' power system uses exactly these.
+
+### Disagree with a classification
+
+```java
+@SubscribeEvent
+static void onTag(CombatTagEvent event) {
+    if (event.getSource().startsWith("legendquest:")) {
+        event.setKind(CombatKind.SKILL);
+        event.setSeconds(30);
+    }
+    if (inMyArena(event.getPlayer())) {
+        event.setCanceled(true);     // a duel should lock nobody out of anything
+    }
+}
+```
+
+Fired before **every** tag, Standards' own included, so a mod that reclassifies is never working
+against a special case we forgot to route through it. Cancelling, or setting seconds to zero,
+means no tag at all.
+
+`getSource()` is read-only: it describes what happened, and what happened does not change because
+somebody disagrees about how to classify it.
+
+### What a server owner controls
+
+`config/standards-common.toml`, `[combat]`: per-kind durations (`pvpSeconds` 12, `pveSeconds` 8,
+`skillSeconds` 10), per-kind `…BlocksTeleport` (PvE **off** by default), `clearOnDeath`, and `log`.
+
+**A duration of 0 disables that kind entirely** — a co-operative server sets `pvpSeconds = 0` and
+the whole PvP branch goes quiet with no separate code path.
+
+`standards.combat.bypass` lets a player leave a fight anyway. Op by default, and a permission
+rather than an op check so staff can hold it without also holding `/stop`.
+
+---
 
 ## Why there is one at all
 
@@ -228,8 +312,13 @@ recently — worth a sanity check against current CombatLogX behaviour before co
 
 ## Stability
 
-Nothing here is stable until it is built. When it is, `api/combat/` follows the same promise as
-`api/economy/`.
+`api/combat/` follows the same promise as `api/economy/`: additive changes only, and anything that
+would break a caller gets a deprecation cycle first.
+
+Still unbuilt from the above, and knowingly so: **combat logging**. The `onLogout` behaviour — the
+combat-log NPC — is where the edge cases live, and it is worth tuning against real behaviour rather
+than guessing. In practice most combat logging is `/home` and `/tpa` rather than alt-F4, because
+typing a command is easier and does not cost you your session, and that half is closed.
 
 Related: [`GROUPS-API.md`](GROUPS-API.md), [`ECONOMY-API.md`](ECONOMY-API.md),
 [`CHAT-API.md`](CHAT-API.md), and

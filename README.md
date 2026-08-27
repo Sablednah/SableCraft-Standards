@@ -229,8 +229,7 @@ whenever one misbehaves.
 
 ## For other mods
 
-Standards is built to be a meeting point rather than a silo. Five seams, all soft dependencies —
-four of them live, one specified and not yet built:
+Standards is built to be a meeting point rather than a silo. Five seams, all soft dependencies, and all five now live:
 
 | API | For | Doc |
 |---|---|---|
@@ -238,7 +237,7 @@ four of them live, one specified and not yet built:
 | `api.chat.Chat` | chat name prefixes and suffixes, from several mods at once | [`CHAT-API.md`](CHAT-API.md) |
 | `api.PlayerSwitches` / `api.Stations` | driving `/fly`, `/god`, `/vanish` and the workstations from code | — |
 | `api.groups.Groups` / `api.groups.Claims` | group membership by kind, and chunk claim queries — driven by [Factions ReForged](https://github.com/Sablednah/Factions-ReForged) | [`GROUPS-API.md`](GROUPS-API.md) |
-| `api.combat.Combat` | *designed, not built* — combat tagging, so nothing lets a player walk out of a fight | [`COMBAT-API.md`](COMBAT-API.md) |
+| `api.combat.Combat` | combat tagging, so nothing lets a player walk out of a fight — and resolving who was really behind a hit, through arrows and pets | [`COMBAT-API.md`](COMBAT-API.md) |
 
 The last one exists because a LegendQuest skill granting flight should not have to build a command
 string and hope: the skill is already the authority, so it calls in directly and skips the
@@ -272,7 +271,7 @@ Needs a JDK 21.
 - [`COMMANDS.md`](COMMANDS.md) — the full EssentialsX / FTB catalogue with keep-or-skip notes.
 - [`ECONOMY-API.md`](ECONOMY-API.md), [`CHAT-API.md`](CHAT-API.md),
   [`GROUPS-API.md`](GROUPS-API.md) — the seams other mods build on.
-- [`COMBAT-API.md`](COMBAT-API.md) — combat tagging, specified for 1.1.
+- [`COMBAT-API.md`](COMBAT-API.md) — combat tagging, and how another mod hooks it.
 - [`PERMISSIONS.md`](PERMISSIONS.md) — a built-in permission handler, specified for 1.2.
 - [`CROSS-VERSION.md`](CROSS-VERSION.md) — living on several Minecraft lines at once.
 

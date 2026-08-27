@@ -550,8 +550,9 @@ exist", "nothing consumes", "yet". Worth doing before any release.
   that belong *here* rather than there: the original blocked `/home`, `/spawn` and `/tpa` outright
   inside enemy territory (combat logging solved in 2012, by gating other plugins' commands), and
   `/f stuck` is the answer to being trapped in a claim without holing the protection.
-- `COMBAT-API.md` — **specified, scheduled for 1.1.** Combat tagging, and why
-  `movement.cancelOnDamage` today only protects the warmup window.
+- `COMBAT-API.md` — **built 2026-08-27.** Combat tagging, and it now opens with a "using it from
+  another mod" section written for LegendQuest. `Combat.playerBehind` is public because Factions'
+  power modes need the same attacker resolution and two implementations would disagree.
 - `PERMISSIONS.md` — **specified, scheduled for 1.2.** A built-in permission handler for servers
   with no permissions mod. Note the framing correction it opens with: NeoForge's `PermissionAPI`
   is already the Vault-equivalent and the owner picks the active handler in `neoforge-server.toml`,
