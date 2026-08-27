@@ -145,11 +145,11 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 Dev server is on `power.mode = "both"`, `maxPerPlayer = 10`, `perDeath = 2`,
 `perMinuteOnline = 0.2` (five minutes a point), `freezeSecondsAfterDeath = 30`.
 
-- [ ] `/f power` — yours out of the max, and what the faction holds against its entitlement
-- [ ] die to a **mob** — lose 2, and be told; `/f power` agrees
+- [x] `/f power` — yours out of the max, and what the faction holds against its entitlement
+- [x] die to a **mob** — lose 2, and be told; `/f power` agrees
 - [ ] die to a **player** — same
 - [ ] die to **fall damage or lava** — lose **nothing**. Falling in your own lava is not a raid
-- [ ] kill mobs and watch power come back faster than the clock alone (`perExperience`)
+- [x] kill mobs and watch power come back faster than the clock alone (`perExperience`)
 - [ ] power does **not** regenerate for 30s after a death, then does
 - [ ] power stops at the maximum and does not overshoot
 - [ ] with everyone at full power, entitlement equals `chunksPerMember × members` exactly —
