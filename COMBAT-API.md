@@ -2,9 +2,14 @@
 
 Whether a player is in combat, so that nothing lets them walk out of one.
 
-**Status: built.** `api/combat/` shipped on 2026-08-27 — `CombatKind`, `CombatTag`, `Combat`,
-`CombatTagEvent` — with tagging, teleport blocking and a bypass permission, under 345 self-test
-checks. Everything below the design sections describes what is there now; the combat-log NPC at
+**Status: built, and in use.** `api/combat/` shipped on 2026-08-27 — `CombatKind`, `CombatTag`,
+`Combat`, `CombatTagEvent`, `Harm`, `HarmProvider` — with tagging, teleport blocking, a bypass
+permission and a harm gate, under 352 self-test checks.
+
+**LegendQuest builds against it** and its skills respect PvP rules and zones: targeted spells ask
+about the pair, area effects ask about the place and then about each player they catch. **Factions
+registers `factions:pvp`**, so peaceful, same-faction, ally and pvp-off all answer through one
+question. Everything below the design sections describes what is there now; the combat-log NPC at
 the end is the one part still deliberately deferred.
 
 The rest of this document is the reasoning, kept because the decisions still stand and each of
@@ -61,6 +66,59 @@ Combat.hasAttacker(damageSource);    // false for fall, drowning, fire, freezing
 **Public on purpose.** Anything deciding "was this a player's doing" needs the same answer, and two
 implementations of it eventually disagree — which is a bug nobody can reproduce because it depends
 on whether an arrow or a wolf was involved. Factions' power system uses exactly these.
+
+### Ask whether you may harm somebody at all
+
+A combat tag says a fight *is* happening. This is the question before it: **may this even
+happen?**
+
+```java
+import com.sablednah.standards.api.combat.Harm;
+
+Optional<Component> refused = Harm.forbidden(caster, target);
+if (refused.isPresent()) {
+    caster.displayClientMessage(refused.get(), true);   // it already says why
+    return;
+}
+```
+
+One call covers peaceful factions, two people in the same faction, **allies**, a server with PvP
+off, and anything else that ever registers — without your mod knowing any of them exist.
+
+**Player-on-player damage is gated by Standards automatically.** A mod that only deals damage needs
+none of this. The call is for the hostile things that are *not* damage — a curse, a snare, a hex, a
+summon aimed at somebody — which cancelling a damage event never stopped. That gap is why the seam
+exists: Factions used to cancel `LivingIncomingDamageEvent` and nothing else, so a faction that had
+declared itself peaceful was peaceful against arrows and defenceless against spells.
+
+**By target, and by area.** A targeted effect asks about the pair. An area effect asks about the
+place first and then about each player it actually catches:
+
+```java
+// Lightning at a point: is fighting allowed HERE at all?
+if (!Claims.pvpAllowed(level, pos)) return;
+
+// ...then per victim it lands on, because the place allowing it does not mean this pair may fight.
+for (ServerPlayer caught : inRadius) {
+    if (Harm.allowed(caster, caught)) hurt(caught);
+}
+```
+
+`Claims.pvpAllowed(level, pos)` is the **place** half and lives on the claims seam, because the mod
+that owns the chunk is the one that knows. Standards checks **both ends of a shot** for ordinary
+damage — a safe zone has to stop arrows fired into it as well as out of it, or the safety is one
+bowshot from useless.
+
+**Any veto denies, and that is unlike every other seam here.** One economy provider holds the
+money; the highest-priority claims provider wins; the first chat router to claim a message ends the
+matter. Here every provider is asked and a single refusal is final — because a refusal is a
+promise, and a priority contest would mean `/f peaceful` held only until somebody registered a
+provider with a bigger number. A mod that genuinely needs to override should cancel the damage
+event at its own priority, where it is visibly taking responsibility rather than quietly outbidding
+somebody.
+
+**A provider that throws is skipped, not obeyed.** Failing open, because a mod with a bug switching
+combat off for a whole server is the more damaging way to be wrong.
 
 ### Disagree with a classification
 

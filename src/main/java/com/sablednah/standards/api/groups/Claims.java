@@ -109,4 +109,26 @@ public final class Claims {
     }
 
     private Claims() {}
+
+    /**
+     * Whether players may fight each other here.
+     *
+     * <p>The location half of "may these two fight". The other half — allies, a peaceful faction,
+     * a party — is {@link com.sablednah.standards.api.combat.Harm}, and Standards checks both
+     * before letting one player damage another, so a mod that only deals damage needs neither.</p>
+     *
+     * <p>Permits when no provider is installed, and permits when one throws.</p>
+     */
+    public static boolean pvpAllowed(ServerLevel level, BlockPos pos) {
+        ClaimProvider p = provider;
+        if (p == null) {
+            return true;
+        }
+        try {
+            return p.pvpAllowed(level, pos);
+        } catch (RuntimeException e) {
+            LOG.error("Standards: claims provider '{}' threw on pvpAllowed(); permitting", p.id(), e);
+            return true;
+        }
+    }
 }

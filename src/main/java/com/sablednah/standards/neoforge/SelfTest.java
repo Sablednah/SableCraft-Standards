@@ -581,6 +581,42 @@ public final class SelfTest {
                 event.getKind() == com.sablednah.standards.api.combat.CombatKind.SKILL);
         check("the source is not something a listener can rewrite",
                 event.getSource().equals("test:thing"));
+
+        // The harm seam. Any veto denies, and a broken provider must fail OPEN — a mod with a bug
+        // switching combat off for a whole server is the more damaging way to be wrong.
+        var quiet = new com.sablednah.standards.api.combat.HarmProvider() {
+            public String id() { return "selftest:quiet"; }
+            public java.util.Optional<net.minecraft.network.chat.Component> forbids(
+                    ServerPlayer a, ServerPlayer b) {
+                return java.util.Optional.empty();
+            }
+        };
+        var thrower = new com.sablednah.standards.api.combat.HarmProvider() {
+            public String id() { return "selftest:thrower"; }
+            public java.util.Optional<net.minecraft.network.chat.Component> forbids(
+                    ServerPlayer a, ServerPlayer b) {
+                throw new IllegalStateException("deliberate");
+            }
+        };
+        int before = com.sablednah.standards.api.combat.Harm.all().size();
+        com.sablednah.standards.api.combat.Harm.register(quiet);
+        com.sablednah.standards.api.combat.Harm.register(thrower);
+        try {
+            check("harm providers register",
+                    com.sablednah.standards.api.combat.Harm.all().size() == before + 2);
+            // Null and self-harm short-circuit before any provider is asked, which is also how
+            // the thrower is proved not to be reached in the trivial cases.
+            check("nobody forbids harming nobody",
+                    com.sablednah.standards.api.combat.Harm.forbidden(null, null).isEmpty());
+        } finally {
+            // Registered into a live server's list, so they must come out again whatever happens —
+            // the self-test leaking a chat decorator into a running server has happened once
+            // already, and every line spoken carried it for the rest of the session.
+            com.sablednah.standards.api.combat.Harm.unregister(quiet);
+            com.sablednah.standards.api.combat.Harm.unregister(thrower);
+        }
+        check("harm providers unregister cleanly",
+                com.sablednah.standards.api.combat.Harm.all().size() == before);
     }
 
     /**

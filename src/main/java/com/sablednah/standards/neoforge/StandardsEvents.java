@@ -9,6 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import com.sablednah.standards.api.chat.Chat;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -415,6 +416,16 @@ public final class StandardsEvents {
      * and {@code /kill} route around it — so god mode also vetoes the damage event outright.
      * High priority so it settles before anything that reacts to damage having landed.
      */
+    /** Both ends of the shot, so a safe zone stops arrows into it as well as out of it. */
+    private static boolean whereFightingIsAllowed(ServerPlayer attacker, ServerPlayer victim) {
+        return (!(attacker.level() instanceof ServerLevel from)
+                        || com.sablednah.standards.api.groups.Claims.pvpAllowed(
+                                from, attacker.blockPosition()))
+                && (!(victim.level() instanceof ServerLevel to)
+                        || com.sablednah.standards.api.groups.Claims.pvpAllowed(
+                                to, victim.blockPosition()));
+    }
+
     /**
      * Damage to something that is not a player, purely so the attacker can be tagged.
      *
@@ -445,6 +456,27 @@ public final class StandardsEvents {
             event.setCanceled(true);
             return;
         }
+        // Who may hurt whom, asked once for the whole server rather than by each mod that has an
+        // opinion. Before the combat tag: a blow that was never allowed did not start a fight.
+        var attacker = com.sablednah.standards.api.combat.Combat.playerBehind(event.getSource());
+        if (attacker.isPresent()) {
+            var refusal = com.sablednah.standards.api.combat.Harm.forbidden(attacker.get(), player);
+            // And the place, which is a different question from the pair. Both ends are checked:
+            // a safe zone has to stop somebody being shot INTO it as well as out of it, or the
+            // safety is one arrow's flight from useless.
+            if (refusal.isEmpty() && !whereFightingIsAllowed(attacker.get(), player)) {
+                refusal = java.util.Optional.of(
+                        Feedback.colored(Lang.get("msg.combat.no_pvp_here")));
+            }
+            if (refusal.isPresent()) {
+                event.setCanceled(true);
+                // On the action bar, to the attacker. They are mid-swing and not reading chat, and
+                // a swing that silently does nothing reads as lag — so they try again, harder.
+                attacker.get().displayClientMessage(refusal.get(), true);
+                return;
+            }
+        }
+
         Teleports.onDamaged(player);
         // After god mode and vanish invulnerability, deliberately: a hit that never landed must
         // not put anybody in a fight.

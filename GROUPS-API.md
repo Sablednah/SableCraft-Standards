@@ -17,6 +17,13 @@ grown two real consumers on each side, which is what the specification below was
 The decisions below still stand, and the two seams behave oppositely on purpose: a **group kind**
 has exactly one provider, and **claims** take the highest-priority one and fail open.
 
+**`ClaimProvider.pvpAllowed(level, pos)`** was added on 2026-08-27 for safe zones and war zones. It
+is the *place* half of "may these two fight" — the *pair* half is
+[`Harm`](COMBAT-API.md), because "are they allies" and "is this spawn" are different questions with
+different owners. Defaults to permitting, so a provider with no notion of safe zones inherits
+sensible behaviour; fails open, because a claims mod with a bug must not be able to switch combat
+off for a whole server.
+
 ## Why there is one at all
 
 Three mods want the same two facts and none of them owns either.

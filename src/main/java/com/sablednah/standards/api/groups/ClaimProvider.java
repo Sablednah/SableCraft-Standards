@@ -43,4 +43,24 @@ public interface ClaimProvider {
      * lookup. No I/O, no allocation you can avoid.</p>
      */
     boolean mayModify(ServerPlayer player, ServerLevel level, BlockPos pos);
+
+    /**
+     * Whether players may fight each other at this position.
+     *
+     * <p>A different question from {@link #mayModify}, and a different axis from
+     * {@link com.sablednah.standards.api.combat.Harm}: that one asks about the <em>pair</em> — two
+     * allies, a peaceful faction — while this asks about the <em>place</em>. A spawn area is safe
+     * for everybody regardless of who they are; an arena is hostile to everybody the same way.</p>
+     *
+     * <p>Defaults to permitting, so a provider that has no notion of safe zones inherits sensible
+     * behaviour and never has to think about it. <b>Fails open</b> for the same reason the rest of
+     * this interface does: a claims mod with a bug should not be able to switch combat off for a
+     * whole server, which is the more damaging way to be wrong.</p>
+     *
+     * @param pos where the fight would happen
+     */
+    default boolean pvpAllowed(net.minecraft.server.level.ServerLevel level,
+            net.minecraft.core.BlockPos pos) {
+        return true;
+    }
 }

@@ -176,6 +176,7 @@ public final class Lang {
         // Says WHY. A refusal with no reason reads as a broken command, which is the exact
         // failure the /tpa narration exists to prevent, arriving through a different door.
         def("msg.tp.in_combat", "&cYou cannot teleport for &f{seconds}&c more seconds — you are in a fight.");
+        def("msg.combat.no_pvp_here", "&7Not here.");
         def("msg.tp.back_list_header",
                 "{term.prefix} &7Where you have been {term.dim}({count})&7 — &f/back <n>&7 to pick one:");
         def("msg.tp.back_list_row",
