@@ -72,6 +72,7 @@ public final class SelfTest {
         checkClaims();
         checkTeleportRelief();
         checkGroupNamesAreText();
+        checkCombat();
         checkAccessFallback();
         checkMoneyFormatting();
         checkCommandsParse(server);
@@ -520,6 +521,55 @@ public final class SelfTest {
         // If this ever defaults on, somebody has made escaping a fight free for anyone who
         // remembered to make a group first.
         check("group mates do NOT skip the warmup by default", !mates.warmup());
+    }
+
+    /**
+     * Combat tags. Two of these are rules that are invisible until they are wrong.
+     */
+    private void checkCombat() {
+        var kinds = com.sablednah.standards.api.combat.CombatKind.values();
+        check("there are three combat kinds", kinds.length == 3);
+        check("every combat kind has a config key",
+                java.util.Arrays.stream(kinds).allMatch(k -> !k.key().isBlank()));
+
+        // Tags extend, never overwrite. With one global duration this bug is invisible; with
+        // per-kind durations a SHORTER later tag would rescue the person fleeing, who is exactly
+        // who the feature exists to stop.
+        long now = System.currentTimeMillis();
+        var longTag = new com.sablednah.standards.api.combat.CombatTag(
+                com.sablednah.standards.api.combat.CombatKind.PVP, now + 12_000, "test");
+        var shortTag = new com.sablednah.standards.api.combat.CombatTag(
+                com.sablednah.standards.api.combat.CombatKind.PVE, now + 8_000, "test");
+        check("a longer tag outlasts a shorter one",
+                longTag.remaining(now) > shortTag.remaining(now));
+        check("an expired tag reports zero remaining",
+                new com.sablednah.standards.api.combat.CombatTag(
+                        com.sablednah.standards.api.combat.CombatKind.PVP, now - 1, "test")
+                        .remaining(now) == 0L);
+        check("an expired tag knows it", new com.sablednah.standards.api.combat.CombatTag(
+                com.sablednah.standards.api.combat.CombatKind.PVP, now - 1, "test").expired(now));
+
+        // An attacker starts a tag, not damage. Environmental sources have neither entity, so
+        // hasAttacker is the whole of the rule — and getting it wrong traps a player who is
+        // drowning in their own basement, or freezing inside somebody else's claim.
+        check("damage with nobody behind it is not combat",
+                !com.sablednah.standards.api.combat.Combat.hasAttacker(null));
+        check("no source resolves to no player",
+                com.sablednah.standards.api.combat.Combat.playerBehind(null).isEmpty());
+
+        // The event is the seam that lets the classification be argued with later.
+        var event = new com.sablednah.standards.api.combat.CombatTagEvent(null,
+                com.sablednah.standards.api.combat.CombatKind.PVE, "test:thing", 8);
+        event.setKind(com.sablednah.standards.api.combat.CombatKind.SKILL);
+        event.setSeconds(30);
+        check("a listener can reclassify a tag",
+                event.getKind() == com.sablednah.standards.api.combat.CombatKind.SKILL);
+        check("a listener can lengthen a tag", event.getSeconds() == 30);
+        event.setKind(null);
+        check("a listener cannot null out the kind",
+                event.getKind() == com.sablednah.standards.api.combat.CombatKind.SKILL);
+        check("the source is not something a listener can rewrite",
+                event.getSource().equals("test:thing"));
     }
 
     /**

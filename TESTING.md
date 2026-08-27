@@ -140,6 +140,26 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] the server starts with **no permissions mod at all**, on NeoForge's `default_handler`.
       That is the commonest configuration in the world and the dev server has had LuckPerms
       since session three, so the path had never run
+## Combat (1.1)
+
+⚠ **An op has `standards.combat.bypass` by default, so you can never be blocked.** Test from
+TestBuddy's or TestThird's side, or deny yourself the node.
+
+- [ ] hit by a **mob**, then `/home` — still works (`pveBlocksTeleport = false` by default)
+- [x] hit by a **player**, then `/home` — refused, with a countdown, in chat *and* on the action bar
+- [ ] wait it out — `/home` works again without doing anything
+- [x] shot with an **arrow** from range — still tags, because the owner is resolved, not the arrow
+- [x] **fall damage** does not tag, so `/home` still works — the one that matters, and what stops
+      a player trapped in a claim being stuck
+- [ ] the same for drowning, freezing and fire
+- [ ] a tag that is **extended, not overwritten** — take a player hit, then immediately a mob hit,
+      and the longer one should still be running
+- [ ] **dying** clears it — respawn and `/home` immediately
+- [ ] **logging out and back in** clears it
+- [ ] with `pveBlocksTeleport = true`, a mob hit *does* block, and the message says so
+- [ ] an **op** is never blocked — the bypass node working as intended
+- [ ] `combat.log = true` shows the classification: who, kind, cause, seconds
+
 - [ ] a **player** on that server, with no permissions mod: everyone-nodes work, op-gated ones
       work for an op and refuse for a non-op, and the home limit falls back to `defaultLimit`
 - [ ] the built jar on a server that is **not** the dev environment — `messages.yml` written,

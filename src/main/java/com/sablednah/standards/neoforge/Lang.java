@@ -173,6 +173,9 @@ public final class Lang {
         def("msg.tp.jump_done", "{term.prefix} &7Jumped &f{blocks}&7 blocks.");
         def("msg.tp.back_death_disabled", "&7Returning to where you died is not enabled here, so that spot was not saved. {term.dim}(/back again for your previous location.)");
         def("msg.tp.back_none", "&7Nowhere to go back to.");
+        // Says WHY. A refusal with no reason reads as a broken command, which is the exact
+        // failure the /tpa narration exists to prevent, arriving through a different door.
+        def("msg.tp.in_combat", "&cYou cannot teleport for &f{seconds}&c more seconds — you are in a fight.");
         def("msg.tp.back_list_header",
                 "{term.prefix} &7Where you have been {term.dim}({count})&7 — &f/back <n>&7 to pick one:");
         def("msg.tp.back_list_row",

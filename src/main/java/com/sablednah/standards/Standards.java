@@ -49,6 +49,7 @@ public class Standards {
                     StandardsEconomy.registerIfEnabled();
                     com.sablednah.standards.neoforge.Vanish.install();
                     com.sablednah.standards.neoforge.StandardsEvents.installChatGates();
+                    installCombat();
                 }));
 
         // Game bus: player lifecycle, teleport bookkeeping, permissions, commands.
@@ -58,5 +59,27 @@ public class Standards {
         NeoForge.EVENT_BUS.register(com.sablednah.standards.neoforge.SelfTest.class);
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent event) ->
                 StandardsCommands.register(event.getDispatcher()));
+    }
+
+    /**
+     * Hand the combat facade its durations.
+     *
+     * <p>At setup rather than in the constructor, because these are config values and config is
+     * not loaded while mods are still being built — the same reason the economy provider registers
+     * here. Until this runs every duration is zero, which means no tagging at all: the safe
+     * direction for a facade another mod may call before we are ready.</p>
+     */
+    private static void installCombat() {
+        com.sablednah.standards.api.combat.Combat.install(
+                ordinal -> switch (com.sablednah.standards.api.combat.CombatKind.values()[ordinal]) {
+                    case PVE -> StandardsConfig.COMBAT_PVE_SECONDS.get();
+                    case PVP -> StandardsConfig.COMBAT_PVP_SECONDS.get();
+                    case SKILL -> StandardsConfig.COMBAT_SKILL_SECONDS.get();
+                },
+                kind -> switch (kind) {
+                    case PVE -> StandardsConfig.COMBAT_PVE_BLOCKS_TELEPORT.get();
+                    case PVP -> StandardsConfig.COMBAT_PVP_BLOCKS_TELEPORT.get();
+                    case SKILL -> StandardsConfig.COMBAT_SKILL_BLOCKS_TELEPORT.get();
+                });
     }
 }

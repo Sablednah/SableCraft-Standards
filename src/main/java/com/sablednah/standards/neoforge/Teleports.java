@@ -75,7 +75,7 @@ public final class Teleports {
     private static final Map<UUID, Long> LAST_TELEPORT = new HashMap<>();
 
     /** Why a teleport did not happen, so the caller can say the right thing. */
-    public enum Refusal { NONE, COOLDOWN, UNSAFE, NO_WORLD }
+    public enum Refusal { NONE, COOLDOWN, UNSAFE, NO_WORLD, IN_COMBAT }
 
     /** The outcome of asking for a teleport. {@code queued} means the warmup started. */
     public record Attempt(boolean accepted, boolean queued, Refusal refusal, long secondsLeft) {
@@ -168,6 +168,18 @@ public final class Teleports {
         MinecraftServer server = player.level().getServer();
         if (server == null || preview.level(server) == null) {
             return Attempt.refused(Refusal.NO_WORLD, 0);
+        }
+
+        // Combat first, and before the cooldown: "you cannot leave a fight" is a different and
+        // more urgent answer than "not yet", and hearing the wrong one wastes the seconds they
+        // have. Bypass is a permission rather than an op check, so staff can be granted it without
+        // being handed /stop as well.
+        if (!StandardsPermissions.has(player, StandardsPermissions.COMBAT_BYPASS)) {
+            var blocking = com.sablednah.standards.api.combat.Combat.blockingTeleport(player);
+            if (blocking.isPresent()) {
+                long secondsLeft = (blocking.get().remaining(System.currentTimeMillis()) + 999) / 1000;
+                return Attempt.refused(Refusal.IN_COMBAT, secondsLeft);
+            }
         }
 
         long cooldownLeft = relief.cooldown() ? 0 : cooldownRemaining(player);

@@ -64,6 +64,14 @@ public final class StandardsConfig {
     public static final ModConfigSpec.IntValue TELEPORT_WARMUP;
     public static final ModConfigSpec.BooleanValue WARMUP_CANCEL_ON_MOVE;
     public static final ModConfigSpec.BooleanValue WARMUP_CANCEL_ON_DAMAGE;
+    public static final ModConfigSpec.IntValue COMBAT_PVP_SECONDS;
+    public static final ModConfigSpec.IntValue COMBAT_PVE_SECONDS;
+    public static final ModConfigSpec.IntValue COMBAT_SKILL_SECONDS;
+    public static final ModConfigSpec.BooleanValue COMBAT_PVP_BLOCKS_TELEPORT;
+    public static final ModConfigSpec.BooleanValue COMBAT_PVE_BLOCKS_TELEPORT;
+    public static final ModConfigSpec.BooleanValue COMBAT_SKILL_BLOCKS_TELEPORT;
+    public static final ModConfigSpec.BooleanValue COMBAT_CLEAR_ON_DEATH;
+    public static final ModConfigSpec.BooleanValue COMBAT_LOG;
     public static final ModConfigSpec.IntValue TELEPORT_COOLDOWN;
     public static final ModConfigSpec.IntValue TPA_TIMEOUT;
     public static final ModConfigSpec.BooleanValue TPA_FOLLOW_TARGET;
@@ -278,6 +286,65 @@ public final class StandardsConfig {
                 .comment("How many blocks up/down to search for a safe landing spot before giving",
                         "up. 0 disables the safety check entirely (arrive exactly where asked).")
                 .defineInRange("safeSearchRange", 16, 0, 64);
+        BUILDER.pop();
+
+        BUILDER.comment("Combat, and what it stops you doing.",
+                        "A teleport is an escape hatch: /home mid-fight is not a clever play, it",
+                        "is the fight not happening, and whoever was winning has no recourse.",
+                        "",
+                        "AN ATTACKER STARTS A TAG, NOT DAMAGE. Fall, drowning, cactus, fire and",
+                        "freezing never tag anybody — a player trapped in powder snow inside a",
+                        "protected claim has a teleport as their only way out, and tagging them",
+                        "for the freezing shuts that too.",
+                        "",
+                        "Tags EXTEND, they never overwrite: tagged for 12 seconds of PvP and then",
+                        "clipped by a zombie for 8, the answer is 12. Otherwise a shorter tag",
+                        "would rescue the person fleeing, who is exactly who this stops.")
+                .push("combat");
+        COMBAT_PVP_SECONDS = BUILDER
+                .comment("Seconds in combat after a player hits you, or you hit them.",
+                        "Includes arrows and pets — the owner is resolved, not the projectile.",
+                        "0 turns the whole PvP branch off, for a co-operative server.",
+                        "Modern practice is SHORT tags. Ten to fifteen seconds, against the",
+                        "thirty to sixty of the Factions era: long tags punish ordinary play, and",
+                        "being unable to /home for a minute because a skeleton shot you erodes",
+                        "trust in the mechanic faster than the occasional escape does.")
+                .defineInRange("pvpSeconds", 12, 0, 600);
+        COMBAT_PVE_SECONDS = BUILDER
+                .comment("Seconds in combat after a mob hits you, or you hit one.",
+                        "0 for a server where the world is not meant to trap you anywhere.")
+                .defineInRange("pveSeconds", 8, 0, 600);
+        COMBAT_SKILL_SECONDS = BUILDER
+                .comment("Default seconds for a tag another mod applies — a curse, a summon, a",
+                        "channelled ritual. Acts of war with no damage event to notice.",
+                        "The caller may override it: Standards knows what a punch is worth, and",
+                        "only LegendQuest knows whether a skill was a blast or a ten-second",
+                        "ritual.")
+                .defineInRange("skillSeconds", 10, 0, 600);
+        COMBAT_PVP_BLOCKS_TELEPORT = BUILDER
+                .comment("Being in PvP combat stops you teleporting.")
+                .define("pvpBlocksTeleport", true);
+        COMBAT_PVE_BLOCKS_TELEPORT = BUILDER
+                .comment("Being in PvE combat stops you teleporting.",
+                        "OFF by default, and the asymmetry is the point: on a peaceful server a",
+                        "skeleton plinking you must not block /home, while a player hitting you",
+                        "absolutely must. Turn it on for a survival server where running from the",
+                        "world is meant to cost something.")
+                .define("pveBlocksTeleport", false);
+        COMBAT_SKILL_BLOCKS_TELEPORT = BUILDER
+                .comment("A tag applied by another mod stops you teleporting.")
+                .define("skillBlocksTeleport", true);
+        COMBAT_CLEAR_ON_DEATH = BUILDER
+                .comment("Dying ends the fight.",
+                        "On, and it should stay on: a corpse is not in combat, and a respawning",
+                        "player who cannot get home is being punished for having lost already.")
+                .define("clearOnDeath", true);
+        COMBAT_LOG = BUILDER
+                .comment("Log every tag: who, what kind, what caused it, how long.",
+                        "Off by default because it is chatty on a busy server. Turn it on the",
+                        "moment you wonder why something does or does not tag — 'pvp via arrow,",
+                        "owner Sablednah' is the difference between tuning and guessing.")
+                .define("log", false);
         BUILDER.pop();
 
         BUILDER.comment("Movement.").push("movement");

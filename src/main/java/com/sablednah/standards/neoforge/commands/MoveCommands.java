@@ -407,11 +407,20 @@ public final class MoveCommands {
             }
             return true;
         }
+        // In combat goes to the action bar as well as chat: the countdown is a transient status
+        // and that is the line already used for one, and somebody trying to leave a fight is not
+        // reading their chat window.
+        if (attempt.refusal() == Teleports.Refusal.IN_COMBAT) {
+            String said = Lang.fmt("msg.tp.in_combat", "seconds", attempt.secondsLeft());
+            Feedback.chat(player, said);
+            player.displayClientMessage(Feedback.colored(said), true);
+            return false;
+        }
         Feedback.chat(player, switch (attempt.refusal()) {
             case COOLDOWN -> Lang.fmt("msg.tp.cooldown", "sec", attempt.secondsLeft());
             case UNSAFE -> Lang.get("msg.tp.unsafe");
             case NO_WORLD -> Lang.get("msg.tp.no_world");
-            case NONE -> Lang.get("msg.tp.unsafe");
+            case IN_COMBAT, NONE -> Lang.get("msg.tp.unsafe");
         });
         return false;
     }

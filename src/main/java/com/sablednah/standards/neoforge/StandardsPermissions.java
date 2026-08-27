@@ -169,6 +169,14 @@ public final class StandardsPermissions {
     public static final PermissionNode<Boolean> GROUP = node("group", Default.EVERYONE);
 
     // --- teleport bypasses ---
+    /**
+     * Leave a fight anyway.
+     *
+     * <p>A permission and not an op check, so a server can grant it to staff without also handing
+     * them {@code /stop} — the same reasoning that put every other gate on a node.</p>
+     */
+    public static final PermissionNode<Boolean> COMBAT_BYPASS = node("combat.bypass", Default.OPS);
+
     public static final PermissionNode<Boolean> TP_INSTANT = node("teleport.instant", Default.OPS);
     public static final PermissionNode<Boolean> TP_NO_COOLDOWN = node("teleport.nocooldown", Default.OPS);
 

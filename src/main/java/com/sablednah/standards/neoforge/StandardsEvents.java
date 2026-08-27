@@ -172,6 +172,7 @@ public final class StandardsEvents {
         @SubscribeEvent
     static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         Teleports.forget(event.getEntity().getUUID());
+        com.sablednah.standards.api.combat.Combat.forget(event.getEntity().getUUID());
         if (event.getEntity() instanceof ServerPlayer leaving) {
             // Where they stood, for /tpoffline. Written once, on the way out.
             StandardsData.get(leaving.level().getServer()).rememberLogout(leaving);
@@ -414,6 +415,21 @@ public final class StandardsEvents {
      * and {@code /kill} route around it — so god mode also vetoes the damage event outright.
      * High priority so it settles before anything that reacts to damage having landed.
      */
+    /**
+     * Damage to something that is not a player, purely so the attacker can be tagged.
+     *
+     * <p>Separate from the player handler because that one returns early in several places, and a
+     * mob being hit has no god mode or vanish to consider. Normal priority: by the time this runs
+     * anything that wanted to cancel the hit has done so.</p>
+     */
+    @SubscribeEvent
+    static void onNonPlayerDamage(LivingIncomingDamageEvent event) {
+        if (event.getEntity() instanceof ServerPlayer) {
+            return; // handled above, with the switches applied first
+        }
+        Combatants.onDamage(event.getEntity(), event.getSource());
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     static void onIncomingDamage(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
@@ -430,6 +446,9 @@ public final class StandardsEvents {
             return;
         }
         Teleports.onDamaged(player);
+        // After god mode and vanish invulnerability, deliberately: a hit that never landed must
+        // not put anybody in a fight.
+        Combatants.onDamage(player, event.getSource());
     }
 
     /**
@@ -616,6 +635,11 @@ public final class StandardsEvents {
     @SubscribeEvent
     static void onDeath(net.neoforged.neoforge.event.entity.living.LivingDeathEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        // A corpse is not in combat, and a respawning player who cannot get home is being
+        // punished for having already lost.
+        if (StandardsConfig.COMBAT_CLEAR_ON_DEATH.get()) {
+            com.sablednah.standards.api.combat.Combat.clear(player);
+        }
         PlayerState state = StandardsAttachments.of(player);
         if (!StandardsConfig.BACK_ON_DEATH.get()
                 || !StandardsPermissions.hasOr(player, StandardsPermissions.BACK_ON_DEATH,
