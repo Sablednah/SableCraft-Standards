@@ -17,6 +17,16 @@ grown two real consumers on each side, which is what the specification below was
 The decisions below still stand, and the two seams behave oppositely on purpose: a **group kind**
 has exactly one provider, and **claims** take the highest-priority one and fail open.
 
+**`ClaimProvider.griefAllowed(level, pos)`** was added on 2026-08-28, asked for by the ZombieMod
+session. Its block-breaking mobs had no player to pass to `mayModify` — membership, trust and admin
+bypass mean nothing for a zombie — so it was deriving the rule from `owner()`, which is exactly the
+duplication this document warns about two paragraphs down. A land mod should get to say that mobs
+may grief a war zone and not a home claim; a mob mod should not have to decide that on its behalf.
+
+It **fails closed**, alone among these. Everywhere else a broken provider permits, because wrongly
+permitting a build can be undone; here wrongly permitting means a mob eats a base while nobody is
+watching, and that cannot.
+
 **`ClaimProvider.pvpAllowed(level, pos)`** was added on 2026-08-27 for safe zones and war zones. It
 is the *place* half of "may these two fight" — the *pair* half is
 [`Harm`](COMBAT-API.md), because "are they allies" and "is this spawn" are different questions with

@@ -63,4 +63,28 @@ public interface ClaimProvider {
             net.minecraft.core.BlockPos pos) {
         return true;
     }
+
+    /**
+     * Whether a <b>non-player</b> may modify blocks here.
+     *
+     * <p>A creeper cratering a wall, a zombie chewing a door, a mod's mob laying moss. Distinct
+     * from {@link #mayModify} because that one is player-shaped: membership, trust, relations and
+     * admin bypass all mean something for a person and nothing whatever for a zombie, and a
+     * consumer with no player to pass can only fake it.</p>
+     *
+     * <p>Same shape as {@link #pvpAllowed}: a question about the <em>place</em>, with nobody in
+     * it. Which is what lets a land mod answer it properly — mobs may grief the wilderness and a
+     * war zone but not a claim or a safe zone — rather than every consumer deriving its own
+     * version from {@code owner()} and quietly disagreeing.</p>
+     *
+     * <p>Defaults to "only where nobody has claimed it", which is what a consumer would have
+     * derived anyway, so adopting this changes no behaviour until a provider says otherwise.</p>
+     *
+     * <p><b>Hot path.</b> Asked for every block a mob breaks, so it must stay synchronous and
+     * allocation-light.</p>
+     */
+    default boolean griefAllowed(net.minecraft.server.level.ServerLevel level,
+            net.minecraft.core.BlockPos pos) {
+        return owner(level, new net.minecraft.world.level.ChunkPos(pos)).isEmpty();
+    }
 }

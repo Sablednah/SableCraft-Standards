@@ -131,4 +131,34 @@ public final class Claims {
             return true;
         }
     }
+
+    /**
+     * Whether a non-player may modify blocks here — a mob breaking a door, an explosion, a mod's
+     * griefer.
+     *
+     * <p>The place question with no player in it, for callers that have no player to offer.
+     * See {@link ClaimProvider#griefAllowed}.</p>
+     *
+     * <p><b>Fails CLOSED, unlike everything else here, and the asymmetry is deliberate.</b>
+     * Elsewhere a broken provider permits, because the worst case of wrongly permitting is that
+     * somebody builds where they should not have and it can be undone. Here the worst case of
+     * wrongly permitting is a mob eating a base while nobody is watching, and that cannot. So a
+     * provider that throws stops mobs griefing rather than licensing them to — the failure that
+     * loses nothing.</p>
+     *
+     * <p>With no provider installed at all, nothing is claimed and everything is permitted.</p>
+     */
+    public static boolean griefAllowed(ServerLevel level, BlockPos pos) {
+        ClaimProvider p = provider;
+        if (p == null) {
+            return true; // no claims exist, so nothing is protected from anything
+        }
+        try {
+            return p.griefAllowed(level, pos);
+        } catch (RuntimeException e) {
+            LOG.error("Standards: claims provider '{}' threw on griefAllowed(); refusing the "
+                    + "grief, since permitting it is the failure that cannot be undone", p.id(), e);
+            return false;
+        }
+    }
 }
