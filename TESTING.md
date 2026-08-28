@@ -187,6 +187,10 @@ Dev server: `regenWithStandard = 1.0`, `regenWithoutStandard = 0.5`,
 - [ ] the dropped banner is **named for its owner** and keeps its pattern
 - [ ] the thief plants it on **their** land under sky, `/f standard` — flown as a trophy, they get
       the extra regen, and **you are told where it is**
+- [ ] **roof it over after planting** — the sky rule is re-checked, so the bonus stops and you
+      are told once; take the roof off and it resumes
+- [ ] destroy the banner some other way (piston, explosion) — the standard is cleared rather than
+      merely paused, because there is nothing left to uncover
 - [ ] holding it in a **chest pays nothing** — the bonus is for flying it, not owning it
 - [ ] take your own flag back and re-plant it — it is yours again, not a trophy
 - [ ] disbanding a faction takes its flag with it, including one somebody else was flying
