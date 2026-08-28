@@ -192,7 +192,13 @@ Dev server: `regenWithStandard = 1.0`, `regenWithoutStandard = 0.5`,
 - [ ] destroy the banner some other way (piston, explosion) — the standard is cleared rather than
       merely paused, because there is nothing left to uncover
 - [ ] holding it in a **chest pays nothing** — the bonus is for flying it, not owning it
+- [ ] while an enemy **flies** your standard you cannot raise another — it names who has it
+- [ ] if they **roof their trophy over**, it pays them nothing and you are free to raise a new one
+- [ ] destroying or hoarding a captured flag denies you nothing — you simply raise another
+- [ ] the dropped standard is **fireproof and does not despawn**
 - [ ] take your own flag back and re-plant it — it is yours again, not a trophy
+- [ ] you may always break your **own** captured flag, whatever the relation and even if either
+      side has gone peaceful
 - [ ] disbanding a faction takes its flag with it, including one somebody else was flying
 - [ ] all of it survives a restart
 
