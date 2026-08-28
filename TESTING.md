@@ -197,6 +197,8 @@ Dev server: `regenWithStandard = 1.0`, `regenWithoutStandard = 0.5`,
 - [ ] while somebody **holds it in hand**, you cannot raise another and the refusal names them
       **and their coordinates**
 - [ ] the same banner in their **inventory rather than their hand** denies nothing
+- [ ] a carrier **glows red through walls**, and stops within a second of stashing it
+- [ ] a player already on another mod's scoreboard team is left on it and glows white
 - [ ] destroying or stashing a captured flag denies you nothing — you simply raise another
 - [ ] the dropped standard is **fireproof and does not despawn**
 - [ ] take your own flag back and re-plant it — it is yours again, not a trophy
