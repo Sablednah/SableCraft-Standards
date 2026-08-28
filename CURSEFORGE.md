@@ -1,3 +1,5 @@
+![SableCraft Standards](https://media.forgecdn.net/attachments/description/null/description_36551562-8a32-420e-bae3-f409214706d5.png)
+
 # SableCraft Standards — the essentials, done properly
 
 **Every server command you end up needing, and an economy other mods can drive.** `/fly`, `/god`,
