@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.1.1
+
+### Added
+
+- **`Claims.griefAllowed(level, pos)`** — may a *non-player* modify blocks here? A creeper
+  cratering a wall, a zombie chewing a door, another mod's griefing mob.
+
+  Asked for by ZombieMod, which had no player to pass to `mayModify` — membership, trust lists and
+  admin bypass all mean something for a person and nothing whatever for a zombie — and was
+  therefore deriving the rule from `owner()`. That is exactly the duplication `GROUPS-API.md`
+  warns against: a land mod should get to say that mobs may grief a war zone but not a home claim,
+  and a mob mod should not have to decide that on its behalf.
+
+  Defaults to precisely what a consumer would have derived, so adopting it changes no behaviour
+  until a provider says otherwise.
+
+  **It fails closed, alone among these seams.** Everywhere else a broken provider permits, on the
+  grounds that wrongly permitting a build can be undone. Here wrongly permitting means a mob eats
+  somebody's base while nobody is watching, and that cannot — so a provider that throws stops the
+  griefing rather than licensing it.
+
+  *Diagnostic worth knowing: mobs mysteriously refusing to break anything means a claims provider
+  is throwing, not that the mob mod is broken.*
+
 ## 1.1.0
 
 **The combat API**, plus the seam it turned out to need. Both were built because two other mods
