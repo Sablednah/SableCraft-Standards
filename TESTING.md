@@ -147,18 +147,18 @@ Dev server is on `power.mode = "both"`, `maxPerPlayer = 10`, `perDeath = 2`,
 
 - [x] `/f power` — yours out of the max, and what the faction holds against its entitlement
 - [x] die to a **mob** — lose 2, and be told; `/f power` agrees
-- [ ] die to a **player** — same
+- [x] die to a **player** — same
 - [ ] die to **fall damage or lava** — lose **nothing**. Falling in your own lava is not a raid
 - [x] kill mobs and watch power come back faster than the clock alone (`perExperience`)
 - [ ] power does **not** regenerate for 30s after a death, then does
 - [ ] power stops at the maximum and does not overshoot
 - [ ] with everyone at full power, entitlement equals `chunksPerMember × members` exactly —
       nothing changed by switching power on
-- [ ] die enough that the faction goes **over** its entitlement — `/f status` says how many chunks
+- [x] die enough that the faction goes **over** its entitlement — `/f status` says how many chunks
       are exposed, and every online member is told
-- [ ] an **enemy** takes one of those chunks — refused until they `/f enemy` you, refused unless it
+- [x] an **enemy** takes one of those chunks — refused until they `/f enemy` you, refused unless it
       is on your **border**, and refused once your overreach reaches zero
-- [ ] the victim is told the moment land changes hands, not when they walk home
+- [x] the victim is told the moment land changes hands, not when they walk home
 - [ ] a **peaceful** faction can neither take nor be taken from
 - [ ] power survives a restart, and is **not** cleared by disbanding — leaving to wipe your losses
       is the first thing anybody would try
@@ -175,33 +175,35 @@ Dev server: `regenWithStandard = 1.0`, `regenWithoutStandard = 0.5`,
       thin pole, so the ray used to pass over it
 - [ ] a banner **indoors** or under any block is refused, and says why
 - [ ] a banner on **somebody else's land**, or wilderness, is refused
-- [ ] `/f standard` with nothing in front of you reports where yours stands
+- [x] `/f standard` with nothing in front of you reports where yours stands
 - [ ] your faction's **name wears its banner colour** in `/f who`, `/f list` and `/f status` —
       while the map, borders and territory messages stay relation-coloured
-- [ ] power comes back **twice as fast** with a standard up as without
+- [x] power comes back **twice as fast** with a standard up as without
 - [x] an **enemy can break it**, where they can break nothing else of yours
 - [x] an ordinary banner — including a dropped standard replanted — is **not** breakable by a
       rival: the exception keys on the designated position, not on "is a banner"
 - [ ] a **non-enemy cannot** — neutral, allied and peaceful all refused
-- [ ] taking it is announced **to the whole server**, and your faction is told the regen dropped
-- [ ] the dropped banner is **named for its owner** and keeps its pattern
-- [ ] the thief plants it on **their** land under sky, `/f standard` — flown as a trophy, they get
+- [x] taking it is announced **to the whole server**, and your faction is told the regen dropped
+- [x] the dropped banner is **named for its owner** and keeps its pattern
+- [x] the thief plants it on **their** land under sky, `/f standard` — flown as a trophy, they get
       the extra regen, and **you are told where it is**
-- [ ] **roof it over after planting** — the sky rule is re-checked, so the bonus stops and you
+- [x] **roof it over after planting** — the sky rule is re-checked, so the bonus stops and you
       are told once; take the roof off and it resumes
 - [ ] destroy the banner some other way (piston, explosion) — the standard is cleared rather than
       merely paused, because there is nothing left to uncover
-- [ ] holding it in a **chest pays nothing** — the bonus is for flying it, not owning it
-- [ ] while an enemy **flies** your standard you cannot raise another — it names who has it
+- [x] holding it in a **chest pays nothing** — the bonus is for flying it, not owning it
+- [x] while an enemy **flies** your standard you cannot raise another — it names who has it
 - [ ] if they **roof their trophy over**, it pays them nothing and you are free to raise a new one
 - [ ] while somebody **holds it in hand**, you cannot raise another and the refusal names them
       **and their coordinates**
 - [ ] the same banner in their **inventory rather than their hand** denies nothing
-- [ ] a carrier **glows red through walls**, and stops within a second of stashing it
+- [x] a carrier **glows red through walls**, and stops within a second of stashing it
 - [ ] a player already on another mod's scoreboard team is left on it and glows white
 - [ ] destroying or stashing a captured flag denies you nothing — you simply raise another
 - [ ] the dropped standard is **fireproof and does not despawn**
-- [ ] take your own flag back and re-plant it — it is yours again, not a trophy
+- [x] take your own flag back and re-plant it — it is yours again, not a trophy
+- [x] breaking and replacing your **own** banner re-roots it as the standard, so a flag can be
+      moved without a command
 - [ ] you may always break your **own** captured flag, whatever the relation and even if either
       side has gone peaceful
 - [ ] disbanding a faction takes its flag with it, including one somebody else was flying
