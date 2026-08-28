@@ -2,6 +2,8 @@
 
 # SableCraft Standards — the essentials, done properly
 
+_Do you have Standards?_
+
 **Every server command you end up needing, and an economy other mods can drive.** `/fly`, `/god`,
 `/home`, `/warp`, `/tpa`, `/back`, `/top`, `/kit`, `/vanish`, `/invsee`, mail, mutes, bans — the set
 every server installs something for, built once and built to be used by other mods rather than
