@@ -413,7 +413,7 @@ public final class MoveCommands {
         if (attempt.refusal() == Teleports.Refusal.IN_COMBAT) {
             String said = Lang.fmt("msg.tp.in_combat", "seconds", attempt.secondsLeft());
             Feedback.chat(player, said);
-            player.displayClientMessage(Feedback.colored(said), true);
+            Feedback.actionBar(player, said);
             return false;
         }
         Feedback.chat(player, switch (attempt.refusal()) {

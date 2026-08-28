@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev' version '2.0.144'
     id 'idea'
 }
 
@@ -46,7 +46,7 @@ base {
 }
 
 // Mojang ships Java 21 to end users, so mods should target Java 21.
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     version = project.neo_version
@@ -113,6 +113,10 @@ neoForge {
 
         server {
             server()
+            // A world per Minecraft line. A 26.1 server pointed at a 1.21.11 world upgrades it in
+            // place — a one-way trip that would take the test world with it, and the symptom is
+            // not an error but a world that no longer opens on the older line.
+            gameDirectory = file("run-mc${project.minecraft_version}")
             programArgument '--nogui'
             // Kill the previous runServer before starting another, or this binds and fails
             // with "Address already in use" — which reads like a code fault and is not one.

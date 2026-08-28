@@ -79,7 +79,9 @@ public final class StandardsData extends SavedData {
             Snapshot.CODEC.xmap(StandardsData::new, StandardsData::snapshot);
 
     public static final SavedDataType<StandardsData> TYPE =
-            new SavedDataType<>("standards", StandardsData::new, CODEC, null);
+            new SavedDataType<>(
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                            "standards", "data"), StandardsData::new, CODEC, null);
 
     // --- live state ---
 

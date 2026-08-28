@@ -26,11 +26,31 @@ import net.minecraft.server.level.ServerPlayer;
 public final class Feedback {
 
     public static void chat(ServerPlayer player, String text) {
-        player.displayClientMessage(colored(text), false);
+        send(player, colored(text), false);
     }
 
     public static void actionBar(ServerPlayer player, String text) {
-        player.displayClientMessage(colored(text), true);
+        send(player, colored(text), true);
+    }
+
+    /** An already-built component on the action bar — for text somebody else assembled. */
+    public static void actionBar(ServerPlayer player, net.minecraft.network.chat.Component text) {
+        send(player, text, true);
+    }
+
+    /**
+     * The single place this mod hands a message to a player.
+     *
+     * <p>Worth having its own method for one reason: <b>this call has moved before and will move
+     * again.</b> 26.1 replaced {@code displayClientMessage(Component, boolean)} with
+     * {@code sendSystemMessage(Component, boolean)}, and the four call sites that had grown up
+     * around the codebase each had to be found and changed. There is one now.</p>
+     *
+     * @param overlay true for the action bar, false for chat
+     */
+    private static void send(ServerPlayer player, net.minecraft.network.chat.Component text,
+            boolean overlay) {
+        player.sendSystemMessage(text, overlay);
     }
 
     /**

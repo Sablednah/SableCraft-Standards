@@ -68,7 +68,9 @@ public final class Kits extends net.minecraft.world.level.saveddata.SavedData {
             Snapshot.CODEC.xmap(Kits::new, Kits::snapshot);
 
     public static final net.minecraft.world.level.saveddata.SavedDataType<Kits> TYPE =
-            new net.minecraft.world.level.saveddata.SavedDataType<>("standards_kits", Kits::new, CODEC, null);
+            new net.minecraft.world.level.saveddata.SavedDataType<>(
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                            "standards", "kits"), Kits::new, CODEC, null);
 
     private final Map<String, Kit> kits = new LinkedHashMap<>();
     /** "uuid|kit" → when it was last taken. Persisted: a cooldown a restart clears is an exploit. */

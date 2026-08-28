@@ -472,7 +472,7 @@ public final class StandardsEvents {
                 event.setCanceled(true);
                 // On the action bar, to the attacker. They are mid-swing and not reading chat, and
                 // a swing that silently does nothing reads as lag — so they try again, harder.
-                attacker.get().displayClientMessage(refusal.get(), true);
+                Feedback.actionBar(attacker.get(), refusal.get());
                 return;
             }
         }

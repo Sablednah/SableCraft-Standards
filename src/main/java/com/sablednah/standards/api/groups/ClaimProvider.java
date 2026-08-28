@@ -85,6 +85,6 @@ public interface ClaimProvider {
      */
     default boolean griefAllowed(net.minecraft.server.level.ServerLevel level,
             net.minecraft.core.BlockPos pos) {
-        return owner(level, new net.minecraft.world.level.ChunkPos(pos)).isEmpty();
+        return owner(level, net.minecraft.world.level.ChunkPos.containing(pos)).isEmpty();
     }
 }

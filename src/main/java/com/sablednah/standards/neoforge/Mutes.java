@@ -57,7 +57,9 @@ public final class Mutes extends SavedData {
             .fieldOf("mutes").codec();
 
     public static final SavedDataType<Mutes> TYPE =
-            new SavedDataType<>("standards_mutes", Mutes::new, CODEC, null);
+            new SavedDataType<>(
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                            "standards", "mutes"), Mutes::new, CODEC, null);
 
     private final Map<UUID, Mute> muted = new LinkedHashMap<>();
 

@@ -92,7 +92,8 @@ public final class StandardsGroups extends net.minecraft.world.level.saveddata.S
 
     public static final net.minecraft.world.level.saveddata.SavedDataType<StandardsGroups> TYPE =
             new net.minecraft.world.level.saveddata.SavedDataType<>(
-                    "standards_groups", StandardsGroups::new, CODEC, null);
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                            "standards", "groups"), StandardsGroups::new, CODEC, null);
 
     /** Keyed by id, which never changes; the name is just a field. */
     private final Map<String, Entry> groups = new LinkedHashMap<>();

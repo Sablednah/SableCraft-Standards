@@ -55,7 +55,9 @@ public final class Mailbox extends SavedData {
             .fieldOf("mailboxes").codec();
 
     public static final SavedDataType<Mailbox> TYPE =
-            new SavedDataType<>("standards_mail", Mailbox::new, CODEC, null);
+            new SavedDataType<>(
+                    net.minecraft.resources.Identifier.fromNamespaceAndPath(
+                            "standards", "mail"), Mailbox::new, CODEC, null);
 
     private final Map<UUID, List<Letter>> boxes = new LinkedHashMap<>();
 
