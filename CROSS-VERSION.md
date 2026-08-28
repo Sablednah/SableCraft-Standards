@@ -9,6 +9,74 @@ from what **CityWorld ReForged** measured the hard way across three versions in 
 see `../CityWorld-ReForged/PORTING.md`, sections "The measured 26.1 delta", "The measured 26.2
 delta", and "Stage 3: what the two deltas say".
 
+## Measured, 2026-08-29: both ports done, all three lines green
+
+Predictions below; results here. **352 Standards checks and 42 Factions checks pass identically on
+1.21.11, 26.1.2 and 26.2.**
+
+| | 26.1.2 | 26.2 |
+|---|---|---|
+| Standards source changes | 5 API changes, ~20 sites | 3 API changes, 3 sites |
+| Factions source changes | 4 API changes, 9 files | 2 API changes, 2 sites |
+| Toolchain | Java 21 → 25, MDG 2.0.141 → 2.0.144 | none |
+| Mixins | **both still apply, signatures unchanged** | **both still apply** |
+
+### 26.1.2 — what actually moved
+
+- **`displayClientMessage(Component, boolean)` → `sendSystemMessage(c, overlay)`.** Four call sites
+  had grown up around the codebase. They now all go through `Feedback`, which is the single place
+  either mod hands a message to a player — so the next time this moves it is one line.
+- **`ChunkPos` became a record**: `pos.x` → `pos.x()`, `new ChunkPos(BlockPos)` → `containing()`.
+  Exactly what CityWorld measured. Nine files in Factions, one in Standards.
+- **`SavedDataType`'s id is an `Identifier`**, not a `String` — and see the warning below.
+- **`BlockEvent.BreakEvent` → `event.level.block.BreakBlockEvent`.**
+- **`DamageResistant(TagKey)` → `DamageResistant(HolderSet)`**, so it needs a level to resolve the
+  tag against.
+
+### 26.2 — what actually moved
+
+- **`ChatFormatting` was stripped to a bare enum** of code characters: no `isFormat()`, no name, no
+  colour. `Style.applyFormat` and `withColor` both survive, so the only loss is the *question* —
+  and owning the five formatting constants ourselves works on all three lines and cannot rot.
+- **`EntityType`'s constants moved to `EntityTypes`.**
+- **Dyed items are collections**: `Items.GRAY_STAINED_GLASS_PANE` →
+  `Items.STAINED_GLASS_PANE.pick(DyeColor.GRAY)`. CityWorld had 145 of these; we had **one**,
+  because almost nothing here touches blocks or items. That prediction held exactly.
+- **`PlayerTeam.setColor(ChatFormatting)` → `setColor(Optional<TeamColor>)`** — precisely what
+  ZombieMod's `Colours` seam warned about, arriving as described.
+- **`PlayerInteractEvent.EntityInteractSpecific`** folded into `EntityInteract`.
+
+### ⚠ The one that was not a compile error
+
+**26.1 moved every saved-data file into a namespaced folder.** `SavedDataType`'s id resolves as
+`root.resolve(namespace, path)`, so `data/standards_kits.dat` is now `data/standards/kits.dat`.
+
+A world upgraded from 1.21.11 finds no file, creates an empty one, and carries on — **every home,
+warp, kit, mailbox, mute, balance, group and faction gone, with no exception and no warning.** The
+first anybody would know is a player asking where their base went.
+
+`SaveMigration` (and `FactionSaveMigration`) run on `ServerAboutToStartEvent`, before anything reads
+saved data, and **copy rather than move**: a server that upgrades, hits something unrelated and
+rolls back must not find its data gone, and the old file is the only evidence if a copy turns out
+wrong.
+
+### Traps this port paid for
+
+- **Two repos, two branch sets.** Factions is a subproject of the Standards build, so both must be
+  on matching branches at once. Standards on `mc26.1` with Factions on `mc26.2` compiles the wrong
+  thing and the error mentions neither branches nor versions.
+- **`options.release` pinned to 21** in Factions made the subproject ask a JVM-25 root project for
+  a JVM-21 artefact. It fails at *dependency resolution* with no mention of Java versions at all.
+  It now tracks the toolchain.
+- **The dev server needs its own world AND port per line.** A 26.1 server pointed at a 1.21.11
+  world upgrades it in place — a one-way trip — and sharing a port produces
+  `Address already in use` → `Failed to initialize server` → a crash report that reads like a code
+  fault. `run-mc<version>/` and a port per branch.
+- **`build/moddev/artifacts/` keeps the *old* NeoForge sources** after a retarget while replacing
+  the Minecraft ones, so API lookups silently answer from the previous version. Read NeoForge
+  sources out of `~/.gradle/caches/modules-2/` by version instead. Same shape as the `.apisrc`
+  trap below, which is why that is now deleted on every retarget.
+
 ## What CityWorld's two data points actually showed
 
 |  | 26.1 | 26.2 |
