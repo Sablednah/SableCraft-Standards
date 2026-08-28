@@ -149,11 +149,25 @@ public final class Feedback {
      * Legacy rule: a colour clears any formatting before it, {@code &r} clears everything, and
      * bold/italic/underline/strike/obfuscated accumulate.
      */
+    /**
+     * Whether a code styles the text rather than colouring it.
+     *
+     * <p>Ours rather than vanilla's, because vanilla's moved: 26.2 stripped {@code ChatFormatting}
+     * back to a bare enum of code characters and {@code isFormat()} went with the rest. The set
+     * itself has not changed since the codes were invented, so owning five constants is cheaper
+     * than tracking where the question lives this quarter.</p>
+     */
+    private static boolean isFormatting(ChatFormatting code) {
+        return code == ChatFormatting.OBFUSCATED || code == ChatFormatting.BOLD
+                || code == ChatFormatting.STRIKETHROUGH || code == ChatFormatting.UNDERLINE
+                || code == ChatFormatting.ITALIC;
+    }
+
     private static Style advance(Style style, ChatFormatting code) {
         if (code == ChatFormatting.RESET) {
             return Style.EMPTY;
         }
-        return code.isFormat() ? style.applyFormat(code) : Style.EMPTY.withColor(code);
+        return isFormatting(code) ? style.applyFormat(code) : Style.EMPTY.withColor(code);
     }
 
     /** As {@link #colored}, as a String. */

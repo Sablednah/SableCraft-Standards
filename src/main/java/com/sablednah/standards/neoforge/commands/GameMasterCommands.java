@@ -95,7 +95,7 @@ public final class GameMasterCommands {
      * point, and a purely cosmetic smite would be a worse joke than the ones we dropped.
      */
     private static void strike(ServerLevel level, Vec3 at, ServerPlayer cause) {
-        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level, EntitySpawnReason.TRIGGERED);
+        LightningBolt bolt = net.minecraft.world.entity.EntityTypes.LIGHTNING_BOLT.create(level, EntitySpawnReason.TRIGGERED);
         if (bolt == null) return;
         bolt.snapTo(at);
         bolt.setCause(cause);

@@ -138,7 +138,7 @@ public final class InventoryView implements Container {
     }
 
     private static ItemStack pane(String label) {
-        ItemStack stack = new ItemStack(Items.GRAY_STAINED_GLASS_PANE);
+        ItemStack stack = new ItemStack(Items.STAINED_GLASS_PANE.pick(net.minecraft.world.item.DyeColor.GRAY));
         stack.set(DataComponents.CUSTOM_NAME,
                 Component.literal(label).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         return stack;
