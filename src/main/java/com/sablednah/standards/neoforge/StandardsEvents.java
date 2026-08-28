@@ -57,6 +57,10 @@ public final class StandardsEvents {
 
     @SubscribeEvent
     static void onServerStarting(ServerAboutToStartEvent event) {
+        // Before anything reads saved data. 26.1 moved every store into a namespaced folder, so a
+        // world upgraded from 1.21.11 would otherwise find no file, make an empty one, and lose
+        // every home on the server without a single error.
+        SaveMigration.run(event.getServer());
         // messages.yml: written with the full catalogue on first run, merged thereafter.
         Lang.load();
     }
