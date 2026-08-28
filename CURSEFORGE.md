@@ -98,13 +98,29 @@ Five seams, all soft dependencies — add a `compileOnly` and Standards can be a
 |---|---|
 | `api.economy` | spending money, or *being* the economy |
 | `api.chat` | name prefixes and suffixes from several mods at once; chat channels that respect mutes |
-| `api.groups` | group membership by kind, and "who owns this chunk" |
+| `api.groups` | group membership by kind, "who owns this chunk", whether PvP is allowed there, and whether **mobs** may break blocks there |
 | `api.PlayerSwitches` / `api.Stations` | driving `/fly`, `/god`, `/vanish` and the workstations from code |
-| `api.combat` | *specified for 1.1* — combat tagging, so nothing lets a player walk out of a fight |
+| `api.combat` | combat tagging, resolving who was really behind a hit, and whether one player may harm another at all |
 
 The switches API exists because a skill granting flight should not have to build a command string
 and hope: the skill is already the authority, so it calls in directly and skips the permission check
 that gates the typed command.
+
+**Combat tagging** deserves a line of its own, because it is what stops `/home` being an escape
+hatch. Being hit by a player closes the escape routes while the tag lasts — and three rules make it
+behave:
+
+- **An attacker starts a tag, not damage.** Fall, drowning, fire and freezing never tag anybody,
+  which is what stops a player trapped by their own bad luck being sealed in by the very feature
+  meant to protect them.
+- **Tags extend, they never overwrite.** Twelve seconds of PvP then a zombie for eight is still
+  twelve, or a shorter tag would rescue exactly the person fleeing.
+- **Pets are directional.** Somebody's wolf biting you is them fighting you through a proxy; you
+  hitting their wolf is not — so nobody can lock you in combat by shoving a pet in front of you.
+
+And `Harm.forbidden(a, b)` answers whether one player may harm another *at all*, so a hostile
+**skill** — a curse, a snare, a summon — is refused for the same reasons a sword is. Player-on-player
+damage is gated centrally, so a mod that only deals damage needs no code whatever.
 
 **[Factions ReForged](https://www.curseforge.com/minecraft/mc-mods/factions-reforged)** is built
 entirely on these — claims, groups, chat and economy — and is the proof they work from the outside.

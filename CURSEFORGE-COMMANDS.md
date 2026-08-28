@@ -28,7 +28,7 @@ gets the everyone-nodes and operators get the op-gated ones.
 | Default | Nodes |
 |---|---|
 | **Everyone** | `top` `back` `home` `sethome` `delhome` `spawn` `gc` `kit` `mail` `afk` `msg` `tpa` `tpahere` `tptoggle` `warp` `balance` `baltop` `pay` `group` |
-| **Operators** | `fly` `god` `vanish` `smite` `jump` `bottom` `heal` `feed` `rest` `speed` `setspawn` `setkit` `setwarp` `tpoffline` `socialspy` `tempban` `mute` `invsee` `eco` `admin`, every `.others` variant, `msg.override` `tpa.override` `afk.exempt` `home.limit.unlimited` `teleport.instant` `teleport.nocooldown` |
+| **Operators** | `combat.bypass` `fly` `god` `vanish` `smite` `jump` `bottom` `heal` `feed` `rest` `speed` `setspawn` `setkit` `setwarp` `tpoffline` `socialspy` `tempban` `mute` `invsee` `eco` `admin`, every `.others` variant, `msg.override` `tpa.override` `afk.exempt` `home.limit.unlimited` `teleport.instant` `teleport.nocooldown` |
 | **Nobody, including operators** | `craft` `anvil` `grindstone` `enderchest` `trashcan` `back.ondeath` |
 
 That last row is deliberate. **A workbench you can open anywhere is an ability to be granted, not a
@@ -221,6 +221,24 @@ through the chat router. A mute that only stops public chat is not a mute.
 
 **Denied to everyone by default, operators included** — see the permissions note above. They do not
 appear in tab-complete for anyone who lacks the node.
+
+## Combat
+
+No commands of its own — it is a rule rather than a thing you type — but it decides whether several
+of the above work.
+
+Being hit by a player puts you in combat, and while it lasts `/home`, `/spawn`, `/tpa` and the rest
+refuse with a countdown, in chat and on the action bar. `standards.combat.bypass` lets staff leave
+anyway, and is a permission rather than an op check so it can be granted without handing anybody
+`/stop`.
+
+**Being hit by a mob does not block teleports by default** (`combat.pveBlocksTeleport = false`): on
+a peaceful server a skeleton must not stop you going home, while a player hitting you absolutely
+must. Turn it on for a survival server where running from the world should cost something.
+
+**Nothing environmental ever tags you** — fall, drowning, fire, freezing. Set `combat.log = true`
+the moment you wonder why something does or does not tag; it prints who, what kind, what caused it
+and for how long.
 
 ## Away
 
