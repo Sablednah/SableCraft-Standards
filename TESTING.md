@@ -169,15 +169,19 @@ Dev server is on `power.mode = "both"`, `maxPerPlayer = 10`, `perDeath = 2`,
 Dev server: `regenWithStandard = 1.0`, `regenWithoutStandard = 0.5`,
 `regenWithCapturedStandard = 0.25`.
 
-- [ ] place a banner on your own land **under open sky**, look at it, `/f standard` — it is
+- [x] place a banner on your own land **under open sky**, look at it, `/f standard` — it is
       designated, named in-world, and the message says its colour
+- [ ] aiming at the **cloth** rather than the base now works — a standing banner's hit shape is a
+      thin pole, so the ray used to pass over it
 - [ ] a banner **indoors** or under any block is refused, and says why
 - [ ] a banner on **somebody else's land**, or wilderness, is refused
 - [ ] `/f standard` with nothing in front of you reports where yours stands
 - [ ] your faction's **name wears its banner colour** in `/f who`, `/f list` and `/f status` —
       while the map, borders and territory messages stay relation-coloured
 - [ ] power comes back **twice as fast** with a standard up as without
-- [ ] an **enemy can break it**, where they can break nothing else of yours
+- [x] an **enemy can break it**, where they can break nothing else of yours
+- [x] an ordinary banner — including a dropped standard replanted — is **not** breakable by a
+      rival: the exception keys on the designated position, not on "is a banner"
 - [ ] a **non-enemy cannot** — neutral, allied and peaceful all refused
 - [ ] taking it is announced **to the whole server**, and your faction is told the regen dropped
 - [ ] the dropped banner is **named for its owner** and keeps its pattern
