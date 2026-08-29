@@ -98,6 +98,13 @@ public final class Vanish {
             showToEveryone(player);
         }
         StandardsAttachments.of(player).setVanished(vanished);
+
+        // Last, so a listener asking Vanish.isVanished gets the new answer rather than the old
+        // one. Anything another mod has drawn on this player - a nameplate, a health bar, a
+        // hologram - is invisible to our tracker and can only be taken down by whoever put it
+        // there. See api/vanish for why that division is the right one.
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                new com.sablednah.standards.api.vanish.VanishEvent(player, vanished));
     }
 
     private static void hideFromEveryone(ServerPlayer player) {
