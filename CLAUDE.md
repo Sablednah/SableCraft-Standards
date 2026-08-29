@@ -74,6 +74,17 @@ export PATH="$JAVA_HOME/bin:$PATH"
   - ⚠ `pkill -f "gradlew runServer"` **kills the shell you type it in**, because the pattern
     matches your own command line. Match on something narrower, or use the harness's background
     task controls.
+  - ⚠ **And narrower means the repo path, not `fml.modFolders`.** That pattern matches *every*
+    NeoForge dev server on the machine, and the sibling mods are routinely running their own —
+    a CityWorld `runServer` was live during this session and sat one PID away from being killed
+    by a `| head -1`. Match the classes directory:
+
+    ```bash
+    ps -eo pid,etime,args | grep "[f]ml.modFolders" | grep "SableCraft-Standards/build/classes"
+    ```
+
+    Killing somebody else's dev server is quiet — it looks like their session crashed, in a
+    terminal you are not watching.
 - `-D` on the `gradlew` command line sets the property on **Gradle's** JVM, not the forked server.
   That is why `-Pselftest` exists — it is translated into a `systemProperty` on the run in
   `build.gradle`. A `-Dstandards.selftest=true` looks like the test silently not running.
