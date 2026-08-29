@@ -27,6 +27,12 @@ It **fails closed**, alone among these. Everywhere else a broken provider permit
 permitting a build can be undone; here wrongly permitting means a mob eats a base while nobody is
 watching, and that cannot.
 
+**Verified end to end on 2026-08-29**, with ZombieMod on the other side of the seam and Factions
+answering: zombies could neither break nor place blocks inside claimed land. Worth stating plainly
+because a seam that compiles and self-tests is still only half-built until something real calls it —
+the decorator seam sat as dead code for weeks looking exactly this healthy. This one now has a
+consumer, on a 26.1.2 server, on a world upgraded from 1.21.11.
+
 **`ClaimProvider.pvpAllowed(level, pos)`** was added on 2026-08-27 for safe zones and war zones. It
 is the *place* half of "may these two fight" — the *pair* half is
 [`Harm`](COMBAT-API.md), because "are they allies" and "is this spawn" are different questions with
