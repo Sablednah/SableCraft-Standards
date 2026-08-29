@@ -41,34 +41,39 @@ if /i "%~1"=="third" (
 )
 
 rem ---------------------------------------------------------------------
-rem Pick the JDK by what this branch builds, not by what worked last time.
+rem Run Gradle on a real JDK, and let it fetch the rest.
 rem
-rem 1.21.11 needs Java 21; 26.1 and 26.2 need Java 25. Get it wrong and the
-rem failure is a wall of Gradle toolchain text that never names the version
-rem you actually have. Both live in CurseForge, but in DIFFERENT trees -
-rem the older ones under Install\runtime\, epsilon under Install\java\ -
-rem so this cannot be one path with the name swapped.
+rem The trap here cost an hour. CurseForge ships two Java runtimes and they
+rem are NOT the same kind of thing: java-runtime-delta (21) is a full JDK,
+rem while java-runtime-epsilon (25) is a JRE. Pointing JAVA_HOME at epsilon
+rem for a 26.x build looks right and fails deep inside NeoForm with
+rem   NullPointerException: ... because "compiler" is null
+rem - which names no Java version and reads like a corrupt cache. It is
+rem ToolProvider.getSystemJavaCompiler() returning null, because a JRE has
+rem no javac to decompile-and-recompile Minecraft with.
+rem
+rem So Gradle always runs on the JDK 21, on every branch. It is only the
+rem launcher; the Java 25 that 26.x actually compiles against is
+rem auto-provisioned by the foojay resolver in settings.gradle. That is why
+rem there is no version switch here - the toolchain already knows, from
+rem gradle.properties, and one JDK that can bootstrap is all this needs.
 rem ---------------------------------------------------------------------
-set "JDK21=%USERPROFILE%\curseforge\minecraft\Install\runtime\java-runtime-delta\windows-x64\java-runtime-delta"
-set "JDK25=%USERPROFILE%\curseforge\minecraft\Install\java\java-runtime-epsilon"
-
-rem Read the Minecraft line straight out of gradle.properties, so switching
-rem branch is all it takes - there is nothing here to remember to update.
-for /f "tokens=2 delims==" %%v in ('findstr /b "minecraft_version=" gradle.properties') do set "MCVER=%%v"
-set "JAVA_HOME=%JDK25%"
-echo(%MCVER%| findstr /b /c:"1." >nul && set "JAVA_HOME=%JDK21%"
-
-if not exist "%JAVA_HOME%\bin\java.exe" (
-    echo Minecraft %MCVER% needs a JDK this script could not find at:
+set "JAVA_HOME=%USERPROFILE%\curseforge\minecraft\Install\runtime\java-runtime-delta\windows-x64\java-runtime-delta"
+if not exist "%JAVA_HOME%\bin\javac.exe" (
+    echo Could not find a JDK - note a JDK, not a JRE - at:
     echo   %JAVA_HOME%
     echo.
-    echo CurseForge ships them once an instance of that line has been
-    echo installed - so installing a %MCVER% instance is usually the fix.
-    echo Otherwise point JDK21/JDK25 in this file at any matching JDK.
+    echo CurseForge installs this one with any 1.21.x instance. If you have
+    echo removed those, point JAVA_HOME in this file at any JDK 21 or newer
+    echo that has bin\javac.exe. Gradle downloads whatever else it needs.
     pause
     exit /b 1
 )
-echo Minecraft %MCVER%, using "%JAVA_HOME%"
+
+rem Read the Minecraft line out of gradle.properties, for the mods sync below
+rem and so the echo says which line you are about to launch.
+for /f "tokens=2 delims==" %%v in ('findstr /b "minecraft_version=" gradle.properties') do set "MCVER=%%v"
+echo Minecraft %MCVER%, Gradle on "%JAVA_HOME%"
 
 rem A separate project cache AND build directory per client. Both are needed: the cache stops
 rem the gradle daemons fighting over lock files, and -PwinClient gives each client its own

@@ -363,15 +363,20 @@ JDK from CurseForge:
 .\TestClient.cmd third      -> TestThird   (runClientThird, runThird/)
 ```
 
-**`TestClient.cmd` picks the JDK from the branch, and syncs the mods list.** Two things it has to
-get right that are invisible until they bite:
+**`TestClient.cmd` runs Gradle on the JDK 21 on every branch, and syncs the mods list.** Two things
+it has to get right that are invisible until they bite:
 
-- **1.21.11 needs Java 21, 26.x needs Java 25**, and CurseForge keeps them in *different trees* —
-  the old ones under `Install\runtime\java-runtime-delta\windows-x64\…`, and 25 under
-  `Install\java\java-runtime-epsilon`. So it reads `minecraft_version` out of `gradle.properties`
-  and chooses; there is nothing to remember when switching branch. CurseForge only downloads a
-  runtime once an instance of that line exists, so *"could not find a JDK"* usually means *"install
-  a 26.x instance"*.
+- ⚠ **CurseForge's two Java runtimes are not the same kind of thing.** `java-runtime-delta` (21) is
+  a full **JDK**; `java-runtime-epsilon` (25) is a **JRE**. Pointing `JAVA_HOME` at epsilon for a
+  26.x build is the obvious move — right major version, right vendor — and it fails deep inside
+  NeoForm with `NullPointerException: ... because "compiler" is null`, which names no Java version
+  and reads like a corrupt cache. It is `ToolProvider.getSystemJavaCompiler()` returning null: a
+  JRE has no `javac`, and NFRT has to recompile decompiled Minecraft.
+
+  So **Gradle always launches on the JDK 21**, whatever the branch. It is only the bootstrap — the
+  Java 25 that 26.x compiles against is auto-provisioned by the foojay resolver already in
+  `settings.gradle`. There is deliberately no version switch in the script; adding one is the wrong
+  fix and reintroduces the bug.
 - **It mirrors the dev server's `mods/` into the client's on every launch.** The dev server carries
   LuckPerms, CityWorld, LegendQuest, MobHealth and ZombieMod beside our two from source, and
   NeoForge refuses a client whose required-mod list disagrees — saying only *"bad network
