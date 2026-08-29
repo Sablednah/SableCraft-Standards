@@ -7,7 +7,11 @@ Whether a player is in combat, so that nothing lets them walk out of one.
 permission and a harm gate, under 352 self-test checks.
 
 **LegendQuest builds against it** and its skills respect PvP rules and zones: targeted spells ask
-about the pair, area effects ask about the place and then about each player they catch. **Factions
+about the pair, area effects ask about the place and then about each player they catch.
+**Verified together on 2026-08-29**, on a 26.1.2 server running a world upgraded from 1.21.11: using
+a skill tags the caster, and the tag then blocks the teleport out — which is the whole point of
+`CombatKind.SKILL` existing rather than folding skills into PvP. A seam is only half-built until
+something real calls it, and this one now has. **Factions
 registers `factions:pvp`**, so peaceful, same-faction, ally and pvp-off all answer through one
 question. Everything below the design sections describes what is there now; the combat-log NPC at
 the end is the one part still deliberately deferred.
