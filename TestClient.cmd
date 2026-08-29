@@ -18,7 +18,8 @@ rem     refuses when the required-mod lists disagree ("bad network
 rem     protocol"). A dev client matches the dev server exactly.
 rem
 rem Pair with the dev server, started from WSL:  ./gradlew runServer
-rem Both clients auto-connect to 127.0.0.1:25569.
+rem Clients auto-connect to the port in gradle.properties (dev_server_port),
+rem which differs per branch so two Minecraft lines can run side by side.
 rem ---------------------------------------------------------------------
 setlocal
 cd /d "%~dp0"
@@ -39,14 +40,35 @@ if /i "%~1"=="third" (
     set "WHO=TestThird"
 )
 
-set "JAVA_HOME=%USERPROFILE%\curseforge\minecraft\Install\runtime\java-runtime-delta\windows-x64\java-runtime-delta"
+rem ---------------------------------------------------------------------
+rem Pick the JDK by what this branch builds, not by what worked last time.
+rem
+rem 1.21.11 needs Java 21; 26.1 and 26.2 need Java 25. Get it wrong and the
+rem failure is a wall of Gradle toolchain text that never names the version
+rem you actually have. Both live in CurseForge, but in DIFFERENT trees -
+rem the older ones under Install\runtime\, epsilon under Install\java\ -
+rem so this cannot be one path with the name swapped.
+rem ---------------------------------------------------------------------
+set "JDK21=%USERPROFILE%\curseforge\minecraft\Install\runtime\java-runtime-delta\windows-x64\java-runtime-delta"
+set "JDK25=%USERPROFILE%\curseforge\minecraft\Install\java\java-runtime-epsilon"
+
+rem Read the Minecraft line straight out of gradle.properties, so switching
+rem branch is all it takes - there is nothing here to remember to update.
+for /f "tokens=2 delims==" %%v in ('findstr /b "minecraft_version=" gradle.properties') do set "MCVER=%%v"
+set "JAVA_HOME=%JDK25%"
+echo(%MCVER%| findstr /b /c:"1." >nul && set "JAVA_HOME=%JDK21%"
+
 if not exist "%JAVA_HOME%\bin\java.exe" (
-    echo Could not find CurseForge's JDK 21 at:
+    echo Minecraft %MCVER% needs a JDK this script could not find at:
     echo   %JAVA_HOME%
-    echo Edit JAVA_HOME in this file to point at any JDK 21.
+    echo.
+    echo CurseForge ships them once an instance of that line has been
+    echo installed - so installing a %MCVER% instance is usually the fix.
+    echo Otherwise point JDK21/JDK25 in this file at any matching JDK.
     pause
     exit /b 1
 )
+echo Minecraft %MCVER%, using "%JAVA_HOME%"
 
 rem A separate project cache AND build directory per client. Both are needed: the cache stops
 rem the gradle daemons fighting over lock files, and -PwinClient gives each client its own
@@ -76,6 +98,36 @@ powershell -NoProfile -Command ^
   "$lines = $lines | Where-Object { $_ -notmatch '^soundCategory_' };" ^
   "$lines += $cats | ForEach-Object { 'soundCategory_' + $_ + ':0.0' };" ^
   "Set-Content -Path $f -Value $lines"
+
+rem ---------------------------------------------------------------------
+rem Mirror the dev server's mods folder into this client's.
+rem
+rem NeoForge refuses a connection when the required-mod lists disagree, and
+rem says only "bad network protocol" - it does not name the mod. The dev
+rem server carries LuckPerms, CityWorld, LegendQuest, MobHealth and
+rem ZombieMod alongside Standards and Factions from source, so a client
+rem with an empty mods folder is turned away at the door.
+rem
+rem Synced on every launch rather than once, because the mismatch appears
+rem the moment a jar is added on either side - which is exactly when you
+rem are thinking about something else.
+rem ---------------------------------------------------------------------
+rem Two branch shapes to cover: 26.x gives the server a per-version game
+rem directory (run-mc26.1.2/) so two Minecraft lines can hold worlds side by
+rem side, while 1.21.11 predates that and still uses plain run/. Falling back
+rem rather than assuming matters because the failure is SILENT - a sync that
+rem finds no source folder leaves the previous line's jars sitting in the
+rem client, which is the mismatch this is here to prevent.
+set "SERVERMODS=run-mc%MCVER%\mods"
+if not exist "%SERVERMODS%" set "SERVERMODS=run\mods"
+if exist "%SERVERMODS%" (
+    echo Syncing mods from %SERVERMODS% to %RUNDIR%\mods ...
+    robocopy "%SERVERMODS%" "%RUNDIR%\mods" *.jar /MIR /NJH /NJS /NDL /NP /NFL >nul
+    rem robocopy returns 0-7 for success. Anything 8+ is a real failure.
+    if errorlevel 8 (
+        echo WARNING: could not sync mods - %WHO% may be refused with "bad network protocol".
+    )
+)
 
 echo Starting %WHO% (first run compiles - be patient)...
 call gradlew.bat %TASK% --project-cache-dir .gradle-win-%WHO% -PwinClient=%WHO%
