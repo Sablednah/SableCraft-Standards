@@ -14,6 +14,7 @@ import com.sablednah.standards.neoforge.InventoryView;
 import com.sablednah.standards.neoforge.commands.MoveCommands;
 import com.sablednah.standards.core.Money;
 import com.sablednah.standards.core.Toggle;
+import com.sablednah.standards.core.VanishGate;
 import com.sablednah.standards.core.Waypoint;
 
 import net.minecraft.commands.CommandSourceStack;
@@ -63,6 +64,7 @@ public final class SelfTest {
 
         checkToggleLogic();
         checkStateSentence();
+        checkVanishGate();
         checkTopCeiling();
         checkChatLine();
         checkNoTermInflection();
@@ -116,6 +118,53 @@ public final class SelfTest {
         check("three states use a comma then and",
                 StandardsEvents.joinStates(List.of("vanished", "in god mode", "flying"))
                         .equals("vanished, in god mode and flying"));
+    }
+
+    /**
+     * The vanish gate, which is now a published seam rather than an internal detail.
+     *
+     * <p>Worth testing properly for one reason: {@code api/vanish} exists so another mod can take
+     * down a nameplate it drew on a vanished player, and until LegendQuest does that, <b>nothing
+     * calls these methods at all</b>. That is the failure family this codebase keeps producing —
+     * code that computes the right answer and has never been asked the question.</p>
+     *
+     * <p>The see-through predicate is stubbed here, because the real one resolves a viewer out of
+     * the player list and answers "yes, see everything" for the invented ids below — which would
+     * make every assertion pass for the wrong reason. {@link Vanish#install()} puts the real one
+     * back afterwards.</p>
+     */
+    private void checkVanishGate() {
+        UUID subject = UUID.nameUUIDFromBytes("selftest-vanish-subject".getBytes());
+        UUID viewer = UUID.nameUUIDFromBytes("selftest-vanish-viewer".getBytes());
+        UUID staff = UUID.nameUUIDFromBytes("selftest-vanish-staff".getBytes());
+        try {
+            VanishGate.setSeeThroughCheck((who, watcher) -> watcher.equals(staff));
+
+            check("nobody is vanished to start with", !VanishGate.anyVanished());
+            check("an unvanished player is not hidden", !VanishGate.hidden(subject, viewer));
+
+            VanishGate.setVanished(subject, true);
+            check("a vanished player reads as vanished", VanishGate.isVanished(subject));
+            check("anyVanished notices", VanishGate.anyVanished());
+            check("a vanished player is hidden from an ordinary viewer",
+                    VanishGate.hidden(subject, viewer));
+
+            // Both directions, because a gate that hides everyone passes every positive assertion.
+            check("a vanished player is not hidden from themselves",
+                    !VanishGate.hidden(subject, subject));
+            check("see-through beats the vanish", !VanishGate.hidden(subject, staff));
+            check("an unvanished bystander is still not hidden",
+                    !VanishGate.hidden(viewer, subject));
+
+            VanishGate.setVanished(subject, false);
+            check("unvanishing clears the hide", !VanishGate.hidden(subject, viewer));
+            check("and empties the set", !VanishGate.anyVanished());
+        } finally {
+            // Leave nothing behind: this runs on a live server, and a stubbed predicate or a
+            // lingering id would quietly break the real feature for the rest of the run.
+            VanishGate.setVanished(subject, false);
+            Vanish.install();
+        }
     }
 
     /**

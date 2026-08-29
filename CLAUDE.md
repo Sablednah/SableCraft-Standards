@@ -613,6 +613,13 @@ exist", "nothing consumes", "yet". Worth doing before any release.
 - `COMBAT-API.md` — **built 2026-08-27.** Combat tagging, and it now opens with a "using it from
   another mod" section written for LegendQuest. `Combat.playerBehind` is public because Factions'
   power modes need the same attacker resolution and two implementations would disagree.
+- `VANISH-API.md` — **built 2026-08-29, and not yet called by anything.** Whether a player is
+  hidden, so a mod that draws *on* a player can take its decoration down. Written because a
+  `/vanish`ed player kept their LegendQuest nameplate — a floating name over nobody. The point to
+  keep: Standards cannot fix this itself, because "hide entities near a vanished player" catches
+  other people's holograms and misses a plate that tracks from a distance. It also needs **both**
+  halves — ask on spawn *and* listen for `VanishEvent` — since check-on-spawn alone is exactly what
+  leaves the plate hanging when somebody vanishes mid-session.
 - `PERMISSIONS.md` — **specified, scheduled for 1.2.** A built-in permission handler for servers
   with no permissions mod. Note the framing correction it opens with: NeoForge's `PermissionAPI`
   is already the Vault-equivalent and the owner picks the active handler in `neoforge-server.toml`,
