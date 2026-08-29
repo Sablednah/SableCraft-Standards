@@ -354,14 +354,31 @@ getting there costs an hour of environment problems the first time. All five are
 repo now; this is why.
 
 **Launch clients from Windows, not WSL.** `./gradlew runClientBuddy` from WSL goes through WSLg and
-the window frequently never appears. `TestClient.cmd` runs them natively on Windows using
-CurseForge's bundled JDK 21:
+the window frequently never appears. `TestClient.cmd` runs them natively on Windows, borrowing a
+JDK from CurseForge:
 
 ```
 .\TestClient.cmd            -> TestBuddy   (runClientBuddy, runBuddy/)
 .\TestClient.cmd main       -> Sablednah   (runClientMain,  runMain/)
 .\TestClient.cmd third      -> TestThird   (runClientThird, runThird/)
 ```
+
+**`TestClient.cmd` picks the JDK from the branch, and syncs the mods list.** Two things it has to
+get right that are invisible until they bite:
+
+- **1.21.11 needs Java 21, 26.x needs Java 25**, and CurseForge keeps them in *different trees* —
+  the old ones under `Install\runtime\java-runtime-delta\windows-x64\…`, and 25 under
+  `Install\java\java-runtime-epsilon`. So it reads `minecraft_version` out of `gradle.properties`
+  and chooses; there is nothing to remember when switching branch. CurseForge only downloads a
+  runtime once an instance of that line exists, so *"could not find a JDK"* usually means *"install
+  a 26.x instance"*.
+- **It mirrors the dev server's `mods/` into the client's on every launch.** The dev server carries
+  LuckPerms, CityWorld, LegendQuest, MobHealth and ZombieMod beside our two from source, and
+  NeoForge refuses a client whose required-mod list disagrees — saying only *"bad network
+  protocol"*, never which mod. Note the server's game directory is `run-mc<version>/` on 26.x and
+  plain `run/` on 1.21.11, so the sync falls back rather than assuming: a sync that finds no source
+  folder is silent, and leaves the *previous* line's jars in the client — exactly the mismatch it
+  exists to prevent.
 
 **Three clients, and the third is not optional for some things.** Any rule with *two* sides and a
 bystander needs three people to observe: `/socialspy`, a request only some ranks are told about, and
