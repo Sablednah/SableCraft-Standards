@@ -821,10 +821,20 @@ public final class SelfTest {
         // Force the chunk: an unloaded chunk answers block queries with defaults, and a probe that
         // skips this proves nothing about the world it thinks it is reading.
         overworld.getChunkAt(spawn);
-        check("finds somewhere safe near spawn " + spawn.toShortString()
-                        + " [feet=" + overworld.getBlockState(spawn)
-                        + " below=" + overworld.getBlockState(spawn.below()) + "]",
-                SafeLoc.find(overworld, spawn).isPresent());
+
+        // Stand the probe on the SURFACE at spawn's column rather than at spawn itself. This
+        // check used to trust world spawn to be somewhere buildable, which is a fact about the
+        // world and not about SafeLoc — and it duly failed the first time it met a world whose
+        // spawn was over open air. (An upgraded world reports the default 0, 70, 0: vanilla's
+        // spawn does not survive the trip. Standards' own /spawn is unaffected, because it keeps
+        // its own in save data — decision 5.)
+        BlockPos ground = overworld.getHeightmapPos(
+                net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, spawn);
+        overworld.getChunkAt(ground);
+        check("finds somewhere safe on the surface at " + ground.toShortString()
+                        + " [feet=" + overworld.getBlockState(ground)
+                        + " below=" + overworld.getBlockState(ground.below()) + "]",
+                SafeLoc.find(overworld, ground).isPresent());
 
         BlockPos deepUnderground = new BlockPos(spawn.getX(), overworld.getMinY() + 1, spawn.getZ());
         overworld.getChunkAt(deepUnderground);
