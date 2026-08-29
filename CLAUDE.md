@@ -520,6 +520,25 @@ neighbours — a door is two blocks), inventory, and put the feedback where the 
 buttons will still visibly twitch; that twitch *is* the correction landing and cannot be prevented
 from the server.
 
+### A third: the migration that copied the file somewhere nothing reads
+
+The 26.1 save migration wrote a byte-perfect copy of `factions.dat` to `data/factions/data.dat` and
+logged success. It was wrong: 26.1 changed the filename **and** moved per-dimension data out of the
+world root, so the overworld's store lives in `world/dimensions/minecraft/overworld/data/`. The copy
+landed in the world-global folder, beside the scoreboard and the weather — a plausible-looking place
+that nothing consults.
+
+Every check you would naturally run agreed with it. The file existed. The path matched what
+`Identifier.resolveAgainst` produces. The NBT held all 2 factions and 18 claims. The server logged
+no error — because a **missing** saved-data file is not an error, it is a new world. Even the player
+UUIDs matched. It was found only by ignoring what the migration claimed and listing what the
+*running server* had actually written, which showed a second `data` folder further down the tree.
+
+The general rule, and it is the same one as the section above: **a write is not a success until
+something reads it back.** Both mods now log their store contents on start — `Factions: loaded 2
+faction(s) holding 18 claim(s).` — because an empty store is indistinguishable from a server nobody
+has played on yet, and that ambiguity is what let this survive a whole day of testing.
+
 ## Gotchas already paid for
 
 - **Static initialisation order.** A `static final` collection declared *after* the fields that

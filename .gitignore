@@ -49,7 +49,7 @@ repo/
 !**/src/**/repo/
 
 # extracted NeoForge/Minecraft API sources kept for reference (regenerate from the sources jar)
-/.apisrc/
+/.apisrc*/
 
 ### Windows-side test clients (see TestClient.cmd)
 .gradle-win*/

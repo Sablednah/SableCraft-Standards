@@ -48,8 +48,16 @@ Predictions below; results here. **352 Standards checks and 42 Factions checks p
 
 ### ⚠ The one that was not a compile error
 
-**26.1 moved every saved-data file into a namespaced folder.** `SavedDataType`'s id resolves as
-`root.resolve(namespace, path)`, so `data/standards_kits.dat` is now `data/standards/kits.dat`.
+**26.1 moved every saved-data file — and it moved them twice over.** Both halves matter, and
+knowing only the first is worse than knowing neither, because it produces a migration that looks
+like it worked.
+
+1. **The filename.** `SavedDataType`'s id became an `Identifier`, resolving as
+   `root.resolve(namespace, path)` — `data/standards_kits.dat` → `standards/kits.dat`.
+2. **The folder.** Per-dimension saved data left the world root. The overworld's store was
+   `world/data/`; it is now `world/dimensions/minecraft/overworld/data/`. `world/data/` keeps only
+   the genuinely world-global files — scoreboard, weather, wandering trader — so it still looks
+   like the right place, and still contains plausible neighbours.
 
 A world upgraded from 1.21.11 finds no file, creates an empty one, and carries on — **every home,
 warp, kit, mailbox, mute, balance, group and faction gone, with no exception and no warning.** The
@@ -58,7 +66,21 @@ first anybody would know is a player asking where their base went.
 `SaveMigration` (and `FactionSaveMigration`) run on `ServerAboutToStartEvent`, before anything reads
 saved data, and **copy rather than move**: a server that upgrades, hits something unrelated and
 rolls back must not find its data gone, and the old file is the only evidence if a copy turns out
-wrong.
+wrong. The destination is asked of `DimensionType.getStorageFolder(Level.OVERWORLD, root)` rather
+than spelled out, because that is the half that was got wrong the first time.
+
+**How the first version failed, and why it took a day to see.** It fixed the filename only, so it
+wrote a byte-perfect copy of `factions.dat` into `world/data/factions/data.dat` and logged that it
+had carried the data forward. Every check agreed: the file existed, the path matched what
+`Identifier.resolveAgainst` produces, the NBT held all 2 factions and 18 claims, and the server
+logged no error — because a *missing* saved-data file is not an error, it is a new world. The bug
+was only visible from the other end: listing what the running server had actually written, and
+noticing a second `data` folder further down the tree.
+
+**So both mods now log what came off disk on start** — `Factions: loaded 2 faction(s) holding 18
+claim(s).` A store that failed to load is an empty one, and an empty one is indistinguishable from
+a server nobody has played on yet. Any migration whose success is measured by *"did the copy
+happen"* rather than *"did the game read it"* can fail this exact way again.
 
 ### Traps this port paid for
 
