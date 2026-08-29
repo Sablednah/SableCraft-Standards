@@ -190,6 +190,23 @@ public final class StandardsData extends SavedData {
         return Optional.ofNullable(lastSeen.get(player)).map(LastSeen::at);
     }
 
+    /**
+     * What actually came off disk, for the boot log.
+     *
+     * <p>A store that failed to load is an empty store, and an empty store is indistinguishable
+     * from a server nobody has played on yet. On a world upgraded across Minecraft versions that
+     * is a live possibility rather than a theoretical one — see {@link SaveMigration}, which got
+     * its destination wrong once and was believed because it reported copying the file. Saying the
+     * numbers out loud once per start is what turns a silent loss into something the owner sees
+     * before their players do.</p>
+     */
+    public String summary() {
+        int homeCount = homes.values().stream().mapToInt(Map::size).sum();
+        return String.format(
+                "%d home(s) across %d player(s), %d warp(s), %d account(s), %d known name(s)",
+                homeCount, homes.size(), warps.size(), accounts.size(), names.size());
+    }
+
     // --- homes ---
 
     public Map<String, Waypoint> homesOf(UUID owner) {

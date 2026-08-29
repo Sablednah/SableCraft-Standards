@@ -585,6 +585,11 @@ public final class StandardsEvents {
         // After the provider, so a kind listed in config already has one to resolve against —
         // though the decorator copes either way, since a mod may register a kind later still.
         GroupTags.install();
+
+        // Say out loud what came off disk, so a save migration that went wrong is visible on the
+        // first boot rather than the first player to notice their home is gone.
+        Standards.LOGGER.info("Standards: loaded {}.",
+                StandardsData.get(event.getServer()).summary());
     }
 
     @SubscribeEvent

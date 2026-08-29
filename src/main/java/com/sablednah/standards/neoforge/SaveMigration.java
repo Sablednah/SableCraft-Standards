@@ -15,10 +15,20 @@ import com.sablednah.standards.Standards;
  *
  * <h2>The failure this exists to prevent</h2>
  *
- * <p>26.1 changed how a {@code SavedDataType} names its file. The id used to be a plain string and
- * became an {@link net.minecraft.resources.Identifier}, and the path it resolves to is
- * {@code root.resolve(namespace, path)} — so what was {@code data/standards_kits.dat} is now
- * {@code data/standards/kits.dat}.</p>
+ * <p>26.1 changed two things at once, and missing the second is what made this hard to see.</p>
+ *
+ * <p><b>The filename.</b> A {@code SavedDataType} id used to be a plain string and became an
+ * {@link net.minecraft.resources.Identifier}, resolving as {@code root.resolve(namespace, path)} —
+ * so {@code standards_kits.dat} became {@code standards/kits.dat}.</p>
+ *
+ * <p><b>And the folder.</b> Per-dimension saved data moved out of the world root. The overworld's
+ * store used to sit in {@code world/data/}; it now sits in
+ * {@code world/dimensions/minecraft/overworld/data/}, and {@code world/data/} keeps only the
+ * genuinely world-global files — scoreboard, weather, wandering trader.</p>
+ *
+ * <p>So the destination is asked of {@link net.minecraft.world.level.dimension.DimensionType
+ * DimensionType} rather than spelled out. Getting only the filename right puts a perfect copy
+ * somewhere nothing reads, which fails exactly as silently as not copying at all — and did.</p>
  *
  * <p><b>Nothing about that is a compile error, and nothing about it looks like a fault.</b> A world
  * upgraded from 1.21.11 simply finds no file, creates an empty one, and carries on: every home,
@@ -53,14 +63,20 @@ public final class SaveMigration {
             "standards_groups", "standards/groups");
 
     public static void run(MinecraftServer server) {
-        Path data = server.getWorldPath(LevelResource.ROOT).resolve("data");
+        Path root = server.getWorldPath(LevelResource.ROOT);
+        Path data = root.resolve("data");
         if (!Files.isDirectory(data)) {
             return; // a brand new world; nothing to carry forward
         }
+        // Where the overworld's saved data lives now. Everything this mod stores is overworld-only,
+        // deliberately, because it is all questions about players rather than about places.
+        Path dest = net.minecraft.world.level.dimension.DimensionType
+                .getStorageFolder(net.minecraft.world.level.Level.OVERWORLD, root)
+                .resolve("data");
         int moved = 0;
         for (Map.Entry<String, String> entry : MOVED.entrySet()) {
             Path from = data.resolve(entry.getKey() + ".dat");
-            Path to = data.resolve(entry.getValue() + ".dat");
+            Path to = dest.resolve(entry.getValue() + ".dat");
             try {
                 if (!Files.isRegularFile(from) || Files.exists(to)) {
                     continue;
@@ -69,7 +85,7 @@ public final class SaveMigration {
                 Files.copy(from, to);
                 moved++;
                 Standards.LOGGER.info("Moved {} to {} for Minecraft 26.1+",
-                        from.getFileName(), data.relativize(to));
+                        from.getFileName(), root.relativize(to));
             } catch (IOException e) {
                 // Loud, and not fatal. A world that starts with one store missing is recoverable;
                 // a world that refuses to start is a server nobody can get into to fix it.
