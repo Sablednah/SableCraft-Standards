@@ -13,6 +13,9 @@ out/
 !**/src/**/out/
 
 .run/
+# A server game directory per Minecraft line, so two lines can hold worlds side by
+# side. Each holds a full world - well over 100MB - so it must never be committable.
+run-mc*/
 
 ### Eclipse ###
 .apt_generated
@@ -49,9 +52,10 @@ repo/
 !**/src/**/repo/
 
 # extracted NeoForge/Minecraft API sources kept for reference (regenerate from the sources jar)
-/.apisrc/
+/.apisrc*/
 
 ### Windows-side test clients (see TestClient.cmd)
 .gradle-win*/
 build-win-*/
 runMain/
+runThird/
