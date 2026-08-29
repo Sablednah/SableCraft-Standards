@@ -14,11 +14,18 @@ delta", and "Stage 3: what the two deltas say".
 Predictions below; results here. **352 Standards checks and 42 Factions checks pass identically on
 1.21.11, 26.1.2 and 26.2.**
 
-**And proven on a real upgraded world, which is the half that matters.** The 1.21.11 dev world was
+**And proven on real upgraded worlds, which is the half that matters.** The 1.21.11 dev world was
 copied onto a 26.1.2 server and played: the full raid and standard cycle ran, and everything behaved
 as it had on 1.21.11 — homes, warps, balances, groups, claims, power, captured standards. That is
 the check the self-test cannot make, and it is the one that caught the save migration writing to the
 wrong folder (below). A green self-test on an empty world says nothing about an upgrade.
+
+**26.2 was then done the same way, and deliberately as a direct jump** — a second copy of the
+*1.21.11* world, not the 26.1 one, because a server skipping 26.1 entirely must still get its data
+and that path had never been run. Same result: standard cycle, raiding, LegendQuest skills tagging
+combat, and ZombieMod's mobs unable to break blocks in claimed land. **Both 26.x lines are now
+validated with real consumers on the other side of every seam**, which is the part `SelfTest`
+structurally cannot reach.
 
 | | 26.1.2 | 26.2 |
 |---|---|---|
