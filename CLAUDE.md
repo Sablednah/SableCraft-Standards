@@ -605,8 +605,9 @@ exist", "nothing consumes", "yet". Worth doing before any release.
   membership by kind and chunk claim queries; also the decisions on FTB (Teams out, compatibility
   kept) and why there will be no minimap. Note the two halves behave oppositely on purpose: a group
   kind takes exactly one provider, claims take the highest priority and **fail open**.
-- `../Factions-ReForged/POWER.md` — **designed, not built.** Power, the faction bank's other half
-  and the standard, with the real 2012 numbers rather than the remembered ones. Also two findings
+- `../Factions-ReForged/POWER.md` — **built and shipped in 1.1.0, bar `/f raid`.** Power, the
+  faction bank's other half and the standard, with the real 2012 numbers rather than the remembered
+  ones. Also two findings
   that belong *here* rather than there: the original blocked `/home`, `/spawn` and `/tpa` outright
   inside enemy territory (combat logging solved in 2012, by gating other plugins' commands), and
   `/f stuck` is the answer to being trapped in a claim without holing the protection.

@@ -2,7 +2,8 @@
 
 Groups, grants and ranks, for a server that has not installed a permissions mod.
 
-**Status: specified, and scheduled for 1.2** — after the combat API. Nothing in
+**Status: specified, and scheduled for 1.3** — after the vanish seam. (It was earmarked for 1.2
+until that number went to the vanish API; the plan is unchanged, only the number.) Nothing in
 `neoforge/permissions/` exists yet. Agreed 2026-08-25.
 
 ## The arbitrator already exists, and it is NeoForge
