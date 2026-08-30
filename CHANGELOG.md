@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.2.0
+
+### Added
+
+- **Minecraft 26.1.2 and 26.2**, on their own branches — `mc26.1` and `mc26.2` beside `main` for
+  1.21.11. All three carry the same 362 self-test checks and the same behaviour; see
+  `CROSS-VERSION.md` for what each version drop actually moved.
+
+- **`api/vanish/`** — `Vanish` and `VanishEvent`, so a mod that draws something *on* a player can
+  take it down when they vanish.
+
+  A `/vanish`ed player kept their LegendQuest nameplate: a floating name hanging over nobody, which
+  gives a vanish away as completely as being seen would. Standards cannot fix that itself — it
+  hides a player by answering `false` from `broadcastToPlayer`, which covers the player and nothing
+  attached to them, and "hide entities near a vanished player" would catch other people's holograms
+  and miss a plate that tracks from a distance. Which entities *belong to* a player is only
+  answerable by whoever spawned them.
+
+  Both halves matter: ask `Vanish.isVanished` when you create the decoration, for a player who logs
+  in already hidden, **and** listen for `VanishEvent`, for one who vanishes mid-session. A
+  spawn-time check alone is exactly what leaves the nameplate hanging. `Vanish.hiddenFrom` is the
+  per-viewer form for staff holding `standards.vanish.see`, and `Vanish.anyVanished()` is a
+  one-field-read bail-out for per-tick callers. See `VANISH-API.md`.
+
+- **A saved-data migration for 26.1 and later**, and a **line in the log saying what came off
+  disk** — `Standards: loaded 14 home(s) across 2 player(s), …`.
+
+  26.1 changed two things at once. `SavedDataType`'s id became an `Identifier`, so
+  `standards_kits.dat` became `standards/kits.dat` — *and* per-dimension data left the world root
+  for `world/dimensions/minecraft/overworld/data/`. Fixing only the filename writes a perfect copy
+  into the world-global folder, beside the scoreboard and the weather, where nothing reads it.
+  Nothing errors either way, because a missing saved-data file is not an error, it is a new world.
+  Every home, warp, kit, mailbox, mute, balance and group would have vanished silently.
+
+  The boot line exists because an empty store and a store that failed to load are indistinguishable.
+  A write is not a success until something reads it back.
+
+### Fixed
+
+- **The required NeoForge version is no longer whichever build it was compiled on.** It was derived
+  from `neo_version`, so building against a newer NeoForge to match a test client quietly declared
+  `[26.2.0.72,)` and locked out everyone below it. `neo_version_min` now carries the floor and drops
+  the trailing build counter, which is the only part of a NeoForge version that says nothing about
+  compatibility — `[1.21.11]` gets `[21.11,)`, `[26.1,26.2)` gets `[26.1,)`, `[26.2,26.3)` gets
+  `[26.2,)`.
+
 ## 1.1.1
 
 ### Added
