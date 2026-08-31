@@ -468,6 +468,30 @@ public final class Lang {
         def("msg.eco.provider_none", "{term.prefix} &7No economy provider is registered.");
     }
 
+    // --- msg.item.* ---
+    static {
+        def("msg.item.given", "{term.prefix} &7Given &f{count}&7 x &f{item}&7.");
+    }
+
+    // --- msg.nick.* : nicknames ---
+    static {
+        def("msg.nick.set", "{term.prefix} &7You are now &f{name}&7 in chat. {term.dim}(/nick - to undo)");
+        def("msg.nick.cleared", "{term.prefix} &7Back to &f{name}&7.");
+        def("msg.nick.set_other", "{term.prefix} &f{player}&7 is now &f{name}&7 in chat.");
+        def("msg.nick.cleared_other", "{term.prefix} &f{player}&7 goes by their own name again.");
+        def("msg.nick.set_by", "{term.prefix} &7You are now &f{name}&7 in chat, set by &f{by}&7.");
+        def("msg.nick.empty", "&cThat leaves nothing to read.");
+        def("msg.nick.one_word", "&cOne word — a name with a space in it reads as two people, and nothing can look it up.");
+        def("msg.nick.too_long", "&cAt most &f{max}&c characters — that one is &f{length}&c. It goes on every line you say.");
+        // The refusal that makes the feature safe to have. Worded so it does not confirm whether
+        // the name belongs to a real player or to somebody else's nickname — either way the
+        // answer is no, and saying which is a way of finding out who is registered.
+        def("msg.nick.taken", "&cSomebody already goes by &f{name}&c.");
+        def("msg.nick.realname", "{term.prefix} &f{nick}&7 is &f{name}&7.");
+        def("msg.nick.is_real", "{term.prefix} &f{name}&7 is their real name — no nickname.");
+        def("msg.nick.unknown", "&cNobody goes by &f{name}&c.");
+    }
+
     // --- msg.perm.* : the built-in permission handler ---
     static {
         def("msg.perm.overview", "{term.prefix} &7{groups} {term.ranks}, &f{players}&7 with their own grants, &f{nodes}&7 nodes registered.");
