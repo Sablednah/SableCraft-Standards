@@ -251,14 +251,14 @@ whenever one misbehaves.
 
 ## For other mods
 
-Standards is built to be a meeting point rather than a silo. Five seams, all soft dependencies, and all five now live:
+Standards is built to be a meeting point rather than a silo. Six seams, all soft dependencies, and every one of them now has a real consumer:
 
 | API | For | Doc |
 |---|---|---|
 | `api.economy.Economy` | spending and providing money | [`ECONOMY-API.md`](ECONOMY-API.md) |
 | `api.chat.Chat` | chat name prefixes and suffixes, from several mods at once | [`CHAT-API.md`](CHAT-API.md) |
 | `api.PlayerSwitches` / `api.Stations` | driving `/fly`, `/god`, `/vanish` and the workstations from code | — |
-| `api.groups.Groups` / `api.groups.Claims` | group membership by kind, and chunk claim queries — driven by [Factions ReForged](https://github.com/Sablednah/Factions-ReForged) | [`GROUPS-API.md`](GROUPS-API.md) |
+| `api.groups.Groups` / `api.groups.Claims` | group membership by kind, and chunk claim queries — driven by [Factions ReForged](https://github.com/Sablednah/Factions-ReForged), and by Standards' own permission ranks as `standards:role` | [`GROUPS-API.md`](GROUPS-API.md) |
 | `api.combat.Combat` | combat tagging, so nothing lets a player walk out of a fight — and resolving who was really behind a hit, through arrows and pets | [`COMBAT-API.md`](COMBAT-API.md) |
 | `api.vanish.Vanish` | whether a player is hidden, so a mod drawing a nameplate or health bar on them can take it down — a floating name over nobody gives a vanish away | [`VANISH-API.md`](VANISH-API.md) |
 

@@ -1,10 +1,11 @@
 # Living on several Minecraft lines
 
-Standards targets **1.21.11** today. It will not stay there — Minecraft now drops roughly
-quarterly (26.1 in June 2026, 26.2 in August, 26.3 due around September), and a server-utility mod
-that only exists on last quarter's version is a mod nobody can use.
+Standards ships on **1.21.11, 26.1.x and 26.2.x** — a branch per line, released together. Minecraft
+now drops roughly quarterly (26.1 in June 2026, 26.2 in August, 26.3 due around September), and a
+server-utility mod that only exists on last quarter's version is a mod nobody can use.
 
-This is the plan for that, written now rather than discovered later. It is almost entirely borrowed
+This was the plan for that, written before the first port rather than discovered during it, and it
+has now survived two. It is almost entirely borrowed
 from what **CityWorld ReForged** measured the hard way across three versions in August 2026 —
 see `../CityWorld-ReForged/PORTING.md`, sections "The measured 26.1 delta", "The measured 26.2
 delta", and "Stage 3: what the two deltas say".
@@ -13,6 +14,13 @@ delta", and "Stage 3: what the two deltas say".
 
 Predictions below; results here. **352 Standards checks and 42 Factions checks pass identically on
 1.21.11, 26.1.2 and 26.2.**
+
+> ⚠ **The counts stopped being identical in 1.3.0, and that is correct.** `main` reports 403 and the
+> 26.x lines report 380, because the permissions self-test asks what the *active handler* is: the
+> 14 `/rank` parse checks and 9 `PermissionStore` round-trip checks stand down unless Standards' own
+> handler is selected, and LuckPerms holds that slot on the 26.x dev servers. A future port
+> comparing raw numbers across lines will otherwise read a deliberate skip as a regression. Compare
+> PASSED/FAILED, not totals.
 
 **And proven on real upgraded worlds, which is the half that matters.** The 1.21.11 dev world was
 copied onto a 26.1.2 server and played: the full raid and standard cycle ran, and everything behaved

@@ -80,7 +80,7 @@ public final class StandardsPermissionHandler implements IPermissionHandler {
     public static final Identifier IDENTIFIER =
             Identifier.fromNamespaceAndPath(Standards.MODID, "permissions");
 
-    /** What {@link PermissionRules} calls the player's own tier, and what {@code /perm} prints. */
+    /** What {@link PermissionRules} calls the player's own tier, and what {@code /rank} prints. */
     public static final String SELF_SCOPE = "you";
 
     private final Set<PermissionNode<?>> nodes;
@@ -130,7 +130,7 @@ public final class StandardsPermissionHandler implements IPermissionHandler {
      *
      * <p>The provenance is the half that earns its keep. Every hour lost to a permissions system
      * is spent asking "why does this player have that", and a system that can only answer yes or
-     * no leaves you bisecting it by hand. {@code /perm check} and {@code /perm user info} both
+     * no leaves you bisecting it by hand. {@code /rank check} and {@code /rank user info} both
      * come through here, so what they print is what the resolver actually did rather than a
      * second implementation that agrees until it does not.</p>
      *
@@ -197,7 +197,8 @@ public final class StandardsPermissionHandler implements IPermissionHandler {
     /**
      * Whether this handler is the one actually answering.
      *
-     * <p>{@code /perm} is registered only when it is. Editing a store nothing reads is the worst
+     * <p>{@code /rank} (and its {@code /perm} alias) is registered only when it is. Editing a store
+     * nothing reads is the worst
      * shape a command can have — it accepts every edit, reports success, and changes nothing —
      * and a server running LuckPerms would hit exactly that. See decision 7: a command that will
      * not work is absent, not present and arguing.</p>

@@ -2,9 +2,14 @@
 
 Whether a player is hidden, for mods that draw things attached to players.
 
-**Status: built 2026-08-29.** `api/vanish/` — `Vanish`, `VanishEvent` — under the self-test.
-**No consumer yet**: LegendQuest is the intended first one, and until it calls this, nothing does.
-See the warning at the end.
+**Status: built 2026-08-29, and consumed since 2026-08-30.** `api/vanish/` — `Vanish`,
+`VanishEvent` — under the self-test, and LegendQuest's `VanishSupport` now takes its nameplate down:
+`PlayerVisibility.setCheck(Vanish::isVanished, Vanish::anyVanished)` plus a `VanishEvent` listener.
+
+That it used **both halves** is the part worth recording. This document argued that a query alone
+leaves the plate hanging for anyone who vanishes mid-session, and the first real consumer wired the
+query *and* the event without being asked twice — which is the only evidence that an API's contract
+was actually legible to somebody who did not write it.
 
 ## The bug it was written for
 

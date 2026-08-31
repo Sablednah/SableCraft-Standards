@@ -128,7 +128,7 @@ public final class PermissionRoles implements GroupProvider {
             /**
              * The name is the id. Permission groups are referred to by name everywhere an admin
              * types one, and there is no rename command precisely so that stays true — an opaque
-             * id would have to be exposed in {@code /perm} output for anything to be editable,
+             * id would have to be exposed in {@code /rank} output for anything to be editable,
              * which is a worse trade than not renaming.
              */
             @Override
