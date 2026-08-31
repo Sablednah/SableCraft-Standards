@@ -70,6 +70,7 @@ public final class StandardsEvents {
         Teleports.tick(event.getServer());
         TeleportRequests.tick(event.getServer());
         Afk.tick(event.getServer());
+        com.sablednah.standards.neoforge.permissions.Promotions.tick(event.getServer());
     }
 
     // --- lifecycle ---
@@ -81,7 +82,13 @@ public final class StandardsEvents {
         healStaleWalkSpeed(player);
 
         // The name cache is what makes /eco give <offline player> and /baltop rows possible.
-        StandardsData.get(player.level().getServer()).rememberName(player);
+        StandardsData data = StandardsData.get(player.level().getServer());
+        data.rememberName(player);
+        // The wall clock a promotion rule waits on. Recorded on every login rather than only on a
+        // detectably-first one: a server that installs this today has players it has seen for
+        // months, and starting their clock now is the only honest option available.
+        data.rememberFirstSeen(player.getUUID(), System.currentTimeMillis());
+        placeInStartingGroup(player);
         if (StandardsConfig.ENABLE_ECONOMY.get() && Economy.isAvailable()) {
             Economy.createAccount(player.getUUID());
         }
@@ -604,6 +611,32 @@ public final class StandardsEvents {
         Standards.LOGGER.info("Standards: loaded {}.",
                 StandardsData.get(event.getServer()).summary());
         announcePermissions(event.getServer());
+        com.sablednah.standards.neoforge.permissions.Promotions.announce(event.getServer());
+    }
+
+    /**
+     * Put a brand new player into the configured starting group.
+     *
+     * <p>Only if they are in <em>no</em> group at all — somebody an admin has already ranked must
+     * not be quietly demoted back to guest on their next login, which is what an unconditional
+     * add would do the moment a promotion moved them out.</p>
+     */
+    private static void placeInStartingGroup(ServerPlayer player) {
+        String group = StandardsConfig.STARTING_GROUP.get();
+        if (group.isBlank()
+                || !com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler
+                        .isActive()) {
+            return;
+        }
+        var store = com.sablednah.standards.neoforge.permissions.PermissionStore
+                .get(player.level().getServer());
+        if (store.group(group).isEmpty() || !store.groupsOf(player.getUUID()).isEmpty()) {
+            return;
+        }
+        if (store.addToGroup(player.getUUID(), group)) {
+            Standards.LOGGER.info("Placed new player {} in the starting group {}",
+                    player.getName().getString(), group);
+        }
     }
 
     /**

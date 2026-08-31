@@ -274,6 +274,68 @@ self-test has no client, and RCON cannot make somebody type:
   keeps its red until you touch it. Watched directly: a granted `/anvil` stayed red, then went
   white on a single backspace-and-retype. Nothing server-side can prompt a repaint.
 
+## Promotions — a guest ladder that runs itself
+
+```toml
+[permissions]
+  startingGroup = "guest"
+  promotions = ["guest -> regular after 24h and 2h played"]
+```
+
+New players land in `guest`; the rest happens on its own.
+
+### Two clocks, because they answer different questions
+
+- **Real time** since we first saw them — *"come back tomorrow"*. A few minutes of wall clock is
+  enough to lose the fly-by griefer who is on somebody else's server by now, and it costs an honest
+  new player nothing but patience.
+- **Played time**, counted only while they are online and **not away** — *"show me you meant it"*.
+
+Minecraft's own `PLAY_TIME` statistic counts a player idling in a corner all night, which is
+exactly the promotion an admin did not want to give. Standards already knows who is AFK, so this
+number means what it says. As far as I can tell no other essentials mod makes that distinction.
+
+**Give both and both must pass.** A rule that fired on whichever came first would make the stricter
+half decorative.
+
+Durations use the same parser as `/tempban` — `90m`, `36h`, `2w` — so they mean the same thing they
+do everywhere else in the mod.
+
+### `startingGroup` is not `defaultGroup`
+
+Easy to conflate and they do opposite jobs. `defaultGroup` is consulted **last for everybody** and
+nobody is a member of it — it is how you grant something to the whole server. `startingGroup` is
+**real membership** a player can be promoted *out of*, which is the thing a ladder needs. A player
+who already has any group is left alone, so an admin's ranking is never undone by a later login.
+
+### One rung per minute
+
+Somebody returning after a year climbs the ladder visibly rather than arriving to four promotion
+messages at once and a rank nobody watched them earn.
+
+### Conditions are a seam
+
+`Rule.satisfiedBy` is the only place that decides whether somebody has qualified, and it reads
+plain numbers off `StandardsData`. Another trigger — a vote, a purchase confirmed by a website, a
+moderator's nod — is another condition in the same shape rather than a second system. Nothing here
+assumes time is the only thing that can promote a player.
+
+### It says so when it cannot work
+
+Promotions move players between **Standards'** groups, so they need this handler active. Configure
+a rule under LuckPerms and the server says so at startup rather than silently doing nothing:
+
+```
+[WARN] Promotions are configured (1 rule(s)) but NOT AVAILABLE: they move players between
+Standards' own permission groups, and permissions here are being answered by
+luckperms:permission_handler. Set permissionHandler = "standards:permissions" in
+neoforge-server.toml to use them. LuckPerms has 'tracks' for the same job.
+```
+
+Naming LuckPerms' own equivalent matters — somebody who has written a rule wants the job done, not
+a sales pitch. And the warning only appears when rules exist: a server using none does not need
+telling about a feature it is not using.
+
 ## What would make this a bad idea
 
 Worth writing down so the decision can be re-made honestly:
