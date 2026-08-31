@@ -109,6 +109,9 @@ public final class StandardsConfig {
     // --- built-in permissions ---
     public static final ModConfigSpec.ConfigValue<String> DEFAULT_PERMISSION_GROUP;
     public static final ModConfigSpec.BooleanValue PUBLISH_PERMISSION_ROLES;
+    public static final ModConfigSpec.ConfigValue<String> STARTING_GROUP;
+    public static final ModConfigSpec.BooleanValue ENABLE_PROMOTIONS;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> PROMOTIONS;
 
     public static final ModConfigSpec.ConfigValue<String> CHAT_FORMAT;
     public static final ModConfigSpec.ConfigValue<String> CHAT_AFFIX_SEPARATOR;
@@ -557,6 +560,43 @@ public final class StandardsConfig {
                         "concept and nothing else on the server can ask about them.",
                         "Harmless when the handler is not active: the groups are simply empty.")
                 .define("publishAsGroups", true);
+        STARTING_GROUP = BUILDER
+                .comment("Group a brand new player is put into on their first login. Blank for",
+                        "none, which is the default.",
+                        "",
+                        "NOT the same as defaultGroup above. That one is consulted last for",
+                        "everybody and nobody is a member of it; this one is real membership a",
+                        "player can be promoted OUT of, which is what a guest ladder needs.",
+                        "The group must exist — /rank group guest create — or nothing happens.")
+                .define("startingGroup", "");
+        ENABLE_PROMOTIONS = BUILDER
+                .comment("Move players up the rules below automatically.")
+                .define("promote", true);
+        PROMOTIONS = BUILDER
+                .comment("Automatic promotions, one rule per line:",
+                        "",
+                        "  guest -> regular after 24h            wall clock since first seen",
+                        "  guest -> regular after 2h played      online and NOT away",
+                        "  guest -> regular after 24h and 2h played    both must pass",
+                        "",
+                        "The two clocks answer different questions. Real time asks for patience —",
+                        "a few minutes is enough to lose the fly-by griefer who is somewhere else",
+                        "by now — and costs a new player nothing. Played time asks them to have",
+                        "actually done something, and is counted only while they are not AFK,",
+                        "unlike Minecraft's own play-time statistic which happily counts a player",
+                        "idling in a corner all night.",
+                        "",
+                        "Durations use the same format as /tempban: 90m, 36h, 2w.",
+                        "A player moves at most one rung per minute, so somebody returning after a",
+                        "year climbs the ladder visibly rather than in one tick.",
+                        "",
+                        "REQUIRES Standards' own permission handler — these move players between",
+                        "its groups. Under LuckPerms the server says so at startup and does",
+                        "nothing; LuckPerms has 'tracks' for the same job.")
+                .defineListAllowEmpty("promotions",
+                        java.util.List.of(),
+                        () -> "guest -> regular after 24h and 2h played",
+                        o -> o instanceof String);
         BUILDER.pop();
     }
 

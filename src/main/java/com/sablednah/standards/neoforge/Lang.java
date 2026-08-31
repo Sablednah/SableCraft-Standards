@@ -570,6 +570,8 @@ public final class Lang {
         def("msg.perm.already_member", "&c&f{player}&c is already in &f{name}&c.");
         def("msg.perm.not_member", "&c&f{player}&c is not in &f{name}&c.");
         def("msg.perm.joined", "{term.prefix} &f{player}&7 is now in &f{name}&7.");
+        // Said to the player being promoted, so it wants to feel earned rather than administrative.
+        def("msg.perm.promoted", "{term.prefix} &aYou have been promoted to &f{name}&a.");
         def("msg.perm.left", "{term.prefix} &f{player}&7 is no longer in &f{name}&7.");
     }
 

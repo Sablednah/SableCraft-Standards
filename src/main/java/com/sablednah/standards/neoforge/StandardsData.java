@@ -62,7 +62,8 @@ public final class StandardsData extends SavedData {
     private record Snapshot(List<HomeSet> homes, List<NamedWarp> warps,
                             Map<UUID, Double> accounts, Map<UUID, String> names,
                             Optional<Waypoint> spawn, List<LastSeen> lastSeen,
-                            Map<UUID, String> nicks) {
+                            Map<UUID, String> nicks, Map<UUID, Long> firstSeen,
+                            Map<UUID, Long> playedMinutes) {
         static final Codec<Snapshot> CODEC = RecordCodecBuilder.create(i -> i.group(
                 HomeSet.CODEC.listOf().optionalFieldOf("homes", List.of()).forGetter(Snapshot::homes),
                 NamedWarp.CODEC.listOf().optionalFieldOf("warps", List.of()).forGetter(Snapshot::warps),
@@ -74,7 +75,12 @@ public final class StandardsData extends SavedData {
                 LastSeen.CODEC.listOf().optionalFieldOf("lastSeen", List.of())
                         .forGetter(Snapshot::lastSeen),
                 Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.STRING)
-                        .optionalFieldOf("nicks", Map.of()).forGetter(Snapshot::nicks))
+                        .optionalFieldOf("nicks", Map.of()).forGetter(Snapshot::nicks),
+                Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.LONG)
+                        .optionalFieldOf("firstSeen", Map.of()).forGetter(Snapshot::firstSeen),
+                Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.LONG)
+                        .optionalFieldOf("playedMinutes", Map.of())
+                        .forGetter(Snapshot::playedMinutes))
                 .apply(i, Snapshot::new));
     }
 
@@ -97,6 +103,10 @@ public final class StandardsData extends SavedData {
     private final Map<UUID, LastSeen> lastSeen = new LinkedHashMap<>();
     /** Chosen display names. Absent for anybody who has not set one — most players. */
     private final Map<UUID, String> nicks = new LinkedHashMap<>();
+    /** When we first saw each player, in epoch millis. The wall clock a promotion can wait on. */
+    private final Map<UUID, Long> firstSeen = new LinkedHashMap<>();
+    /** Minutes each player has been online and NOT away. See {@code Promotions}. */
+    private final Map<UUID, Long> playedMinutes = new LinkedHashMap<>();
     private Waypoint spawn;
 
     private StandardsData() {}
@@ -109,6 +119,8 @@ public final class StandardsData extends SavedData {
         spawn = snapshot.spawn().orElse(null);
         snapshot.lastSeen().forEach(e -> lastSeen.put(e.player(), e));
         nicks.putAll(snapshot.nicks());
+        firstSeen.putAll(snapshot.firstSeen());
+        playedMinutes.putAll(snapshot.playedMinutes());
     }
 
     private Snapshot snapshot() {
@@ -117,7 +129,8 @@ public final class StandardsData extends SavedData {
                 .toList();
         return new Snapshot(homeSets, List.copyOf(warps.values()),
                 Map.copyOf(accounts), Map.copyOf(names), Optional.ofNullable(spawn),
-                List.copyOf(lastSeen.values()), Map.copyOf(nicks));
+                List.copyOf(lastSeen.values()), Map.copyOf(nicks),
+                Map.copyOf(firstSeen), Map.copyOf(playedMinutes));
     }
 
     /** The single instance for this save. Stored on the overworld so there is one ledger. */
@@ -171,6 +184,68 @@ public final class StandardsData extends SavedData {
     /** Every name we have ever seen, for command suggestions that include offline players. */
     public List<String> knownNames() {
         return names.values().stream().sorted(String.CASE_INSENSITIVE_ORDER).toList();
+    }
+
+    // --- how long they have been around ---
+
+    /**
+     * Record the first time we ever saw this player, if we have not already.
+     *
+     * <p>The wall clock a promotion rule can wait on — "come back tomorrow" rather than "play for
+     * an hour". Both are wanted and they measure different things: a few minutes of real time is
+     * enough to lose the fly-by griefer who is somewhere else by now, while played time is what
+     * you ask for when you want somebody to have actually done something.</p>
+     *
+     * <p>Written once and never updated, so it survives a rename and means what it says.</p>
+     */
+    public void rememberFirstSeen(UUID player, long whenMillis) {
+        if (firstSeen.putIfAbsent(player, whenMillis) == null) {
+            setDirty();
+        }
+    }
+
+    /** Epoch millis, or empty for somebody who predates this bookkeeping. */
+    public Optional<Long> firstSeen(UUID player) {
+        return Optional.ofNullable(firstSeen.get(player));
+    }
+
+    /** Minutes online and not away. Zero for anybody we have not counted yet. */
+    public long playedMinutes(UUID player) {
+        return playedMinutes.getOrDefault(player, 0L);
+    }
+
+    /**
+     * Add active minutes.
+     *
+     * <p>Counted rather than read from vanilla's {@code PLAY_TIME} statistic, and that is the
+     * whole point: vanilla counts a player standing still in a corner all night. A promotion that
+     * fires for somebody who idled through it defeats the gate it was put there to be. Standards
+     * already knows who is away, so the number here means what an admin thinks it means.</p>
+     */
+    public void addPlayedMinutes(UUID player, long minutes) {
+        if (minutes <= 0) {
+            return;
+        }
+        playedMinutes.merge(player, minutes, Long::sum);
+        setDirty();
+    }
+
+    /**
+     * Forget both clocks for a player.
+     *
+     * <p>For the self-test, which otherwise poisons its own next run: these numbers are
+     * <em>persisted</em>, so minutes added by one run are still there for the following one and
+     * the "not yet qualified" assertions start out already qualified. That is precisely how this
+     * was found — the test failed on its second run having passed on its first.</p>
+     *
+     * <p>Also the honest answer for an admin who wants somebody's ladder reset.</p>
+     */
+    public void forgetTiming(UUID player) {
+        boolean changed = firstSeen.remove(player) != null;
+        changed |= playedMinutes.remove(player) != null;
+        if (changed) {
+            setDirty();
+        }
     }
 
     // --- nicknames ---
