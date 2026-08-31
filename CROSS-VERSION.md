@@ -241,3 +241,12 @@ one version and comparing.
   re-uploading an existing release gets every file rejected as a duplicate — and rejected files are
   hidden from the author file list by default, so it looks like nothing arrived at all. The
   authoritative view is always `authors.curseforge.com/#/projects/<id>/files`.
+
+- ⚠ **And a file can sit in manual review while its batch-mates go live.** On the 1.3.0 release the
+  1.21.11 and 26.1.2 jars appeared on the public files page within the hour and the 26.2 one did
+  not, despite the workflow logging all three as uploaded with file ids. It was queued for a
+  moderator, and that is routine.
+
+  Worth knowing because **a partly-visible release looks exactly like a partial rejection**, and the
+  rejection case above is the one that needs acting on. Do not re-upload to "fix" it: that is the
+  duplicate path, which really does fail. Check the authors page, see `Under review`, and wait.
