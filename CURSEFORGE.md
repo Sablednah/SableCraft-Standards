@@ -94,6 +94,60 @@ applies live without a restart.
 Every gate is a node, never a hardcoded op check, so a donor rank can have ten homes and a builder
 rank can have `standards.craft` without anybody being handed `/stop`.
 
+### And now you can grant them without installing anything
+
+With no permissions mod, NeoForge answers every question with the node's own default — which means
+**you cannot grant anybody anything.** A trusted regular cannot have flight, a donor cannot have ten
+homes, and a builder cannot have `/craft` without being made an operator, which also hands them
+`/stop`.
+
+So Standards ships a permission handler for exactly that server. One line in
+`neoforge-server.toml`:
+
+```toml
+permissionHandler = "standards:permissions"
+```
+
+and `/rank` appears:
+
+```
+/rank group donor create
+/rank group donor set standards.home.limit.10 true
+/rank group moderator parent add donor      inheritance
+/rank user Steve group add donor            works offline
+/rank check Steve standards.home.limit.10
+```
+
+Groups with inheritance, per-player grants, `standards.*` wildcards, an explicit deny that beats
+everything, and a default group everybody is in without being put there.
+
+**It is dormant unless you choose it.** NeoForge decides which handler is active, not us — install
+LuckPerms and nothing here changes, and `/rank` is not even registered. If you outgrow this, install
+LuckPerms and change that one line back. No import, no export, nothing to migrate off.
+
+**It tells you *why*.** Every hour lost to a permissions system is spent asking why a player has
+something, and yes-or-no cannot answer that:
+
+```
+> /rank check Steve standards.home.others
+  standards.home.others = yes (from donor, via standards.home.*)
+> /rank check Steve standards.god
+  standards.god = no (nothing set — the node's own default)
+```
+
+That second line matters as much as the first. A bare "no" reads as a rule somebody wrote, and
+sends you looking for one that does not exist.
+
+**Its groups are also groups.** Put somebody in `moderator` and they get their permission nodes, a
+chat tag, and visibility to every other mod on the server — one edit, no second list to keep in
+sync. LuckPerms cannot do that half: its groups are a permissions concept, and nothing else on the
+server can ask about them. That is why this exists rather than being a smaller copy of LuckPerms.
+
+What it deliberately does **not** have: per-world contexts, temporary nodes, tracks, weights, SQL
+backends, a web editor. Chasing those loses — a half-built LuckPerms is worse than none, because it
+looks like it will keep up and then does not. This is *enough to run a small server*, and honest
+about it.
+
 ## For other mods
 
 Five seams, all soft dependencies — add a `compileOnly` and Standards can be absent at runtime:
