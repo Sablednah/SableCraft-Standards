@@ -55,6 +55,59 @@ public final class KitCommands {
                 .executes(KitCommands::list);
     }
 
+    /**
+     * {@code /kitaccess <kit> <everyone|ops|permission>} — who may claim it.
+     *
+     * <p>Its own command rather than a fourth argument on {@code /setkit}, because locking down a
+     * kit made last week is the common case and should not require standing there holding the
+     * right gear again.</p>
+     *
+     * <ul>
+     * <li>{@code everyone} — anyone who may use {@code /kit}. The default.</li>
+     * <li>{@code ops} — operators. The one for a test kit of best-in-slot gear.</li>
+     * <li>{@code permission} — nobody until granted {@code standards.kit.<name>}. The one for a
+     *     rank: {@code /rank group vip set standards.kit.vipdrop true}. {@code nobody} is accepted
+     *     as a synonym, since that is what the stations config calls the same idea.</li>
+     * </ul>
+     */
+    public static LiteralArgumentBuilder<CommandSourceStack> kitAccess() {
+        LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("kitaccess")
+                .requires(StandardsPermissions.require(StandardsPermissions.SETKIT));
+        var kit = Commands.argument("kit", StringArgumentType.word())
+                .suggests(KitCommands::suggestAllKits);
+        for (Kits.Access access : Kits.Access.values()) {
+            kit.then(Commands.literal(access.key())
+                    .executes(ctx -> setAccess(ctx, access)));
+        }
+        // The synonym, so an admin who learned 'nobody' from stationAccess is not caught out.
+        kit.then(Commands.literal("nobody")
+                .executes(ctx -> setAccess(ctx, Kits.Access.PERMISSION)));
+        return root.then(kit);
+    }
+
+    private static int setAccess(CommandContext<CommandSourceStack> ctx, Kits.Access access) {
+        String name = StringArgumentType.getString(ctx, "kit");
+        Kits store = Kits.get(ctx.getSource().getServer());
+        if (!store.setAccess(name, access)) {
+            // The message carries a {list} placeholder — every other caller fills it, and leaving
+            // it out prints the braces at the admin, which is how it was caught.
+            Feedback.fail(ctx.getSource(), Lang.fmt("msg.kit.unknown",
+                    "name", name, "list", String.join(", ", store.names())));
+            return 0;
+        }
+        Feedback.reply(ctx.getSource(), Lang.fmt("msg.kit.access_set",
+                "name", name, "access", Lang.get("msg.kit.access_" + access.key())), true);
+        return 1;
+    }
+
+    /** Every kit, claimable or not — an admin locking one down must be able to name it. */
+    private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions>
+            suggestAllKits(CommandContext<CommandSourceStack> ctx,
+                    com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+        return net.minecraft.commands.SharedSuggestionProvider.suggest(
+                Kits.get(ctx.getSource().getServer()).names(), builder);
+    }
+
     public static LiteralArgumentBuilder<CommandSourceStack> setKit() {
         LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("setkit")
                 .requires(StandardsPermissions.require(StandardsPermissions.SETKIT))
@@ -159,6 +212,10 @@ public final class KitCommands {
                 "name", kit.name(),
                 "cooldown", kit.cooldownSeconds() <= 0
                         ? Lang.get("msg.kit.no_cooldown") : Kits.describeCooldown(kit)));
+        // Who may claim it, because a kit that is locked down looks identical to one that is not
+        // until somebody is refused — and the person refused is never the person who set it.
+        sb.append("\n").append(Lang.fmt("msg.kit.access_line",
+                "access", Lang.get("msg.kit.access_" + kit.access().key())));
         for (ItemStack stack : kit.items()) {
             sb.append("\n").append(Lang.fmt("msg.kit.contents_line",
                     "count", stack.getCount(), "item", stack.getHoverName().getString()));
@@ -189,7 +246,9 @@ public final class KitCommands {
             return 0;
         }
         Kits store = Kits.get(player.level().getServer());
-        boolean replaced = store.define(name, player, scope, cooldown);
+        // New kits are open by default, which is what almost every kit is for. Lock one down
+        // with /kitaccess rather than making every /setkit carry an argument nobody usually wants.
+        boolean replaced = store.define(name, player, scope, cooldown, Kits.Access.EVERYONE);
         int count = store.byName(name).map(k -> k.items().size()).orElse(0);
         if (count == 0) {
             Feedback.chat(player, Lang.get("msg.kit.empty_capture"));
