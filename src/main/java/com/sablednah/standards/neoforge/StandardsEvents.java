@@ -666,6 +666,42 @@ public final class StandardsEvents {
                 + " to use Standards' own groups instead.", active);
     }
 
+    /**
+     * Fire a bound power tool on right-click.
+     *
+     * <p><b>Main hand only.</b> Vanilla raises this for the off-hand too, so without the check a
+     * bound tool runs its command twice per click — which for {@code /jump} means going twice as
+     * far as you meant to, and for anything with a cost means paying it twice.</p>
+     *
+     * <p>Cancelled when it fires, or right-clicking a bound block would also place it. A staff
+     * member flying around a build with a bound stick is exactly who would notice.</p>
+     */
+    @SubscribeEvent
+    static void onPowerToolUse(
+            net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickItem event) {
+        firePowerTool(event, event.getEntity(), event.getHand());
+    }
+
+    @SubscribeEvent
+    static void onPowerToolUseOnBlock(
+            net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock event) {
+        firePowerTool(event, event.getEntity(), event.getHand());
+    }
+
+    private static void firePowerTool(net.neoforged.bus.api.Event event,
+            net.minecraft.world.entity.player.Player who,
+            net.minecraft.world.InteractionHand hand) {
+        if (!StandardsConfig.ENABLE_POWERTOOL.get()
+                || hand != net.minecraft.world.InteractionHand.MAIN_HAND
+                || !(who instanceof ServerPlayer player)) {
+            return;
+        }
+        if (com.sablednah.standards.neoforge.commands.PowerToolCommand.use(player)
+                && event instanceof net.neoforged.bus.api.ICancellableEvent cancellable) {
+            cancellable.setCanceled(true);
+        }
+    }
+
     @SubscribeEvent
     static void onServerStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent event) {
         StandardsGroupProvider.uninstall();

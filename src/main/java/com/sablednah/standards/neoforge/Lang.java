@@ -500,6 +500,71 @@ public final class Lang {
         def("msg.item.given", "{term.prefix} &7Given &f{count}&7 x &f{item}&7.");
     }
 
+    // --- msg.item.* : the held-item tools ---
+    static {
+        def("msg.item.empty_hand", "&cYou are not holding anything.");
+        def("msg.item.not_repairable", "&f{item}&c cannot be damaged, so there is nothing to mend.");
+        def("msg.item.already_whole", "{term.prefix} &7Your &f{item}&7 is already as good as new.");
+        def("msg.item.repaired", "{term.prefix} &7Mended your &f{item}&7.");
+        def("msg.item.repaired_all", "{term.prefix} &7Mended &f{count}&7 item(s).");
+        def("msg.item.nothing_to_repair", "{term.prefix} &7Nothing you are carrying is damaged.");
+        def("msg.item.already_full", "{term.prefix} &7That is already a full stack of &f{count}&7.");
+        def("msg.item.more", "{term.prefix} &7Added &f{count}&7 more &f{item}&7.");
+        def("msg.item.condensed", "{term.prefix} &7Tidied &f{count}&7 item(s) into fuller stacks.");
+        def("msg.item.nothing_to_condense", "{term.prefix} &7Nothing to tidy — no half-empty stacks.");
+        def("msg.item.named", "{term.prefix} &7That is now called &f{name}&7.");
+        def("msg.item.name_cleared", "{term.prefix} &7Name removed.");
+        def("msg.item.lore_added", "{term.prefix} &7Lore line &f{count}&7 added.");
+        def("msg.item.lore_cleared", "{term.prefix} &7Lore removed.");
+        def("msg.item.lore_full", "&cThat item already has the most lore an item may have ({max}).");
+    }
+
+    // --- msg.pt.* : power tools ---
+    static {
+        def("msg.pt.bound", "{term.prefix} &7Right-clicking &f{item}&7 now runs &f/{command}&7. {term.dim}(/pt clear to undo)");
+        def("msg.pt.cleared", "{term.prefix} &7&f{item}&7 does nothing special again.");
+        def("msg.pt.cleared_all", "{term.prefix} &7Cleared &f{count}&7 binding(s).");
+        def("msg.pt.current", "{term.prefix} &f{item}&7 runs &f/{command}&7.");
+        def("msg.pt.nothing_bound", "{term.prefix} &7Nothing is bound to &f{item}&7.");
+        def("msg.pt.none", "{term.prefix} &7You have nothing bound.");
+        def("msg.pt.list_header", "{term.prefix} &7{count} binding(s):");
+        def("msg.pt.list_row", " &f{item} {term.dim}-&r runs &f/{command}");
+        def("msg.pt.empty", "&cBind it to what, exactly?");
+        def("msg.pt.recursive", "&cBinding /powertool to an item is a loop you right-click your way into.");
+    }
+
+    // --- msg.where.* : depth and bearing ---
+    static {
+        def("msg.where.depth_above", "{term.prefix} &7You are at &fy {y}&7 — &f{n}&7 above sea level.");
+        def("msg.where.depth_below", "{term.prefix} &7You are at &fy {y}&7 — &f{n}&7 below sea level.");
+        def("msg.where.depth_level", "{term.prefix} &7You are at &fy {y}&7, exactly sea level.");
+        def("msg.where.compass", "{term.prefix} &7Facing &f{direction}&7 {term.dim}({bearing} degrees)");
+        def("msg.where.n", "north");
+        def("msg.where.ne", "north-east");
+        def("msg.where.e", "east");
+        def("msg.where.se", "south-east");
+        def("msg.where.s", "south");
+        def("msg.where.sw", "south-west");
+        def("msg.where.w", "west");
+        def("msg.where.nw", "north-west");
+    }
+
+    // --- msg.world.* / msg.sudo.* / msg.playtime.* ---
+    static {
+        def("msg.world.went", "{term.prefix} &7Off to &f{world}&7, same coordinates.");
+        def("msg.world.already", "{term.prefix} &7You are already in &f{world}&7.");
+        def("msg.world.list", "{term.prefix} &7{count} world(s): &f{list}");
+        def("msg.sudo.running", "{term.prefix} &7Running &f/{command}&7 as &f{player}&7...");
+        def("msg.sudo.empty", "&cRun what, exactly?");
+        def("msg.sudo.recursive", "&cNo. That way lies a loop.");
+        def("msg.playtime.self", "{term.prefix} &7You have played for &f{time}&7.");
+        def("msg.playtime.other", "{term.prefix} &f{player}&7 has played for &f{time}&7.");
+        def("msg.playtime.none", "no time at all yet");
+        def("msg.playtime.board_header", "{term.prefix} &7Longest played:");
+        def("msg.playtime.board_row", " {term.dim}{rank}.&r &f{player} &7— &f{time}");
+        def("msg.playtime.board_empty", "{term.prefix} &7Nobody has played long enough to count yet.");
+    }
+
     // --- msg.nick.* : nicknames ---
     static {
         def("msg.nick.set", "{term.prefix} &7You are now &f{name}&7 in chat. {term.dim}(/nick - to undo)");

@@ -26,6 +26,12 @@ import com.sablednah.standards.neoforge.commands.StationCommands;
 import com.sablednah.standards.neoforge.commands.GroupCommands;
 import com.sablednah.standards.neoforge.commands.HomeCommands;
 import com.sablednah.standards.neoforge.commands.ItemCommands;
+import com.sablednah.standards.neoforge.commands.WorldCommands;
+import com.sablednah.standards.neoforge.commands.SudoCommand;
+import com.sablednah.standards.neoforge.commands.PowerToolCommand;
+import com.sablednah.standards.neoforge.commands.PlaytimeCommands;
+import com.sablednah.standards.neoforge.commands.LocationCommands;
+import com.sablednah.standards.neoforge.commands.ItemToolCommands;
 import com.sablednah.standards.neoforge.commands.MoveCommands;
 import com.sablednah.standards.neoforge.commands.NickCommands;
 import com.sablednah.standards.neoforge.commands.PermissionCommands;
@@ -268,6 +274,38 @@ public final class StandardsCommands {
         if (StandardsConfig.ENABLE_BUTCHER.get()) {
             dispatcher.register(ButcherCommand.build("butcher"));
             dispatcher.register(ButcherCommand.build("killall"));
+        }
+
+        // --- the small held-item tools ---
+        if (StandardsConfig.ENABLE_ITEM_TOOLS.get()) {
+            dispatcher.register(ItemToolCommands.repair("repair"));
+            dispatcher.register(ItemToolCommands.repair("fix"));
+            dispatcher.register(ItemToolCommands.more());
+            dispatcher.register(ItemToolCommands.condense());
+            dispatcher.register(ItemToolCommands.itemName());
+            dispatcher.register(ItemToolCommands.itemLore());
+        }
+        if (StandardsConfig.ENABLE_POWERTOOL.get()) {
+            dispatcher.register(PowerToolCommand.build("powertool"));
+            dispatcher.register(PowerToolCommand.build("pt"));
+        }
+
+        // --- where you are, for a server running reducedDebugInfo ---
+        if (StandardsConfig.ENABLE_WHERE.get()) {
+            dispatcher.register(LocationCommands.depth());
+            dispatcher.register(LocationCommands.compass());
+        }
+        if (StandardsConfig.ENABLE_WORLD.get()) {
+            dispatcher.register(WorldCommands.world());
+            dispatcher.register(WorldCommands.worlds());
+        }
+        if (StandardsConfig.ENABLE_SUDO.get()) {
+            dispatcher.register(SudoCommand.build());
+        }
+        if (StandardsConfig.ENABLE_PLAYTIME.get()) {
+            dispatcher.register(PlaytimeCommands.playtime());
+            dispatcher.register(PlaytimeCommands.leaderboard("leaderboard"));
+            dispatcher.register(PlaytimeCommands.leaderboard("playtop"));
         }
 
         // --- giving yourself things ---
