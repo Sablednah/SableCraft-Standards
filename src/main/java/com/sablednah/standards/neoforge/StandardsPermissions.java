@@ -178,6 +178,52 @@ public final class StandardsPermissions {
     public static final PermissionNode<Boolean> PAY = node("pay", Default.EVERYONE);
     public static final PermissionNode<Boolean> ECO_ADMIN = node("eco", Default.OPS);
 
+    // --- item tools ---
+    /** Repair the held item. A cheat — an anvil and the levels you did not spend. */
+    public static final PermissionNode<Boolean> REPAIR = node("repair", Default.OPS);
+    /** Repair everything you are carrying at once. */
+    public static final PermissionNode<Boolean> REPAIR_ALL = node("repair.all", Default.OPS);
+    /** Fill the held stack. Item duplication, plainly, so ops only. */
+    public static final PermissionNode<Boolean> MORE = node("more", Default.OPS);
+    /**
+     * Merge your own partial stacks.
+     *
+     * <p><b>Everyone</b>, and the only one of these a normal player wants: it creates nothing and
+     * converts nothing, it just tidies up what you are already carrying.</p>
+     */
+    public static final PermissionNode<Boolean> CONDENSE = node("condense", Default.EVERYONE);
+    public static final PermissionNode<Boolean> ITEMNAME = node("itemname", Default.OPS);
+    public static final PermissionNode<Boolean> ITEMLORE = node("itemlore", Default.OPS);
+    /** Bind a command to an item. Runs as the holder, so it is a shortcut and not an escalation. */
+    public static final PermissionNode<Boolean> POWERTOOL = node("powertool", Default.OPS);
+
+    // --- where you are ---
+    /**
+     * Your depth and your bearing.
+     *
+     * <p>Everyone, because on an ordinary server F3 already shows both and there is nothing to
+     * protect. They earn their keep on a server running {@code reducedDebugInfo}, and that owner
+     * can take these away — which is the point of them being separate nodes.</p>
+     */
+    public static final PermissionNode<Boolean> DEPTH = node("depth", Default.EVERYONE);
+    public static final PermissionNode<Boolean> COMPASS = node("compass", Default.EVERYONE);
+
+    /** {@code /world} and {@code /worlds} — moving between dimensions keeping your coordinates. */
+    public static final PermissionNode<Boolean> WORLD = node("world", Default.OPS);
+
+    /**
+     * {@code /sudo} — run a command as somebody, with <em>their</em> permissions.
+     *
+     * <p>Ops only and obviously so, but note what it is not: it cannot give anybody an ability
+     * they lack, because the command is parsed against their source. It is a way to find out what
+     * a rank can really do.</p>
+     */
+    public static final PermissionNode<Boolean> SUDO = node("sudo", Default.OPS);
+
+    /** How long people have actually played. Everyone — it is a scoreboard, not a secret. */
+    public static final PermissionNode<Boolean> PLAYTIME = node("playtime", Default.EVERYONE);
+    public static final PermissionNode<Boolean> PLAYTIME_OTHERS = node("playtime.others", Default.EVERYONE);
+
     // --- admin teleports ---
     /**
      * {@code /tpx} and {@code /tppos} — moving yourself about at will.

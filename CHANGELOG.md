@@ -80,6 +80,33 @@
   nothing, and names LuckPerms' own `tracks` as the equivalent. The warning only appears when rules
   exist.
 
+- **Eight more from the catalogue**, clearing every MAYBE that was worth building:
+
+  - **`/repair` `/fix`** — mend the held item, or `/repair all`. Says so when the item cannot be
+    damaged rather than reporting success on a stack of cobblestone.
+  - **`/more`** fills the held stack; **`/condense`** merges partial stacks and is open to
+    **everyone**, because it creates nothing. Deliberately *not* EssentialsX's nine-ingots-to-a-block
+    conversion: that is a crafting operation and `/craft` already exists.
+  - **`/itemname`** and **`/itemlore`** — `&` colours work; lore adds a line at a time, because a
+    set-everything command needs a separator and whichever character were chosen is the one
+    somebody wants in their text.
+  - **`/powertool` `/pt`** — bind a command to an item, run it by right-clicking. A **staff**
+    shortcut, distinct from LegendQuest's `/bind`, which is a game ability on an item. Dispatched
+    as the holder with the holder's permissions, so it can never be an escalation.
+  - **`/depth` `/compass`** — redundant with F3, *except* on a server running `reducedDebugInfo`,
+    where players have no coordinates or bearing at all. Separate nodes, so you can give out a
+    compass and not a Y coordinate.
+  - **`/world` `/worlds`** — same X and Z, different dimension. **Does not scale coordinates**:
+    that rule belongs to portals, and dividing by eight silently would be wrong exactly when it
+    mattered.
+  - **`/sudo`** — run a command as somebody **with their permissions**. *This reverses the
+    catalogue's reasoning*: `/execute as` does **not** cover it, because brigadier checks
+    permissions at parse time against whoever typed the line. `/sudo` parses against the target, so
+    it can fail — and that refusal is the answer. It is how you test what a rank can really do
+    without asking somebody to log in, which cost a two-client session last time.
+  - **`/playtime` `/leaderboard`** — time online and **not AFK**, so an AFK farm does not climb the
+    board. The same counter promotions wait on.
+
 ### Fixed
 
 - **A message could reach a player with a placeholder still in it.** `/kitaccess` raised

@@ -64,6 +64,12 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_ADMIN_TP;
     public static final ModConfigSpec.BooleanValue ENABLE_MOTD;
     public static final ModConfigSpec.BooleanValue ENABLE_BUTCHER;
+    public static final ModConfigSpec.BooleanValue ENABLE_ITEM_TOOLS;
+    public static final ModConfigSpec.BooleanValue ENABLE_POWERTOOL;
+    public static final ModConfigSpec.BooleanValue ENABLE_WHERE;
+    public static final ModConfigSpec.BooleanValue ENABLE_WORLD;
+    public static final ModConfigSpec.BooleanValue ENABLE_SUDO;
+    public static final ModConfigSpec.BooleanValue ENABLE_PLAYTIME;
     public static final ModConfigSpec.IntValue NICK_MAX_LENGTH;
     public static final ModConfigSpec.ConfigValue<String> NICK_PREFIX;
 
@@ -272,6 +278,44 @@ public final class StandardsConfig {
                         "modpack server. Never touches players, tamed animals or named mobs",
                         "unless you ask it to.")
                 .define("butcher", true);
+        ENABLE_ITEM_TOOLS = BUILDER
+                .comment("/repair, /more, /condense, /itemname, /itemlore. Only /condense is open",
+                        "to everyone — it merges partial stacks you already have, creating",
+                        "nothing. The rest are op-gated because they make items or value out of",
+                        "thin air.")
+                .define("itemTools", true);
+        ENABLE_POWERTOOL = BUILDER
+                .comment("/powertool and /pt — bind a command to the item you are holding, and",
+                        "run it by right-clicking. A staff shortcut: a stick that runs /jump.",
+                        "The command runs as the HOLDER with the holder's permissions, so a",
+                        "bound tool cannot hand anybody an ability they do not have.",
+                        "Distinct from LegendQuest's /bind, which is a game ability on an item.")
+                .define("powertool", true);
+        ENABLE_WHERE = BUILDER
+                .comment("/depth and /compass. Mostly redundant with F3 — but a server running",
+                        "the reducedDebugInfo gamerule leaves players with no coordinates and no",
+                        "bearing at all, and these become the only way to give some of it back.",
+                        "Separate nodes, so you can hand out a compass and not a Y coordinate.")
+                .define("where", true);
+        ENABLE_WORLD = BUILDER
+                .comment("/world <dimension> and /worlds. Keeps your X and Z and changes only the",
+                        "world, which is what /tppos cannot do without you typing coordinates.",
+                        "It does NOT scale coordinates the way a portal does: x=800 stays x=800.")
+                .define("world", true);
+        ENABLE_SUDO = BUILDER
+                .comment("/sudo <player> <command> — run a command as somebody, WITH THEIR",
+                        "PERMISSIONS. Vanilla's /execute as does not do this: brigadier checks",
+                        "permissions when it parses, against whoever typed the line, so",
+                        "'/execute as Steve run fly on' runs with yours.",
+                        "This parses against the target, so it can fail — and that refusal is",
+                        "the answer. It is how you test what a rank can really do without asking",
+                        "somebody to log in. Every use is logged.")
+                .define("sudo", true);
+        ENABLE_PLAYTIME = BUILDER
+                .comment("/playtime and /leaderboard. Counts time online and NOT away, unlike",
+                        "Minecraft's own play-time statistic, so an AFK farm does not climb the",
+                        "board. Same counter the promotion ladder waits on.")
+                .define("playtime", true);
         ENABLE_ITEM = BUILDER
                 .comment("/i and /item — give yourself a stack. Vanilla's /give is untouched;",
                         "this is the short form for the commonest case, which is giving",

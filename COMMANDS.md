@@ -155,7 +155,7 @@ never learn which ledger answered.
 | `/jail` `/setjail` `/deljail` `/jails` | ✓ | ✗ | Jail a player | **NO** | *Answered: out of scope* — past the moderation boundary. |
 | `/invsee` | ✓ | ✓ | See a player's inventory | **DONE** | A **live** six-row view — items taken really leave the player, since a copy would duplicate them. Laid out as main / hotbar / armour+offhand rather than 42 undifferentiated squares. |
 | `/enderchest` `/ec` | ✓ | ✓ | Open your ender chest | **DONE** | |
-| `/sudo` | ✓ | ✗ | Run a command as someone | MAYBE | Vanilla `/execute as` covers most of it. |
+| `/sudo` | ✓ | ✗ | Run a command as someone | **DONE** | *The old note was wrong.* `/execute as` runs with **your** permissions — brigadier checks them at parse time against whoever typed the line. This parses against the target, so **it can fail, and that refusal is the answer**. It is how you test what a rank can really do without asking somebody to log in. Every use logged. |
 | `/whois` | ✓ | ✗ | Player info dump | YES | |
 
 **Decision — answered:**
@@ -174,13 +174,13 @@ never learn which ledger answered.
 | `/trashcan` `/disposal` | ✓ | ✓ | Throwaway inventory | **DONE** | Backed by a throwaway container, so nothing can be recovered by force-closing the screen. |
 | `/craft` `/workbench` | ✓ | ✓ | Portable crafting table | **DONE** | Permission **denied by default** — see below. |
 | `/anvil` `/grindstone` | ✓ | partial | Portable stations | **DONE** | The two that earn their place. Loom, stonecutter, smithing and cartography deliberately left out. |
-| `/repair` `/fix` | ✓ | ✗ | Repair held item | MAYBE | Straightforwardly a cheat on a survival server. Op-only, or config-off by default. |
-| `/more` `/condense` | ✓ | ✗ | Fill stack / compact items | MAYBE | `/condense` is genuinely handy and not a cheat. |
+| `/repair` `/fix` | ✓ | ✗ | Repair held item | **DONE** | Op-gated, and `/repair all` behind its own node. Says so when the held item cannot be damaged rather than reporting success on a stack of cobblestone. |
+| `/more` `/condense` | ✓ | ✗ | Fill stack / compact items | **DONE** | `/condense` merges partial stacks and is open to **everyone** — it creates nothing. Deliberately **not** the nine-ingots-to-a-block conversion EssentialsX does under this name: that is a crafting operation, and `/craft` already exists. `/more` is duplication, so ops only. |
 | `/give` `/item` `/i` | ✓ | ✗ | Spawn items | **DONE** | *Verdict overturned.* The short alias **is** the draw, and in a mod whose stated thesis is that muscle memory is the product, that is sufficient — the owner was still typing `/i` months after this said NO. `/i <item> [count]`, a full stack by default, op-gated. Vanilla's `/give` is untouched. |
 | `/clearinventory` `/ci` | ✓ | ✗ | Clear inventory | NO | Vanilla `/clear`. |
-| `/itemname` `/itemlore` | ✓ | ✗ | Rename/relabel an item | MAYBE | Nice for server builds and lore items. |
+| `/itemname` `/itemlore` | ✓ | ✗ | Rename/relabel an item | **DONE** | `&` colours work. Lore is add-a-line rather than set-everything: a whole-list command needs a separator, and whichever character were picked is the one somebody wants in their text. |
 | `/skull` `/head` | ✓ | ✗ | Player-head shortcut | YES | Cheap. |
-| `/powertool` `/pt` | ✓ | ✗ | Bind a command to an item | MAYBE | **Overlaps LegendQuest's `/bind`.** Coordinate the two or drop it. |
+| `/powertool` `/pt` | ✓ | ✗ | Bind a command to an item | **DONE** | *Answered: they are different tools.* LQ's `/bind` is a **game** ability on an item, earned and balanced; `/pt` is a **staff** shortcut — a stick that runs `/jump`. Bound per player per item type, and dispatched as the holder with the holder's permissions, so it can never be an escalation. |
 | `/unlimited` | ✓ | ✗ | Infinite placing | NO | |
 | `/enchant` | ✓ | ✗ | Enchant held item | NO | Vanilla `/enchant`. |
 | `/itemdb` `/dura` | ✓ | ✗ | Item id / durability | MAYBE | Modern clients show this. |
@@ -219,14 +219,14 @@ never learn which ledger answered.
 | `/time` `/day` `/night` | ✓ | ✗ | Change time | NO | Vanilla `/time`. |
 | `/weather` `/sun` `/storm` | ✓ | ✗ | Change weather | NO | Vanilla `/weather`. |
 | `/gc` `/tps` `/lag` `/mem` | ✓ | ✗ | Server health | **DONE** | Genuinely useful on a modpack server, and the mod-loader ones are all worse than this. |
-| `/world` | ✓ | ✗ | Switch worlds | MAYBE | Overlaps `/tpx` and dimension-aware warps. |
+| `/world` `/worlds` | ✓ | ✗ | Switch worlds | **DONE** | Keeps your X and Z and changes only the world, which is what `/tppos` cannot do without you typing coordinates. **Does not scale coordinates** — x=800 stays x=800; that rule belongs to portals, and silently dividing by eight would be wrong exactly when it mattered. |
 | `/near` | ✓ | ✓ | Nearby players | YES | (Also listed in Chat.) |
 | `/getpos` `/coords` `/whereami` | ✓ | ✗ | Your coordinates | YES | F3 exists; this works on servers that hide it. |
-| `/depth` `/compass` | ✓ | ✗ | Depth / bearing | MAYBE | |
+| `/depth` `/compass` | ✓ | ✗ | Depth / bearing | **DONE** | Redundant with F3 — *except* on a server running the `reducedDebugInfo` gamerule, where players have no coordinates or bearing at all and these are the only way to give some back. Separate nodes, so an owner can hand out a compass and not a Y coordinate. |
 | `/butcher` `/killall` | ✓ | ✗ | Clear entities in a radius | **DONE** | Hostiles only unless you add `all`. **Never** players, tamed animals, named mobs or anything vanilla marks persistent — that skip list is the whole command, and it is why `/killall` has a bad name elsewhere. |
 | `/spawnmob` `/spawner` | ✓ | ✗ | Spawn mobs / change spawners | NO | Vanilla `/summon`; ZombieMod owns the interesting half. |
 | `/tree` `/bigtree` | ✓ | ✗ | Grow a tree | NO | |
-| `/leaderboard` | ✗ | ✓ | Statistic leaderboards | MAYBE | FTB-only. Nice with `/baltop` and `/playtime`. |
+| `/leaderboard` `/playtime` | ✗ | ✓ | Statistic leaderboards | **DONE** | Playtime only, not a general statistics browser — money already has `/baltop` and those are the two anybody asks for. Counts time **not AFK**, unlike Minecraft's own statistic, so an AFK farm does not climb the board. Same counter the promotion ladder waits on. |
 | `/kickme` | ✗ | ✓ | Kick yourself | NO | FTB curiosity. |
 | `/editsign` `/sign` | ✓ | ✗ | Edit a placed sign | YES | Useful for builds; CityWorld's sign work proves the API. |
 | `/backup` | ✓ | ✗ | Run the configured backup | NO | Server-host territory. |
