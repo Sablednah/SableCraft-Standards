@@ -7,7 +7,8 @@ actually knows.
 `GroupProvider`, `Groups`, `ClaimProvider`, `Claims` — with 31 self-test checks. Since then it has
 grown two real consumers on each side, which is what the specification below was waiting for:
 
-- **Standards drives it itself.** `/group` registers a `standards:group` provider, and group tags
+- **Standards drives it itself, twice.** `/group` registers a `standards:group` provider and the
+  built-in permission handler registers a non-exclusive `standards:role` one; group tags
   render in chat through the decorator seam, ordered by `groupTagKinds`.
 - **[Factions ReForged](https://github.com/Sablednah/Factions-ReForged) registers both** — a
   `factions:faction` group kind and a `factions:claims` provider — and its block, interaction and
@@ -122,6 +123,15 @@ Groups.all(player, kind)       // Collection<Group> — any kind
 Returning a flat list for everything and letting callers work it out pushes the same de-duplication
 into every call site, and they will not all get it right. Both cases exist on day one — parties and
 factions are exclusive, roles are not — so the rule gets tested rather than assumed.
+
+**And both now exist in Standards itself.** `standards:group` is the exclusive one — the built-in
+social groups, where a shared home has to belong to exactly one. `standards:role` is not: it is the
+built-in permission handler's groups, published here so that putting somebody in `moderator` gets
+them their nodes, a chat tag and cross-mod visibility in one edit. See `PERMISSIONS.md`. It answers
+with **direct** membership only — somebody in `admin` which *inherits* `moderator` is a member of
+`admin` and not of `moderator`, because inheritance moves nodes down the chain rather than people
+up it, and rendering both tags on their chat line would be the first visible consequence of
+conflating the two.
 
 ### Membership may be computed, not stored
 

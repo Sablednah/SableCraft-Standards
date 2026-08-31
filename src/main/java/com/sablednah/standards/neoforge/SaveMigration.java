@@ -60,7 +60,11 @@ public final class SaveMigration {
             "standards_kits",   "standards/kits",
             "standards_mail",   "standards/mail",
             "standards_mutes",  "standards/mutes",
-            "standards_groups", "standards/groups");
+            "standards_groups", "standards/groups",
+            // Added in 1.3.0, which shipped on all three lines at once — so a 1.21.11 world can
+            // already hold ranks and grants before it is ever upgraded. Missing this would lose
+            // every permission group on the way across, silently, exactly as the others would.
+            "standards_permissions", "standards/permissions");
 
     public static void run(MinecraftServer server) {
         Path root = server.getWorldPath(LevelResource.ROOT);
