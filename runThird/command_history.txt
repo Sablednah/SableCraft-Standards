@@ -1,7 +1,0 @@
-/msg TestBuddy hello tb
-/f request SableTopia
-/f request tbf
-/f status
-/f who tbf
-/f accept sablednah
-/f requests
