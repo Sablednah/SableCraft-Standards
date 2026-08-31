@@ -240,6 +240,15 @@ one version and comparing.
   generator silently regenerated against whichever cached jar sorted first once two versions
   existed. Our `.apisrc/` reference extraction has the same shape — key it per version or delete it
   between retargets.
+- ⚠ **The CurseForge Java tag used to be hardcoded `Java 21`**, which was right for 1.21.11 and
+  quietly wrong for every 26.x jar — those compile against Java 25, and the file page told people
+  21 would do. Nothing failed, because CurseForge accepts whatever tag it is handed; 1.2.0 and
+  1.3.0 both shipped with it. `scripts/curseforge-upload.sh` now reads the class-file major version
+  out of the jar's own `com/sablednah/` classes (major = 44 + release) and takes the highest, so
+  **the artefact states its own requirement** and cannot disagree with what was built. A lookup
+  table keyed on the Minecraft version would have fixed today and rotted the next time a line moved
+  its toolchain.
+
 - **Publishing to CurseForge right after a Minecraft release will fail**, because CurseForge has to
   add the version before anything can be uploaded against it. That is expected, not a bug.
 - **HTTP 200 from CurseForge means accepted, not published.** It dedupes by file content, so
