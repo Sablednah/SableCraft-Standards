@@ -126,7 +126,7 @@ public final class PermissionStore extends SavedData {
      * <p>Direct membership only — somebody in {@code admin} which inherits {@code moderator} is
      * not listed under {@code moderator}, because they are not in it. Inheritance moves
      * <em>nodes</em> down the chain, not people up it, and conflating the two is how
-     * {@code /perm group moderator info} ends up listing the whole server.</p>
+     * {@code /rank group moderator info} ends up listing the whole server.</p>
      */
     public List<UUID> membersOf(String group) {
         String wanted = key(group);
