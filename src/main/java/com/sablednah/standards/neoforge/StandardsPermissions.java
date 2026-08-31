@@ -182,6 +182,15 @@ public final class StandardsPermissions {
 
     // --- admin ---
     public static final PermissionNode<Boolean> ADMIN = node("admin", Default.OPS);
+    /**
+     * Editing the built-in permission handler's groups and grants.
+     *
+     * <p>Separate from {@link #ADMIN} because the two are different jobs: reloading messages is a
+     * caretaker's task, and handing out permissions is how somebody becomes an operator by proxy.
+     * A server that wants a moderator able to run {@code /standards reload} should not have to
+     * make them able to grant themselves {@code standards.*}.</p>
+     */
+    public static final PermissionNode<Boolean> PERMISSIONS = node("permissions", Default.OPS);
 
     private static PermissionNode<Boolean> node(String path, Default fallback) {
         PermissionNode<Boolean> created = new PermissionNode<>(
@@ -232,6 +241,24 @@ public final class StandardsPermissions {
         Standards.LOGGER.info("Registered {} permission nodes ({} home limits, {} kits)",
                 FIXED.size() + HOME_LIMITS.size() + KIT_NODES.size(),
                 HOME_LIMITS.size(), KIT_NODES.size());
+    }
+
+    /**
+     * Offer Standards' own handler to NeoForge, for servers with no permissions mod.
+     *
+     * <p><b>Offering is not choosing.</b> {@code PermissionAPI} is the facade and the server owner
+     * picks the active handler by name in {@code neoforge-server.toml}; this only puts ours on the
+     * list. A server running LuckPerms registers this and never calls it, which is exactly the
+     * intended outcome — see {@link com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler}.</p>
+     *
+     * <p>Fired before {@code ServerStartingEvent}, so nothing here may touch the world: the
+     * handler resolves its store lazily on the first question instead.</p>
+     */
+    @SubscribeEvent
+    static void onGatherHandler(PermissionGatherEvent.Handler event) {
+        event.addPermissionHandler(
+                com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler.IDENTIFIER,
+                com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler::new);
     }
 
     /** Ask a node about a player. */

@@ -578,14 +578,46 @@ public final class StandardsEvents {
         if (StandardsConfig.ENABLE_GROUPS.get()) {
             StandardsGroupProvider.install(event.getServer());
         }
+        if (StandardsConfig.PUBLISH_PERMISSION_ROLES.get()) {
+            com.sablednah.standards.neoforge.permissions.PermissionRoles.install(event.getServer());
+        }
         // After the provider, so a kind listed in config already has one to resolve against —
         // though the decorator copes either way, since a mod may register a kind later still.
         GroupTags.install();
+        announcePermissions(event.getServer());
+    }
+
+    /**
+     * Say who is answering permission questions, and what our store holds if it is us.
+     *
+     * <p>Two failures this exists for, both paid for already. An unhealthy LuckPerms answers
+     * <em>false</em> to everything and every gated command silently vanishes from the tree, which
+     * a player experiences as "Unknown or incomplete command" and an admin experiences as a broken
+     * mod — an hour went into that before the LP error at the top of the boot log was spotted.
+     * Naming the active handler on every start puts the first question where it will be read.</p>
+     *
+     * <p>And the count, because <b>a write is not a success until something reads it back</b>: an
+     * empty store is indistinguishable from a server nobody has configured, and that ambiguity is
+     * what let a migration bug survive a whole day of testing next door.</p>
+     */
+    private static void announcePermissions(net.minecraft.server.MinecraftServer server) {
+        if (com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler.isActive()) {
+            Standards.LOGGER.info("Permissions: Standards' own handler is active, holding {}",
+                    com.sablednah.standards.neoforge.permissions.PermissionStore.get(server)
+                            .summary());
+            return;
+        }
+        var active = net.neoforged.neoforge.server.permission.PermissionAPI
+                .getActivePermissionHandler();
+        Standards.LOGGER.info("Permissions: answered by {} — /perm is not registered."
+                + " Set permissionHandler = \"standards:permissions\" in neoforge-server.toml"
+                + " to use Standards' own groups instead.", active);
     }
 
     @SubscribeEvent
     static void onServerStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent event) {
         StandardsGroupProvider.uninstall();
+        com.sablednah.standards.neoforge.permissions.PermissionRoles.uninstall();
     }
 
     /**

@@ -1,5 +1,63 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **A built-in permission handler**, for servers with no permissions mod. One line in
+  `neoforge-server.toml` — `permissionHandler = "standards:permissions"` — and `/rank` appears:
+  groups with inheritance, per-player grants, `standards.home.*` wildcards, an explicit deny that
+  beats everything, and a default group everybody is in without being put there.
+
+  It is **one more handler, not a Vault.** NeoForge's `PermissionAPI` is already the facade and the
+  owner picks the active handler by name, so this is dormant unless chosen and a server running
+  LuckPerms is untouched. Nothing in Standards' own config turns it on; a second switch beside
+  NeoForge's would be the arbitration layer this deliberately avoids.
+
+  The gap it fills is that NeoForge's default handler answers every question with the node's own
+  default, so on a server with no permissions mod **you cannot grant anybody anything** —
+  `standards.fly` is op-or-nothing, and a builder cannot have `/craft` without also getting
+  `/stop`.
+
+  `/rank user <player> info` and `/rank check <player> <node>` say **which rule answered**, not
+  just yes or no: `standards.home.others = yes (from donor, via standards.home.*)`. Every hour lost
+  to a permissions system is spent asking why a player has something.
+
+- **Permission groups are groups.** They are published through the groups API as `standards:role`,
+  so putting somebody in `moderator` gets them their nodes, a chat tag (add `standards:role` to
+  `chat.groupTagKinds`) and visibility to any other mod, in one edit with no second list to keep in
+  sync. LuckPerms cannot do that half — its groups are a permissions concept and nothing else on
+  the server can ask about them — and it is the reason this exists rather than being a smaller copy
+  of LuckPerms.
+
+- `/standards permissions` — which handler is actually answering. The first thing to check when a
+  gated command has quietly vanished for everybody, because a permissions manager whose storage
+  failed to start answers false to everything and the whole mod looks broken with nothing on screen
+  to say why.
+
+### Fixed
+
+- **A newly granted command rendered red and would not tab-complete** until the player
+  reconnected. The grant itself always worked — the server re-checks permissions on every command
+  it parses — but the client holds a command tree sent once on join, so a player told "you have
+  `/craft` now" typed it, saw *"unknown command"* in red, and reported it broken. Almost nobody
+  presses enter through a red line. `/rank` now resends the tree on every edit.
+
+  One residue is a client behaviour and cannot be reached from a server: a line already sitting in
+  the chat box keeps its old colouring until you touch it. Type a character and it repaints.
+
+### Notes
+
+- `/rank` and `/perm` are the same tree. **`/perm` is not reliably ours**: LuckPerms claims it as
+  an alias of `/luckperms`, so on a server carrying both, a bare `/perm` runs LuckPerms' help while
+  our subcommands still work. `/rank` is claimed by nothing.
+
+- The self-test is at **403 checks**, including the resolution order in both directions, the
+  wildcard command forms, and a round trip through `PermissionAPI` itself. Beyond that it was
+  driven with two clients against the dev server: a genuine non-op was refused an op-gated node,
+  kept an everyone-node, was granted `standards.craft` — which defaults to *nobody*, so not even an
+  operator has it ungranted — and got a crafting table.
+
 ## 1.2.0
 
 ### Added

@@ -55,6 +55,10 @@ public final class Lang {
         def("term.warps", "warps");
         def("term.spawn", "spawn");
         def("term.balance", "balance");
+        // What the built-in permission handler calls one of its groups. A server
+        // that says "rank", "role" or "grade" changes it once and /perm follows.
+        def("term.rank", "rank");
+        def("term.ranks", "ranks");
     }
 
     // --- msg.common.* : the things every command needs to say ---
@@ -462,6 +466,60 @@ public final class Lang {
         def("msg.eco.baltop_unsupported", "&7The active economy cannot list accounts.");
         def("msg.eco.provider", "{term.prefix} &7Economy provider: &f{name}&7 (priority {priority}).");
         def("msg.eco.provider_none", "{term.prefix} &7No economy provider is registered.");
+    }
+
+    // --- msg.perm.* : the built-in permission handler ---
+    static {
+        def("msg.perm.overview", "{term.prefix} &7{groups} {term.ranks}, &f{players}&7 with their own grants, &f{nodes}&7 nodes registered.");
+        def("msg.perm.handler", "{term.prefix} &7Permissions are answered by &f{name}&7.");
+        def("msg.perm.handler_ours", "{term.prefix} &7Permissions: &fStandards&7 — {groups} {term.ranks}. &8(/rank)");
+        def("msg.perm.handler_other", "{term.prefix} &7Permissions: &f{name}&7. &8(/rank is the one we own)");
+        def("msg.perm.none", "none");
+        def("msg.perm.yes", "&ayes");
+        def("msg.perm.no", "&cno");
+        def("msg.perm.scope_self", "their own grant");
+        def("msg.perm.no_groups", "{term.prefix} &7No {term.ranks} yet. &8(/rank group <name> create)");
+        def("msg.perm.groups_header", "{term.prefix} &7Every {term.rank} on this server:");
+        def("msg.perm.groups_row", " &f{name} {term.dim}— {nodes} node(s), {members} member(s), inherits {parents}");
+        def("msg.perm.group_header", "{term.prefix} &7{term.rank} &f{name}&7:");
+        def("msg.perm.group_parents", "{term.dim}  inherits:&r {list}");
+        def("msg.perm.group_members", "{term.dim}  members:&r {count}");
+        def("msg.perm.group_tag", "{term.dim}  chat tag:&r [{tag}]");
+        def("msg.perm.no_nodes", "{term.dim}  no nodes set");
+        def("msg.perm.node_row", " &f{node} {term.dim}=&r {state}");
+        def("msg.perm.group_unknown", "&cNo {term.rank} called &f{name}&c.");
+        def("msg.perm.group_exists", "&cThere is already a {term.rank} called &f{name}&c.");
+        def("msg.perm.group_created", "{term.prefix} &7Created {term.rank} &f{name}&7.");
+        def("msg.perm.group_deleted", "{term.prefix} &7Deleted {term.rank} &f{name}&7, and took it off everyone who had it.");
+        def("msg.perm.group_node_set", "{term.prefix} &f{name}&7: &f{node}&7 is now {state}&7.");
+        def("msg.perm.group_node_unset", "{term.prefix} &f{name}&7 no longer says anything about &f{node}&7.");
+        def("msg.perm.parent_added", "{term.prefix} &f{name}&7 now inherits &f{parent}&7.");
+        def("msg.perm.parent_removed", "{term.prefix} &f{name}&7 no longer inherits &f{parent}&7.");
+        // Named rather than a bare refusal: a cycle would hang every permission check, so the
+        // one thing an admin needs to know is which edit was the loop.
+        def("msg.perm.parent_refused", "&c&f{name}&c cannot inherit &f{parent}&c — it already has it, or that would make a loop.");
+        def("msg.perm.parent_absent", "&c&f{name}&c does not inherit &f{parent}&c.");
+        def("msg.perm.tag_set", "{term.prefix} &f{name}&7 wears &f[{tag}]&7 in chat.");
+        def("msg.perm.tag_cleared", "{term.prefix} &f{name}&7 has no chat tag.");
+        def("msg.perm.user_header", "{term.prefix} &7&f{player}&7:");
+        def("msg.perm.user_groups", "{term.dim}  {term.ranks}:&r {list}");
+        def("msg.perm.user_own", "{term.dim}  their own grants:");
+        def("msg.perm.user_effective", "{term.dim}  what that adds up to:");
+        def("msg.perm.user_wildcards", "{term.dim}  wildcards in play:&r {list}");
+        def("msg.perm.user_nothing", "{term.dim}  nothing here says anything — every node falls back to its own default");
+        // The line the whole feature earns its keep with. Every hour lost to a permissions
+        // system is spent asking why a player has something, and yes/no cannot answer that.
+        def("msg.perm.row_answered", " &f{node} {term.dim}=&r {state} {term.dim}(from {scope}, via {rule})");
+        def("msg.perm.row_default", " &f{node} {term.dim}=&r {state} {term.dim}(nothing set — the node's own default)");
+        def("msg.perm.bad_spec", "&cWrite a node, optionally followed by true or false — not &f{input}&c.");
+        def("msg.perm.check_header", "{term.prefix} &f{player}&7 and &f{node}&7:");
+        def("msg.perm.user_node_set", "{term.prefix} &f{player}&7: &f{node}&7 is now {state}&7.");
+        def("msg.perm.user_node_unset", "{term.prefix} &f{player}&7 no longer has &f{node}&7 set either way.");
+        def("msg.perm.user_node_absent", "&c&f{player}&c had nothing set for &f{node}&c.");
+        def("msg.perm.already_member", "&c&f{player}&c is already in &f{name}&c.");
+        def("msg.perm.not_member", "&c&f{player}&c is not in &f{name}&c.");
+        def("msg.perm.joined", "{term.prefix} &f{player}&7 is now in &f{name}&7.");
+        def("msg.perm.left", "{term.prefix} &f{player}&7 is no longer in &f{name}&7.");
     }
 
     // --- msg.admin.* ---

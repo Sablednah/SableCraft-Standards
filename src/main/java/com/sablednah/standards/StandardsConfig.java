@@ -99,6 +99,10 @@ public final class StandardsConfig {
     public static final ModConfigSpec.IntValue AFK_KICK_SECONDS;
     public static final ModConfigSpec.BooleanValue AFK_ANNOUNCE;
     public static final ModConfigSpec.IntValue MAIL_LIMIT;
+    // --- built-in permissions ---
+    public static final ModConfigSpec.ConfigValue<String> DEFAULT_PERMISSION_GROUP;
+    public static final ModConfigSpec.BooleanValue PUBLISH_PERMISSION_ROLES;
+
     public static final ModConfigSpec.ConfigValue<String> CHAT_FORMAT;
     public static final ModConfigSpec.ConfigValue<String> CHAT_AFFIX_SEPARATOR;
     public static final ModConfigSpec.BooleanValue CHAT_ALWAYS_FORMAT;
@@ -474,6 +478,32 @@ public final class StandardsConfig {
         BALTOP_SIZE = BUILDER
                 .comment("How many accounts /baltop lists.")
                 .defineInRange("baltopSize", 10, 1, 100);
+        BUILDER.pop();
+
+        BUILDER.comment("The built-in permission handler: groups and grants for a server with no",
+                        "permissions mod.",
+                        "",
+                        "IT IS OFF UNLESS YOU CHOOSE IT, and not here. NeoForge owns that switch:",
+                        "set permissionHandler = \"standards:permissions\" in neoforge-server.toml.",
+                        "Leave it alone and LuckPerms — or whatever else you run — is untouched,",
+                        "and /perm is not registered at all.",
+                        "",
+                        "Nothing below has any effect until then.")
+                .push("permissions");
+        DEFAULT_PERMISSION_GROUP = BUILDER
+                .comment("The group everybody is in without being put there, checked last of all.",
+                        "This is how you grant something to every player at once. It does not have",
+                        "to exist; if there is no group by this name the step is simply skipped.",
+                        "Blank turns the idea off entirely.")
+                .define("defaultGroup", "default");
+        PUBLISH_PERMISSION_ROLES = BUILDER
+                .comment("Publish permission groups through the groups API as 'standards:role',",
+                        "so other mods can see who is a moderator and so a group can carry a chat",
+                        "tag. Add standards:role to chat.groupTagKinds to render the tag.",
+                        "This is the half LuckPerms cannot do — its groups are a permissions",
+                        "concept and nothing else on the server can ask about them.",
+                        "Harmless when the handler is not active: the groups are simply empty.")
+                .define("publishAsGroups", true);
         BUILDER.pop();
     }
 

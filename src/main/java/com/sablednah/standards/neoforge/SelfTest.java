@@ -24,6 +24,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
 
 /**
  * A headless smoke test, dormant unless {@code -Dstandards.selftest=true}.
@@ -76,6 +77,7 @@ public final class SelfTest {
         checkGroupNamesAreText();
         checkCombat();
         checkAccessFallback();
+        checkPermissionRules();
         checkMoneyFormatting();
         checkCommandsParse(server);
         checkSafeLoc(server);
@@ -84,6 +86,7 @@ public final class SelfTest {
         checkChatDecorators();
         checkInventoryViewMapping();
         checkLedger(server);
+        checkPermissionStore(server);
         checkWaypointRoundTrip(server);
 
         if (failures.isEmpty()) {
@@ -93,6 +96,126 @@ public final class SelfTest {
                     failures.size(), checks);
             failures.forEach(f -> Standards.LOGGER.error("  ✗ {}", f));
         }
+    }
+
+    /**
+     * The built-in permission handler's resolution order.
+     *
+     * <p>Tested against {@link com.sablednah.standards.core.PermissionRules} directly, which is
+     * why that class is pure: this is exactly the sort of logic that reads correctly and is not,
+     * and the alternative — proving it by playing on a server — means shipping it first.</p>
+     *
+     * <p>Every assertion has its opposite. A resolver that answered "true" to everything would
+     * pass half of these, and one that answered "empty" would pass the fallthrough check while
+     * being useless, so both directions are asked at each step.</p>
+     */
+    private void checkPermissionRules() {
+        java.util.function.BiFunction<String, Boolean, java.util.Map<String, Boolean>> one =
+                (node, value) -> java.util.Map.of(node, value);
+
+        // 1. Nothing said anywhere: the caller must fall through to the node's own default. This
+        // is the property that makes the handler safe to switch on, so it is asserted first.
+        check("an unmentioned node has no stored answer",
+                com.sablednah.standards.core.PermissionRules.resolve(
+                        List.of(List.of(new com.sablednah.standards.core.PermissionRules.Scope(
+                                "you", java.util.Map.of()))),
+                        "standards.fly").isEmpty());
+
+        // 2. The player's own tier beats every group, in both directions.
+        var playerDenies = List.of(
+                List.of(new com.sablednah.standards.core.PermissionRules.Scope(
+                        "you", one.apply("standards.fly", false))),
+                List.of(new com.sablednah.standards.core.PermissionRules.Scope(
+                        "mod", one.apply("standards.fly", true))));
+        check("a deny on the player beats a grant in their group",
+                com.sablednah.standards.core.PermissionRules.resolve(playerDenies, "standards.fly")
+                        .map(a -> !a.allowed()).orElse(false));
+        var playerGrants = List.of(
+                List.of(new com.sablednah.standards.core.PermissionRules.Scope(
+                        "you", one.apply("standards.fly", true))),
+                List.of(new com.sablednah.standards.core.PermissionRules.Scope(
+                        "mod", one.apply("standards.fly", false))));
+        check("a grant on the player beats a deny in their group",
+                com.sablednah.standards.core.PermissionRules.resolve(playerGrants, "standards.fly")
+                        .map(com.sablednah.standards.core.PermissionRules.Answer::allowed)
+                        .orElse(false));
+
+        // 3. A child group beats its parent — the rule that makes inheritance worth having.
+        var childBeatsParent = List.of(
+                List.of(new com.sablednah.standards.core.PermissionRules.Scope(
+                        "you", java.util.Map.of())),
+                List.of(new com.sablednah.standards.core.PermissionRules.Scope(
+                        "mod", one.apply("standards.fly", false))),
+                List.of(new com.sablednah.standards.core.PermissionRules.Scope(
+                        "trusted", one.apply("standards.fly", true))));
+        check("a deny in a group beats a grant in its parent",
+                com.sablednah.standards.core.PermissionRules.resolve(
+                        childBeatsParent, "standards.fly")
+                        .map(a -> !a.allowed() && a.scope().equals("mod")).orElse(false));
+
+        // 4. Specificity inside one tier: exact beats a wildcard, however the map is ordered.
+        java.util.Map<String, Boolean> mixed = new java.util.LinkedHashMap<>();
+        mixed.put("standards.*", true);
+        mixed.put("standards.fly", false);
+        var specific = List.of(List.of(
+                new com.sablednah.standards.core.PermissionRules.Scope("donor", mixed)));
+        check("an exact node beats a wildcard that also matches",
+                com.sablednah.standards.core.PermissionRules.resolve(specific, "standards.fly")
+                        .map(a -> !a.allowed() && a.pattern().equals("standards.fly"))
+                        .orElse(false));
+        check("the wildcard still answers everything else it covers",
+                com.sablednah.standards.core.PermissionRules.resolve(specific, "standards.home")
+                        .map(a -> a.allowed() && a.pattern().equals("standards.*")).orElse(false));
+
+        // 5. A longer wildcard prefix beats a shorter one.
+        java.util.Map<String, Boolean> nested = new java.util.LinkedHashMap<>();
+        nested.put("standards.*", false);
+        nested.put("standards.home.*", true);
+        var tiers = List.of(List.of(
+                new com.sablednah.standards.core.PermissionRules.Scope("donor", nested)));
+        check("standards.home.* beats standards.*",
+                com.sablednah.standards.core.PermissionRules.resolve(tiers, "standards.home.others")
+                        .map(com.sablednah.standards.core.PermissionRules.Answer::allowed)
+                        .orElse(false));
+        check("standards.* still answers outside the narrower one",
+                com.sablednah.standards.core.PermissionRules.resolve(tiers, "standards.fly")
+                        .map(a -> !a.allowed()).orElse(false));
+
+        // 6. A trailing wildcard covers the bare node too. Granting standards.home.* and finding
+        // /home still refused is the classic "this system is broken" report.
+        check("a trailing wildcard covers the node it hangs off",
+                com.sablednah.standards.core.PermissionRules.specificity(
+                        "standards.home.*", "standards.home") >= 0);
+        check("a wildcard does not reach a sibling branch",
+                com.sablednah.standards.core.PermissionRules.specificity(
+                        "standards.home.*", "standards.homes") < 0);
+        check("an unrelated exact node does not match",
+                com.sablednah.standards.core.PermissionRules.specificity(
+                        "standards.fly", "standards.god") < 0);
+        check("bare * matches anything, at the lowest specificity",
+                com.sablednah.standards.core.PermissionRules.specificity("*", "anything.at.all")
+                        == 0);
+
+        // 7. Two equally specific rules in the SAME tier: the deny wins. There are no weights to
+        // break the tie with, and guessing the permissive half of a contradiction is the wrong
+        // direction. Asserted both ways round, because a rule that only works when the denying
+        // scope happens to be listed first is not a rule.
+        var denyFirst = List.of(List.of(
+                new com.sablednah.standards.core.PermissionRules.Scope(
+                        "guest", one.apply("standards.fly", false)),
+                new com.sablednah.standards.core.PermissionRules.Scope(
+                        "donor", one.apply("standards.fly", true))));
+        var grantFirst = List.of(List.of(
+                new com.sablednah.standards.core.PermissionRules.Scope(
+                        "donor", one.apply("standards.fly", true)),
+                new com.sablednah.standards.core.PermissionRules.Scope(
+                        "guest", one.apply("standards.fly", false))));
+        check("a tie inside one tier resolves to no (deny listed first)",
+                com.sablednah.standards.core.PermissionRules.resolve(denyFirst, "standards.fly")
+                        .map(a -> !a.allowed()).orElse(false));
+        check("a tie inside one tier resolves to no (grant listed first)",
+                com.sablednah.standards.core.PermissionRules.resolve(grantFirst, "standards.fly")
+                        .map(a -> !a.allowed()).orElse(false));
     }
 
     /** The tri-state that is the whole reason for the mod. Every combination, both directions. */
@@ -765,6 +888,7 @@ public final class SelfTest {
                 "up",
                 "down",
                 "standards testchat hello world",
+                "standards permissions",
                 // Both /eco argument branches: a bare name (offline-capable) and a selector
                 // (command blocks). The order they are registered in is what makes both work.
                 "eco give Steve 100",
@@ -838,12 +962,120 @@ public final class SelfTest {
                         && emoteCommand.getClass().getName()
                                 .startsWith("com.sablednah.standards"));
 
+        // /perm is registered on every server and visible on almost none: its requires() hides
+        // it unless Standards' own permission handler is the active one. Both directions matter —
+        // a gate that hides it always is indistinguishable from one that works, until somebody
+        // switches the handler on and finds nothing there.
+        boolean ours = com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler
+                .isActive();
+        ParseResults<CommandSourceStack> perm =
+                server.getCommands().getDispatcher().parse("rank groups", console);
+        boolean reachable = perm.getExceptions().isEmpty() && !perm.getReader().canRead()
+                && boundCommand(perm) != null;
+        check(ours ? "/rank is reachable while our handler is active"
+                   : "/rank is hidden while another handler is active",
+                reachable == ours);
+        for (String alias : new String[] {"perm", "rank"}) {
+            check("/" + alias + " is registered either way, so switching handlers needs no reload",
+                    server.getCommands().getDispatcher().getRoot().getChild(alias) != null);
+        }
+
+        // The permission tree, but only when it is reachable — requires() hides it otherwise, and
+        // a parse against a hidden command proves nothing either way.
+        if (ours) {
+            for (String command : List.of(
+                    "rank groups",
+                    "rank group staff create",
+                    "rank group staff delete",
+                    "rank group staff info",
+                    "rank group staff parent add trusted",
+                    "rank group staff tag MOD",
+                    "rank user Steve group add staff",
+                    "rank user Steve info",
+                    "rank user Steve set standards.fly false",
+                    "rank check Steve standards.fly",
+                    // THE ONE THAT WAS BROKEN. A wildcard is the feature admins reach for, and
+                    // brigadier's word() stops dead at an asterisk — so every wildcard node was
+                    // unparseable while the resolver handled them perfectly. Proved correct and
+                    // untypeable, which the resolver tests could never have caught.
+                    "rank group staff set standards.home.* true",
+                    "rank group staff unset standards.*",
+                    "rank user Steve set standards.* true",
+                    "rank check Steve standards.home.*")) {
+                ParseResults<CommandSourceStack> parsed =
+                        server.getCommands().getDispatcher().parse(command, console);
+                check("/" + command + " parses to an executable node",
+                        parsed.getExceptions().isEmpty() && !parsed.getReader().canRead()
+                                && boundCommand(parsed) != null);
+            }
+        }
+
         // The other direction: a command that should NOT parse must not. Without this, an
         // over-eager tree that matches anything would sail through every check above.
         ParseResults<CommandSourceStack> nonsense =
                 server.getCommands().getDispatcher().parse("fly sideways backwards", console);
         check("garbage arguments are rejected",
                 !nonsense.getExceptions().isEmpty() || nonsense.getReader().canRead());
+    }
+
+    /**
+     * The store and the handler, end to end through {@link PermissionAPI} itself.
+     *
+     * <p>{@link #checkPermissionRules} proves the resolver decides correctly against fixtures.
+     * This asks the other question, the one this codebase keeps getting wrong: <b>has anything
+     * ever actually called it?</b> Everything in between — the saved data, the tier assembly, the
+     * boolean cast, NeoForge's own dispatch — sits on the path a real permission check takes, and
+     * none of it is touched by testing the rules directly.</p>
+     *
+     * <p>Only when our handler is the active one. Under LuckPerms or the default handler these
+     * assertions would be asking somebody else's implementation about a group it has never heard
+     * of, and would fail for a reason that is not a bug.</p>
+     *
+     * <p>The fixtures are removed again in a finally block. A self-test that leaves a group behind
+     * in a real world has done something worse than not running.</p>
+     */
+    private void checkPermissionStore(MinecraftServer server) {
+        if (!com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler.isActive()) {
+            return;
+        }
+        var store = com.sablednah.standards.neoforge.permissions.PermissionStore.get(server);
+        UUID subject = UUID.nameUUIDFromBytes("selftest-permissions".getBytes());
+        String group = "standards-selftest";
+        try {
+            check("a fresh node answers its own default before anything is granted",
+                    !PermissionAPI.getOfflinePermission(subject, StandardsPermissions.FLY));
+
+            check("the fixture group is created", store.createGroup(group));
+            check("the fixture player joins it", store.addToGroup(subject, group));
+            store.setGroupNode(group, StandardsPermissions.FLY.getNodeName(), true);
+            check("a group grant reaches PermissionAPI",
+                    PermissionAPI.getOfflinePermission(subject, StandardsPermissions.FLY));
+
+            // Both directions: a grant that cannot be taken away again is not a permission.
+            store.setPlayerNode(subject, StandardsPermissions.FLY.getNodeName(), false);
+            check("a deny on the player beats their group, through PermissionAPI",
+                    !PermissionAPI.getOfflinePermission(subject, StandardsPermissions.FLY));
+            store.setPlayerNode(subject, StandardsPermissions.FLY.getNodeName(), null);
+
+            // A wildcard, all the way through rather than against a fixture map.
+            store.setGroupNode(group, "standards.*", true);
+            check("a wildcard grant reaches an unrelated node",
+                    PermissionAPI.getOfflinePermission(subject, StandardsPermissions.SMITE));
+            check("and it was the wildcard that answered",
+                    com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler
+                            .explain(subject, StandardsPermissions.SMITE.getNodeName())
+                            .map(a -> a.pattern().equals("standards.*")).orElse(false));
+
+            // Somebody the store has never been told about must be untouched by any of it.
+            UUID stranger = UUID.nameUUIDFromBytes("selftest-permissions-stranger".getBytes());
+            check("a stranger is untouched by another group's wildcard",
+                    !PermissionAPI.getOfflinePermission(stranger, StandardsPermissions.SMITE));
+        } finally {
+            store.deleteGroup(group);
+            store.setPlayerNode(subject, StandardsPermissions.FLY.getNodeName(), null);
+            check("the fixtures are gone again", store.group(group).isEmpty()
+                    && store.groupsOf(subject).isEmpty() && store.nodesOf(subject).isEmpty());
+        }
     }
 
     /**
