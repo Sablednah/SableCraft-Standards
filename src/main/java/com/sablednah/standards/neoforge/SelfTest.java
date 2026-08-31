@@ -87,6 +87,7 @@ public final class SelfTest {
         checkInventoryViewMapping();
         checkLedger(server);
         checkNicknames(server);
+        checkInfoRuns();
         checkPermissionStore(server);
         checkWaypointRoundTrip(server);
 
@@ -889,8 +890,14 @@ public final class SelfTest {
                 "up",
                 "down",
                 "standards testchat hello world",
-                "standards permissions",
+                "standards permissions", "standards nodes",
                 "i stone", "i stone 12", "i minecraft:diamond_sword",
+                "motd", "rules", "info",
+                "butcher", "butcher 32", "butcher 32 all", "killall",
+                "tpx Steve", "tpx Steve Alex", "tphere @a", "tppos 0 64 0",
+                "tppos 0 64 0 minecraft:the_nether",
+                "kitaccess starter ops", "kitaccess starter permission",
+                "kitaccess starter nobody", "kitaccess starter everyone",
                 "item stone", "item minecraft:stone 64",
                 "nick Wanderer", "nick -",
                 // THE ONE THAT WAS BROKEN, twice over now: word() stops dead at an ampersand
@@ -1030,6 +1037,14 @@ public final class SelfTest {
         check("garbage arguments are rejected",
                 !nonsense.getExceptions().isEmpty() || nonsense.getReader().canRead());
 
+        // Vanilla's own /tp must still work: we deliberately did NOT merge onto it, and a
+        // regression there would be invisible until an admin reached for it under pressure.
+        ParseResults<CommandSourceStack> vanillaTp =
+                server.getCommands().getDispatcher().parse("tp @s ~ ~ ~", console);
+        check("vanilla /tp is left alone",
+                vanillaTp.getExceptions().isEmpty() && !vanillaTp.getReader().canRead()
+                        && boundCommand(vanillaTp) != null);
+
         // /i resolves against the real registries, so an item that does not exist must fail. A
         // tree that accepted anything would pass every '/i <something>' check above.
         ParseResults<CommandSourceStack> noSuchItem =
@@ -1041,6 +1056,29 @@ public final class SelfTest {
                 server.getCommands().getDispatcher().parse("i stone 0", console);
         check("/i rejects a count of zero",
                 !zero.getExceptions().isEmpty() || zero.getReader().canRead());
+    }
+
+    /**
+     * The numbered message runs behind {@code /motd}, {@code /rules} and {@code /info}.
+     *
+     * <p>The behaviour worth pinning down is <b>stopping at a gap</b>. Deleting a line from the
+     * middle is how an owner shortens their rules, and carrying on past the hole would silently
+     * renumber everything after it.</p>
+     */
+    private void checkInfoRuns() {
+        String rules = com.sablednah.standards.neoforge.commands.InfoCommands.render("msg.rules");
+        check("a numbered run renders every line it has",
+                rules.lines().count() == 4);
+        check("...in order, header first",
+                rules.startsWith(Lang.get("msg.rules.1")));
+        check("a run with no keys at all renders nothing",
+                com.sablednah.standards.neoforge.commands.InfoCommands
+                        .render("msg.selftest.nosuchrun").isEmpty());
+        // The other direction: a key that exists but is not numbered must not be picked up, or
+        // 'msg.info.empty' would be printed as part of /info.
+        check("an unnumbered sibling key is not part of the run",
+                !com.sablednah.standards.neoforge.commands.InfoCommands.render("msg.info")
+                        .contains(Lang.get("msg.info.empty")));
     }
 
     /**

@@ -9,7 +9,10 @@ import com.sablednah.standards.StandardsConfig;
 import com.sablednah.standards.api.economy.Economy;
 import com.sablednah.standards.neoforge.commands.EconomyCommands;
 import com.sablednah.standards.neoforge.commands.GameMasterCommands;
+import com.sablednah.standards.neoforge.commands.AdminTeleportCommands;
 import com.sablednah.standards.neoforge.commands.AfkCommand;
+import com.sablednah.standards.neoforge.commands.ButcherCommand;
+import com.sablednah.standards.neoforge.commands.InfoCommands;
 import com.sablednah.standards.neoforge.commands.KitCommands;
 import com.sablednah.standards.neoforge.commands.ServerHealthCommand;
 import com.sablednah.standards.neoforge.commands.MailCommands;
@@ -201,6 +204,7 @@ public final class StandardsCommands {
             dispatcher.register(KitCommands.kit());
             dispatcher.register(KitCommands.kits());
             dispatcher.register(KitCommands.setKit());
+            dispatcher.register(KitCommands.kitAccess());
             dispatcher.register(KitCommands.delKit());
             dispatcher.register(KitCommands.showKit());
         }
@@ -243,6 +247,27 @@ public final class StandardsCommands {
                     StandardsPermissions.SOCIALSPY, StandardsPermissions.ADMIN,
                     player -> StandardsAttachments.of(player).socialSpy(),
                     (player, on) -> StandardsAttachments.of(player).setSocialSpy(on)));
+        }
+
+        // --- admin teleports. Vanilla's /tp and /teleport are left alone: merging onto them
+        // would put the outcome at the mercy of mod load order, which is decision 10's trap.
+        if (StandardsConfig.ENABLE_ADMIN_TP.get()) {
+            dispatcher.register(AdminTeleportCommands.tp("tpx"));
+            dispatcher.register(AdminTeleportCommands.tpHere("tphere"));
+            dispatcher.register(AdminTeleportCommands.tpPos("tppos"));
+        }
+
+        // --- owner-written text ---
+        if (StandardsConfig.ENABLE_MOTD.get()) {
+            dispatcher.register(InfoCommands.build("motd", "msg.motd"));
+            dispatcher.register(InfoCommands.build("rules", "msg.rules"));
+            dispatcher.register(InfoCommands.build("info", "msg.info"));
+        }
+
+        // --- clearing mobs ---
+        if (StandardsConfig.ENABLE_BUTCHER.get()) {
+            dispatcher.register(ButcherCommand.build("butcher"));
+            dispatcher.register(ButcherCommand.build("killall"));
         }
 
         // --- giving yourself things ---
@@ -309,6 +334,7 @@ public final class StandardsCommands {
                 .then(Commands.literal("economy").executes(StandardsCommands::economyInfo))
                 .then(Commands.literal("permissions")
                         .executes(StandardsCommands::permissionInfo))
+                .then(Commands.literal("nodes").executes(StandardsCommands::listNodes))
                 .then(Commands.literal("testchat")
                         .then(Commands.argument("message", StringArgumentType.greedyString())
                                 .executes(StandardsCommands::testChat)));
@@ -363,6 +389,32 @@ public final class StandardsCommands {
         Lang.load();
         Feedback.reply(ctx.getSource(), Lang.get("msg.admin.reloaded"), true);
         return 1;
+    }
+
+    /**
+     * Every permission node this server actually has, with its default.
+     *
+     * <p>Complements [`NODES.md`](NODES.md), which is generated from the source and is the right
+     * thing to read on a website. This is the runtime answer, and it differs in the way that
+     * matters: it includes the nodes <b>built at server start</b> from what this particular
+     * server holds — the numbered home limits and one per kit — which no static document can
+     * know. "Which kit nodes do I actually have" is a question only the server can answer.</p>
+     */
+    private static int listNodes(CommandContext<CommandSourceStack> ctx) {
+        var registered = net.neoforged.neoforge.server.permission.PermissionAPI
+                .getRegisteredNodes().stream()
+                .map(node -> node.getNodeName())
+                .filter(name -> name.startsWith(Standards.MODID + "."))
+                .sorted()
+                .toList();
+        StringBuilder sb = new StringBuilder(Lang.fmt("msg.admin.nodes_header",
+                "count", String.valueOf(registered.size())));
+        for (String name : registered) {
+            sb.append("\n").append(Lang.fmt("msg.admin.nodes_row",
+                    "node", name, "default", StandardsPermissions.defaultOf(name)));
+        }
+        Feedback.reply(ctx.getSource(), sb.toString(), false);
+        return registered.size();
     }
 
     /**

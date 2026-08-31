@@ -27,7 +27,7 @@ The only column that matters in the morning is what you write in it.
 | `/jump` `/j` | ✓ | ✓ | Teleport where you're looking | **DONE** | Lands *on top* of the block, scanning up if that's occupied. |
 | `/back` | ✓ | ✓ | Return to where you were | **DONE** | Ours keeps a **trail**, not one slot: `/back 2` walks further up it. Death-return is behind its own permission, off by default. |
 | `/bottom` | ✓ | ✗ | Lowest block in your column | **DONE** | *Answered: ship it, op-only — "why not complete the set".* Op-only because it is a trivial x-ray for ore near bedrock. |
-| `/tp` `/tphere` `/tppos` | ✓ | ✓ | Admin teleports | **YES** | Vanilla `/tp` exists; ours is worth it only for the tri-state/permission consistency and `/tppos` with a dimension. Low priority. |
+| `/tpx` `/tphere` `/tppos` | ✓ | ✓ | Admin teleports | **DONE** | At `/tpx`, **not** `/tp` — merging onto vanilla's literal puts the winner at the mercy of mod load order, decision 10's trap. Gated on a node rather than an op level, so a builder can have them without `/stop`, and `/tppos` takes a dimension without needing `/execute in` first. They go through `Teleports`, so they get safe landing and the `/back` trail. |
 | `/tpa` `/tpahere` `/tpaccept` `/tpdeny` `/tpacancel` `/tpalist` `/tptoggle` | ✓ | ✓ | Request-based teleport | **DONE** | Clickable `[Accept]`/`[Deny]` buttons (vanilla chat click events, so they work unmodded). **Both ends are narrated** — accepted, arriving in N, arrived, cancelled and why, lapsed — plus a ticking action-bar countdown, because a warmed teleport that goes silent for 5s reads as broken. |
 | `/tpaall` `/tpall` | ✓ | ✗ | Mass teleport | YES | Event hosting. Cheap once `/tpa` exists. |
 | `/tpauto` | ✓ | ✗ | Auto-accept requests | YES | One line once `/tpa` exists. |
@@ -136,7 +136,7 @@ never learn which ledger answered.
 | `/near` | ✓ | ✓ | Who is nearby | YES | |
 | `/seen` | ✓ | ✗ | Last login/logout | YES | The name cache that powers offline `/balance` already has half of this. |
 | `/playtime` | ✓ | ✗ | Time played | YES | Vanilla statistics have the number. |
-| `/motd` `/rules` `/info` | ✓ | ✗ | Owner-written text | **YES** | Cheap, and `messages.yml` is already the right home for it. |
+| `/motd` `/rules` `/info` | ✓ | ✗ | Owner-written text | **DONE** | Numbered runs of message keys (`msg.rules.1`, `.2`, …) printed until one is missing — **no second file format**, since `messages.yml` already handles colours, vocabulary and upgrades. The MOTD also prints on join, last, so it is not pushed off by the other join lines. |
 | `/recording` `/streaming` | ✗ | ✓ | Tell the server you're recording | NO | Very FTB-specific. |
 
 **Decision:**
@@ -223,7 +223,7 @@ never learn which ledger answered.
 | `/near` | ✓ | ✓ | Nearby players | YES | (Also listed in Chat.) |
 | `/getpos` `/coords` `/whereami` | ✓ | ✗ | Your coordinates | YES | F3 exists; this works on servers that hide it. |
 | `/depth` `/compass` | ✓ | ✗ | Depth / bearing | MAYBE | |
-| `/remove` `/butcher` `/killall` | ✓ | ✗ | Clear entities in a radius | **YES** | Real lag-fighting tool on a modpack server. |
+| `/butcher` `/killall` | ✓ | ✗ | Clear entities in a radius | **DONE** | Hostiles only unless you add `all`. **Never** players, tamed animals, named mobs or anything vanilla marks persistent — that skip list is the whole command, and it is why `/killall` has a bad name elsewhere. |
 | `/spawnmob` `/spawner` | ✓ | ✗ | Spawn mobs / change spawners | NO | Vanilla `/summon`; ZombieMod owns the interesting half. |
 | `/tree` `/bigtree` | ✓ | ✗ | Grow a tree | NO | |
 | `/leaderboard` | ✗ | ✓ | Statistic leaderboards | MAYBE | FTB-only. Nice with `/baltop` and `/playtime`. |

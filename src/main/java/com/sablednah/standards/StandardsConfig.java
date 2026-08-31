@@ -61,6 +61,9 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_ECONOMY;
     public static final ModConfigSpec.BooleanValue ENABLE_NICK;
     public static final ModConfigSpec.BooleanValue ENABLE_ITEM;
+    public static final ModConfigSpec.BooleanValue ENABLE_ADMIN_TP;
+    public static final ModConfigSpec.BooleanValue ENABLE_MOTD;
+    public static final ModConfigSpec.BooleanValue ENABLE_BUTCHER;
     public static final ModConfigSpec.IntValue NICK_MAX_LENGTH;
     public static final ModConfigSpec.ConfigValue<String> NICK_PREFIX;
 
@@ -249,6 +252,23 @@ public final class StandardsConfig {
                         "Off also stops Standards registering itself as an economy provider,",
                         "which is what you want if a dedicated economy mod is installed.")
                 .define("economy", true);
+        ENABLE_ADMIN_TP = BUILDER
+                .comment("/tpx, /tphere and /tppos. Vanilla has /tp; these exist because they are",
+                        "gated on a permission node instead of an op level, so a builder can be",
+                        "given them without also being given /stop — and because /tppos takes a",
+                        "dimension without needing '/execute in' first.",
+                        "Vanilla's own /tp and /teleport are left completely alone.")
+                .define("adminTeleport", true);
+        ENABLE_MOTD = BUILDER
+                .comment("/motd, /rules and /info — owner-written text, edited in messages.yml",
+                        "like everything else players read. Off if your server greets people",
+                        "some other way.")
+                .define("motd", true);
+        ENABLE_BUTCHER = BUILDER
+                .comment("/butcher and /killall — clear mobs in a radius. A real lag tool on a",
+                        "modpack server. Never touches players, tamed animals or named mobs",
+                        "unless you ask it to.")
+                .define("butcher", true);
         ENABLE_ITEM = BUILDER
                 .comment("/i and /item — give yourself a stack. Vanilla's /give is untouched;",
                         "this is the short form for the commonest case, which is giving",

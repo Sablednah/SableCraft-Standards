@@ -295,6 +295,8 @@ Needs a JDK 21.
 - [`ECONOMY-API.md`](ECONOMY-API.md), [`CHAT-API.md`](CHAT-API.md),
   [`GROUPS-API.md`](GROUPS-API.md) — the seams other mods build on.
 - [`COMBAT-API.md`](COMBAT-API.md) — combat tagging, and how another mod hooks it.
+- [`NODES.md`](NODES.md) — **every permission node**, with its default. Generated from the source
+  by `python3 scripts/nodes.py`, so it cannot drift into fiction.
 - [`PERMISSIONS.md`](PERMISSIONS.md) — the built-in permission handler: `/rank`, the resolution
   order, and what LuckPerms does when both are installed.
 - [`CROSS-VERSION.md`](CROSS-VERSION.md) — living on several Minecraft lines at once.

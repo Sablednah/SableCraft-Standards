@@ -104,6 +104,13 @@ public final class Lang {
         def("msg.tp.cooldown", "&cYou must wait &f{sec}s&c before teleporting again.");
         def("msg.tp.done", "{term.prefix} &7Teleported.");
         def("msg.tp.top", "{term.prefix} &7Up you go — &f{y}&7 blocks above where you were.");
+        def("msg.tp.to_player", "{term.prefix} &7Off to &f{player}&7.");
+        def("msg.tp.to_pos", "{term.prefix} &7Off to &f{where}&7.");
+        def("msg.tp.moved", "{term.prefix} &7Moved &f{player}&7 to &f{to}&7.");
+        def("msg.tp.summoned", "{term.prefix} &7Summoned by &f{by}&7.");
+        def("msg.tp.summoned_count", "{term.prefix} &7Summoned &f{count}&7 player(s).");
+        def("msg.butcher.done", "{term.prefix} &7Cleared &f{count}&7 mob(s) within &f{radius}&7 blocks.");
+        def("msg.butcher.none", "{term.prefix} &7Nothing to clear within &f{radius}&7 blocks.");
         // Vanilla's own shape, used only when we must take delivery over without decorating —
         // see StandardsEvents.onChat. Matches chat.type.text so nobody notices the handover.
         def("msg.chat.group_tag", "&b[{tag}]&r");
@@ -254,6 +261,11 @@ public final class Lang {
         def("msg.kit.name_rules", "&cKit names: 1-32 letters, numbers, _ or -.");
         def("msg.kit.contents_header", "{term.prefix} &7Kit &f{name}&7 {term.dim}({cooldown})&7:");
         def("msg.kit.no_cooldown", "no cooldown");
+        def("msg.kit.access_set", "{term.prefix} &7Kit &f{name}&7 is now &f{access}&7.");
+        def("msg.kit.access_everyone", "open to everyone");
+        def("msg.kit.access_ops", "operators only");
+        def("msg.kit.access_permission", "granted only — standards.kit.<name>");
+        def("msg.kit.access_line", "{term.dim}  who:&r {access}");
         def("msg.kit.contents_line", " {term.dim}-&r &f{count}x&7 {item}");
     }
 
@@ -468,6 +480,21 @@ public final class Lang {
         def("msg.eco.provider_none", "{term.prefix} &7No economy provider is registered.");
     }
 
+    // --- msg.motd.* / msg.rules.* / msg.info.* : owner-written text ---
+    // Numbered runs, printed until a number is missing. Add lines by adding keys; shorten by
+    // deleting from the end. There is no second file format for this on purpose — messages.yml
+    // already handles colours, terms and upgrades, and a motd.txt would need all of it again.
+    static {
+        def("msg.motd.1", "{term.prefix} &7Welcome to the server.");
+        def("msg.motd.2", "{term.dim}  Type &f/rules&r{term.dim} for the rules, and &f/help&r{term.dim} for commands.");
+        def("msg.rules.1", "{term.prefix} &7House rules:");
+        def("msg.rules.2", " &71. &fBe civil.");
+        def("msg.rules.3", " &72. &fDo not take what is not yours.");
+        def("msg.rules.4", " &73. &fAsk before building next to somebody.");
+        def("msg.info.1", "{term.prefix} &7This server runs &fSableCraft Standards&7.");
+        def("msg.info.empty", "{term.prefix} &7Nothing has been written here yet. {term.dim}(edit messages.yml)");
+    }
+
     // --- msg.item.* ---
     static {
         def("msg.item.given", "{term.prefix} &7Given &f{count}&7 x &f{item}&7.");
@@ -549,6 +576,19 @@ public final class Lang {
     // --- msg.admin.* ---
     static {
         def("msg.admin.reloaded", "{term.prefix} &7messages.yml reloaded.");
+        def("msg.admin.nodes_header", "{term.prefix} &7{count} permission node(s) registered:");
+        def("msg.admin.nodes_row", " &f{node} {term.dim}({default})");
+    }
+
+    /**
+     * Whether this key exists at all, in the owner's file or in the baked defaults.
+     *
+     * <p>Quiet, unlike {@link #get} — the point of asking is that the answer may well be no.
+     * {@code /motd} and {@code /rules} walk a numbered run until it stops, and using {@code get}
+     * for that would log a "missing message key" warning on every single invocation.</p>
+     */
+    public static boolean has(String key) {
+        return active.containsKey(key) || DEFAULTS.containsKey(key);
     }
 
     /** Resolve a key to its (term-substituted) template. An unknown key returns itself, loudly. */
@@ -567,7 +607,34 @@ public final class Lang {
         for (int n = 0; n + 1 < kv.length; n += 2) {
             out = out.replace("{" + kv[n] + "}", String.valueOf(kv[n + 1]));
         }
+        warnUnfilled(key, out);
         return out;
+    }
+
+    /** Placeholders already substituted by the time {@link #fmt} is done with a line. */
+    private static final java.util.regex.Pattern LEFTOVER =
+            java.util.regex.Pattern.compile("\\{[a-z][a-z_]*\\}");
+
+    /** Keys already complained about, so a message in a loop does not fill the log. */
+    private static final Set<String> WARNED = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /**
+     * Say so when a message goes out with a placeholder still in it.
+     *
+     * <p><b>Written after one shipped.</b> {@code /kitaccess} raised {@code msg.kit.unknown}
+     * without its {@code {list}} argument, so an admin was told <em>"No kit called x. Try:
+     * {list}"</em> — braces and all. Four other call sites passed it and one did not, which is
+     * exactly the kind of thing that survives review and is never reported, because it looks like
+     * a cosmetic oddity rather than a bug.</p>
+     *
+     * <p>A warning rather than a throw: a slightly wrong message must never take down the command
+     * that was trying to send it. Once per key, because the offender is usually on a hot path.</p>
+     */
+    private static void warnUnfilled(String key, String rendered) {
+        if (LEFTOVER.matcher(rendered).find() && WARNED.add(key)) {
+            Standards.LOGGER.warn("Message '{}' still has an unfilled placeholder: {}",
+                    key, rendered);
+        }
     }
 
     /** A term by short name: {@code term("home")} → "home", or whatever the owner renamed it to. */

@@ -56,6 +56,19 @@ public final class StandardsPermissions {
 
     private enum Default { EVERYONE, OPS, NOBODY }
 
+    /**
+     * Node name to the default it was declared with, so the mod can describe its own permissions.
+     *
+     * <p>Kept because {@code PermissionNode} does not expose it: the default is a resolver
+     * function, and asking one offline can only tell "everyone" from the other two — an op-gated
+     * node and a nobody-gated node both answer false with no player in hand. That distinction is
+     * exactly what an admin is asking about, so it is recorded here rather than inferred.</p>
+     *
+     * <p>Declared before the nodes, like {@link #FIXED}, for the static-initialisation-order
+     * reason the comment there gives.</p>
+     */
+    private static final Map<String, String> DEFAULTS = new LinkedHashMap<>();
+
     // --- switches ---
     public static final PermissionNode<Boolean> FLY = node("fly", Default.OPS);
     public static final PermissionNode<Boolean> FLY_OTHERS = node("fly.others", Default.OPS);
@@ -165,6 +178,23 @@ public final class StandardsPermissions {
     public static final PermissionNode<Boolean> PAY = node("pay", Default.EVERYONE);
     public static final PermissionNode<Boolean> ECO_ADMIN = node("eco", Default.OPS);
 
+    // --- admin teleports ---
+    /**
+     * {@code /tpx} and {@code /tppos} — moving yourself about at will.
+     *
+     * <p>A node rather than an op check, which is the entire reason these exist beside vanilla's
+     * {@code /tp}: a builder can be given this without also being given {@code /stop}.</p>
+     */
+    public static final PermissionNode<Boolean> TP = node("tp", Default.OPS);
+    /** Moving <em>other</em> people — {@code /tphere}, and the two-player form of {@code /tpx}. */
+    public static final PermissionNode<Boolean> TP_OTHERS = node("tp.others", Default.OPS);
+
+    /** {@code /motd}, {@code /rules} and {@code /info} — owner-written text. Everyone reads them. */
+    public static final PermissionNode<Boolean> MOTD = node("motd", Default.EVERYONE);
+
+    /** {@code /butcher} — clearing entities in a radius. A lag tool, and a griefing tool. */
+    public static final PermissionNode<Boolean> BUTCHER = node("butcher", Default.OPS);
+
     /**
      * {@code /i} — spawning items out of nothing. Ops, obviously: on a survival server this is
      * the single most consequential thing in the mod.
@@ -233,6 +263,7 @@ public final class StandardsPermissions {
                             && Commands.LEVEL_GAMEMASTERS.check(player.permissions());
                 });
         FIXED.add(created);
+        DEFAULTS.put(created.getNodeName(), fallback.name().toLowerCase(java.util.Locale.ROOT));
         return created;
     }
 
@@ -252,15 +283,21 @@ public final class StandardsPermissions {
             HOME_LIMITS.put(n, limit);
             event.addNodes(limit);
         }
-        // Per-kit nodes, for the kits that exist right now. Kits made later are covered by the
-        // plain 'standards.kit' node until a restart — see canUseKit.
+        // Per-kit nodes, for the kits that exist right now. A kit made later has no node and is
+        // answered from its own declared access instead — see canUseKit.
         KIT_NODES.clear();
         var server = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
         if (server != null) {
             for (String kit : Kits.get(server).names()) {
                 PermissionNode<Boolean> node = new PermissionNode<>(
                         Standards.MODID, "kit." + kit.toLowerCase(java.util.Locale.ROOT),
-                        PermissionTypes.BOOLEAN, (player, uuid, context) -> Boolean.TRUE);
+                        PermissionTypes.BOOLEAN,
+                        // The kit's access IS this node's default, resolved per call rather than
+                        // captured: an admin who runs /kitaccess mid-session must not need a
+                        // restart for it to take effect. A permissions manager still overrides it
+                        // in either direction, which is how one rank gets one particular kit.
+                        (player, uuid, context) -> player != null
+                                && allowedBy(player, accessOf(player.level().getServer(), kit)));
                 KIT_NODES.put(kit.toLowerCase(java.util.Locale.ROOT), node);
                 event.addNodes(node);
             }
@@ -287,6 +324,30 @@ public final class StandardsPermissions {
         event.addPermissionHandler(
                 com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler.IDENTIFIER,
                 com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler::new);
+    }
+
+    /**
+     * Every node this build declares, with the default it was declared with.
+     *
+     * <p>For {@code /standards nodes} and for the generated node reference. Sorted, because the
+     * declaration order is grouped by feature and an admin looking one up wants alphabetical.</p>
+     */
+    public static java.util.List<Map.Entry<String, String>> declaredNodes() {
+        return DEFAULTS.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> (Map.Entry<String, String>) new java.util.AbstractMap.SimpleEntry<>(
+                        e.getKey(), e.getValue()))
+                .toList();
+    }
+
+    /**
+     * What a node defaults to, or {@code "runtime"} for one built at server start.
+     *
+     * <p>The per-kit and numbered home-limit nodes are not declared in source — they are built
+     * from whatever the server happens to hold — so they have no static default to report.</p>
+     */
+    public static String defaultOf(String node) {
+        return DEFAULTS.getOrDefault(node, "runtime");
     }
 
     /** Ask a node about a player. */
@@ -345,15 +406,54 @@ public final class StandardsPermissions {
     /**
      * May this player claim this kit?
      *
-     * <p>Open when no node exists, which is the case for any kit created since the last restart.
-     * That is the deliberate half of the trade: NeoForge wants permission nodes enumerated up
-     * front, and the alternative — a brand-new kit silently claimable by nobody — reads as the
-     * kit system being broken.</p>
+     * <p>Three things get a say, in this order: the plain {@code standards.kit} node, then the
+     * per-kit node {@code standards.kit.<name>} if one was gathered, and behind that the kit's own
+     * {@link Kits.Access} — which is what the per-kit node's default resolver reads.</p>
+     *
+     * <p><b>The kit's access is stored on the kit precisely because the nodes are not.</b>
+     * NeoForge gathers permission nodes once at server start, so a kit created this afternoon has
+     * none. That case used to answer "open to everybody", which meant a new op-only or rank-only
+     * kit was claimable by the entire server until the next restart — and no grant or deny could
+     * close it, because there was no node to grant. Asking the kit fixes it at the moment the kit
+     * exists.</p>
      */
     public static boolean canUseKit(ServerPlayer player, String kit) {
-        if (!has(player, KIT)) return false;
+        if (!has(player, KIT)) {
+            return false;
+        }
         PermissionNode<Boolean> node = KIT_NODES.get(kit.toLowerCase(java.util.Locale.ROOT));
-        return node == null || has(player, node);
+        // A registered node carries the kit's own access as its default resolver, so this single
+        // call gets both: a permissions manager's explicit answer where there is one, and the
+        // kit's declared access where there is not.
+        if (node != null) {
+            return has(player, node);
+        }
+        // No node means the kit was created since the last gather, so there is nothing for a
+        // permissions manager to have had an opinion about. Ask the kit itself.
+        return allowedBy(player, accessOf(player.level().getServer(), kit));
+    }
+
+    /**
+     * Whether an access level lets this player through, before any node is consulted.
+     *
+     * <p><b>Must not ask a permission node.</b> This is the default resolver behind each kit's own
+     * node, so a lookup here would resolve that node, which would call this again. The recursion
+     * is not hypothetical — it was written, and caught before it ran.</p>
+     */
+    private static boolean allowedBy(ServerPlayer player, Kits.Access access) {
+        return switch (access) {
+            case EVERYONE -> true;
+            case OPS -> Commands.LEVEL_GAMEMASTERS.check(player.permissions());
+            case PERMISSION -> false;
+        };
+    }
+
+    /** A kit's declared access, defaulting to open if the kit has gone missing under us. */
+    private static Kits.Access accessOf(net.minecraft.server.MinecraftServer server, String kit) {
+        if (server == null) {
+            return Kits.Access.EVERYONE;
+        }
+        return Kits.get(server).byName(kit).map(Kits.Kit::access).orElse(Kits.Access.EVERYONE);
     }
 
     /**

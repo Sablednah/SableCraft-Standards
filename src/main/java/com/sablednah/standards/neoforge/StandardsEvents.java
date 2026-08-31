@@ -87,6 +87,14 @@ public final class StandardsEvents {
         if (StandardsConfig.ENABLE_MAIL.get()) {
             com.sablednah.standards.neoforge.commands.MailCommands.announceOnLogin(player);
         }
+        // The MOTD last, so it sits at the bottom of the join spam where it will actually be
+        // read rather than being pushed off by the switch reminder and the mail notice.
+        if (StandardsConfig.ENABLE_MOTD.get()) {
+            String motd = com.sablednah.standards.neoforge.commands.InfoCommands.render("msg.motd");
+            if (!motd.isEmpty()) {
+                Feedback.chat(player, motd);
+            }
+        }
     }
 
     /**
