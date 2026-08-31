@@ -40,12 +40,54 @@ public final class Kits extends net.minecraft.world.level.saveddata.SavedData {
         }
     }
 
+    /**
+     * Who may claim a kit, carried by the kit itself.
+     *
+     * <p><b>Stored on the kit rather than left to the permission node alone, and that is the
+     * point.</b> The nodes are gathered once at server start, so a kit made this afternoon has no
+     * node at all — and the old check read a missing node as "open to everybody". A brand new
+     * VIP kit was therefore claimable by the whole server until the next restart, and no grant or
+     * deny could close it in the meantime, because there was nothing to grant.</p>
+     *
+     * <p>An access level travels with the kit, so it applies the instant the kit exists.</p>
+     */
+    public enum Access {
+        /** Anyone who may use {@code /kit} at all. The default, and right for most kits. */
+        EVERYONE,
+        /** Operators, or anyone explicitly granted {@code standards.kit.<name>}. */
+        OPS,
+        /**
+         * Nobody unless granted {@code standards.kit.<name>} — the one to use for a rank's kit.
+         * Same idea as {@code stationAccess = nobody}, named for what an admin is trying to do.
+         */
+        PERMISSION;
+
+        public String key() {
+            return name().toLowerCase(Locale.ROOT);
+        }
+
+        /** Parse, tolerantly: {@code nobody} is accepted as a synonym for {@code permission}. */
+        public static Access of(String raw) {
+            String want = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+            return switch (want) {
+                case "ops", "op" -> OPS;
+                case "permission", "nobody", "perm" -> PERMISSION;
+                default -> EVERYONE;
+            };
+        }
+    }
+
     /** @param cooldownSeconds 0 means it can be claimed as often as they like */
-    public record Kit(String name, List<ItemStack> items, long cooldownSeconds) {
+    public record Kit(String name, List<ItemStack> items, long cooldownSeconds, Access access) {
         static final Codec<Kit> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("name").forGetter(Kit::name),
                 ItemStack.CODEC.listOf().fieldOf("items").forGetter(Kit::items),
-                Codec.LONG.optionalFieldOf("cooldownSeconds", 0L).forGetter(Kit::cooldownSeconds))
+                Codec.LONG.optionalFieldOf("cooldownSeconds", 0L).forGetter(Kit::cooldownSeconds),
+                // Optional, defaulting to EVERYONE: kits defined before access existed keep
+                // behaving exactly as they did, which is what stops an upgrade quietly locking
+                // a server's starter kit away from its players.
+                Codec.STRING.optionalFieldOf("access", Access.EVERYONE.key())
+                        .xmap(Access::of, Access::key).forGetter(Kit::access))
                 .apply(i, Kit::new));
     }
 
@@ -118,7 +160,8 @@ public final class Kits extends net.minecraft.world.level.saveddata.SavedData {
      *
      * @return true if this replaced an existing kit
      */
-    public boolean define(String name, ServerPlayer from, Scope scope, long cooldownSeconds) {
+    public boolean define(String name, ServerPlayer from, Scope scope, long cooldownSeconds,
+            Access access) {
         List<ItemStack> items = new ArrayList<>();
         var inventory = from.getInventory();
         for (int slot : slotsFor(scope, inventory.getContainerSize())) {
@@ -128,7 +171,7 @@ public final class Kits extends net.minecraft.world.level.saveddata.SavedData {
             }
         }
         boolean replaced = kits.containsKey(name.toLowerCase(Locale.ROOT));
-        kits.put(name.toLowerCase(Locale.ROOT), new Kit(name, items, cooldownSeconds));
+        kits.put(name.toLowerCase(Locale.ROOT), new Kit(name, items, cooldownSeconds, access));
         setDirty();
         return replaced;
     }
@@ -149,6 +192,25 @@ public final class Kits extends net.minecraft.world.level.saveddata.SavedData {
 
     private static void addRange(List<Integer> into, int from, int toExclusive) {
         for (int i = from; i < toExclusive; i++) into.add(i);
+    }
+
+    /**
+     * Change who may claim an existing kit, without re-cutting its contents.
+     *
+     * <p>Separate from {@link #define} because the two are different jobs: an admin locking down a
+     * kit they made last week should not have to be holding the right gear to do it.</p>
+     *
+     * @return false if there is no such kit
+     */
+    public boolean setAccess(String name, Access access) {
+        Kit kit = kits.get(name.toLowerCase(Locale.ROOT));
+        if (kit == null) {
+            return false;
+        }
+        kits.put(name.toLowerCase(Locale.ROOT),
+                new Kit(kit.name(), kit.items(), kit.cooldownSeconds(), access));
+        setDirty();
+        return true;
     }
 
     public boolean delete(String name) {

@@ -266,6 +266,41 @@ Colour codes need `standards.nick.color` (ops). Without it they are stripped rat
 somebody who pasted a code they did not know about wanted the word. `standards.nick.others` lets a
 moderator set or clear somebody else's, which is the undo for a nickname that had to go.
 
+## Admin teleports
+
+`/tpx <player>` — you, to them. `/tpx <player> <player>` — the first, to the second.
+`/tphere <players>` — them, to you. `/tppos <x> <y> <z> [dimension]` — you, to a coordinate.
+
+**At `/tpx`, not `/tp`.** Vanilla owns `/tp` and merging onto it would make the winner depend on
+mod load order. These exist beside it for two reasons only: they are gated on a **permission node**
+rather than an op level, so a builder can be trusted with them without also being handed `/stop`;
+and `/tppos` takes a dimension directly instead of making you write `/execute in` first.
+
+They go through the same teleport machinery as everything else, so an admin gets the safe-landing
+search and a `/back` trail too.
+
+Nodes: `standards.tp`, and `standards.tp.others` for moving other people.
+
+## Text the owner writes
+
+`/motd`, `/rules`, `/info` — whatever you want to say. The MOTD also prints when somebody joins,
+last, so it is not pushed off the screen by the other join messages.
+
+**The text lives in `messages.yml`**, as numbered keys: `msg.rules.1`, `msg.rules.2`, and so on,
+printed until a number is missing. There is deliberately no second file format — `messages.yml`
+already handles colour codes, your own vocabulary and upgrades without losing your edits, and a
+`rules.txt` would need all of that again. Add lines by adding keys; shorten by deleting from the
+end. Node `standards.motd`, everyone.
+
+## Clearing mobs
+
+`/butcher [radius] [all]` — and `/killall`. Hostile mobs within the radius, 64 by default.
+
+**What it refuses to touch is the whole command**: never players, never tamed animals, never named
+mobs, and never anything the game itself marks as placed-on-purpose. Passive mobs only if you add
+`all`. A radius kill is a lag tool and a griefing tool wearing the same coat, and the difference is
+entirely in that list. Node `standards.butcher`, ops.
+
 ## Items
 
 `/i <item> [count]` — give yourself a stack. `/item` is the same command. Node `standards.item`,
@@ -284,6 +319,11 @@ needs a selector to do it.
 
 `/standards reload` — **messages only**, and it says so. Commands are registered at startup based on
 config, so a config change needs a restart; reloading messages is the part that can be done live.
+
+`/standards nodes` — every permission node this server has registered, with its default. Includes
+the ones built at start-up from what the server actually holds (the numbered home limits, one per
+kit), which no static list can know. For the full documented set see
+[`NODES.md`](NODES.md), which is generated from the source.
 
 `/standards permissions` — which handler is actually answering permission questions. The first
 thing to check when a gated command has quietly disappeared for everybody: a permissions manager

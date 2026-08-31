@@ -25,7 +25,43 @@
   gives a full stack, capped at what the item really stacks to. Op-gated; vanilla's `/give` is
   untouched.
 
+- **`/tpx`, `/tphere` and `/tppos`** — the admin teleports, at `/tpx` rather than `/tp` because
+  merging onto vanilla's literal would leave the winner depending on mod load order. They exist
+  beside vanilla for two reasons: a **permission node** instead of an op level, so a builder can be
+  trusted with them without also getting `/stop`; and `/tppos` takes a dimension without needing
+  `/execute in` first. They route through the normal teleport machinery, so they get safe landing
+  and a `/back` trail.
+
+- **`/motd`, `/rules` and `/info`** — owner-written text, as numbered keys in `messages.yml`
+  (`msg.rules.1`, `.2`, …) printed until a number is missing. **No second file format**: that file
+  already handles colours, vocabulary and upgrades without eating your edits, and a `rules.txt`
+  would need all of it again. The MOTD also prints on join, last, so the other join lines do not
+  push it off the screen.
+
+- **`/butcher` and `/killall`** — clear mobs in a radius. What it refuses to touch is the whole
+  command: never players, never tamed animals, never named mobs, and never anything the game marks
+  as deliberately placed. Passive mobs only if you add `all`.
+
+- **Per-kit access — `/kitaccess <kit> <everyone|ops|permission>`.** An op-only kit of test gear,
+  or a rank's daily kit, without hand-editing permissions for each one.
+
+  This also **closes a hole**. Per-kit nodes existed, but they were gathered once at server start,
+  and a kit created since then had none — which the check read as "open to everybody". A new
+  VIP kit was therefore claimable by the whole server until the next restart, and no grant or deny
+  could close it, because there was nothing to grant. Access now travels with the kit, so it
+  applies the moment the kit exists.
+
+- **`NODES.md`** — every permission node with its default, **generated** from the source by
+  `python3 scripts/nodes.py`. Plus `/standards nodes`, which lists what a running server has
+  actually registered, including the start-up-built ones no static list can know.
+
 ### Fixed
+
+- **A message could reach a player with a placeholder still in it.** `/kitaccess` raised
+  `msg.kit.unknown` without its `{list}` argument, so an admin was told *"No kit called x. Try:
+  {list}"*, braces and all — four other call sites passed it and one did not. `Lang.fmt` now warns
+  once per key when it renders a line that still contains one, so the next of these is found in
+  the log rather than by a player.
 
 - **Colour codes in a nickname could not be typed at all.** Brigadier's `word()` accepts letters,
   digits and `_.+-` and stops dead at `&`, so `standards.nick.color` gated a feature that was

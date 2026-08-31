@@ -677,6 +677,11 @@ Nobody notices, because a doc that undersells is never contradicted by a failure
 status lines whenever something ships**: `grep -n "^\*\*Status:" *.md`, plus "not built", "does not
 exist", "nothing consumes", "yet". Worth doing before any release.
 
+⚠ **`NODES.md` is generated — regenerate it whenever a permission node is added, removed or
+re-defaulted**: `python3 scripts/nodes.py`. A hand-kept list of seventy-odd nodes is the document
+this repo would certainly ship stale, and unlike a status line nobody could ever notice: a missing
+node reads exactly like a node that does not exist. The website reads this file.
+
 ⚠ **That grep has a hole, and it hid two docs for weeks.** `ECONOMY-API.md` and `CHAT-API.md` had
 **no status line at all**, so a sweep for stale ones could never report them — a doc with nothing
 to rot is indistinguishable from a doc that is fine. Both now carry one. **Every `*-API.md` gets a
