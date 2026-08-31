@@ -172,6 +172,92 @@ Walked 2026-08-31, in this order, and the order matters:
 - [ ] a **restart** with grants in place: the player still has them, and `/standards permissions`
       reports the store's contents rather than an empty one
 
+## The morning run — everything built overnight **[2P]**
+
+Nothing below has ever been touched by a real player. The self-test proves each parses and computes
+the right answer; none of it proves an item changed in an inventory or a block appeared in a claim.
+Ordered so the cheap ones bank progress first.
+
+**Setup.** `permissionHandler = "standards:permissions"` in `neoforge-server.toml` and restart —
+several of these need it, and config does not hot-reload on `/mnt/d`. **TestThird is the only
+non-op** of the three clients; `/sudo` and the permission checks need them.
+
+### Held-item tools — one client
+
+- [ ] `/repair` on a damaged pick mends it; on a **stack of cobblestone** it says the item cannot
+      be damaged rather than claiming success
+- [ ] `/repair` on an undamaged tool says it is already whole
+- [ ] `/repair all` with two damaged tools reports **2**
+- [ ] `/more` on a part stack fills it; on a full one says so
+- [ ] `/more` on a **shulker box** gives 1, not 64 — the cap is per item
+- [ ] `/condense` with three half stacks of dirt merges them and reports the count moved
+- [ ] `/itemname &cExcalibur` — red name, and `&c` is **not** literal text
+- [ ] `/itemname -` clears it
+- [ ] `/itemlore add A blade of legend`, twice — two lines, in order; `/itemlore clear` empties
+
+### Power tools — one client, and the double-fire is the risk
+
+- [ ] `/pt jump` on a stick, then **right-click**: you jump-teleport
+- [ ] **right-click a block** with it: you teleport and **no block is placed**
+- [ ] you move **once** per click, not twice *(the off-hand event fires too — this is the check
+      that guards it)*
+- [ ] `/pt list` shows it; `/pt clear` stops it; `/pt clearall` empties
+- [ ] it survives a **relog** — bindings are saved, unlike `/f bypass`
+- [ ] `/pt powertool something` is refused
+
+### Where you are — one client
+
+- [ ] `/depth` at sea level says exactly that; up a hill says *above*; in a cave says *below*
+- [ ] `/compass` — face each way and check it against F3. **North is the wrap**: it should read
+      north just either side of 0, not flip to south
+- [ ] set `reducedDebugInfo true` and confirm both still answer *(the case they exist for)*
+
+### Worlds and admin teleports — one client
+
+- [ ] `/worlds` lists overworld, nether, end
+- [ ] `/world minecraft:the_nether` from x=800 puts you at **x=800**, not 100 — and does not
+      suffocate you in the ceiling *(safe landing doing its job)*
+- [ ] `/world` naming the world you are in says so instead of teleporting
+- [ ] `/tpx <player>`, `/tphere <player>`, `/tppos 0 80 0`, and `/tppos 0 80 0 minecraft:the_end`
+- [ ] **vanilla `/tp @s ~ ~ ~` still works** — we deliberately did not merge onto it
+
+### `/sudo` — TWO clients, and this is the interesting one
+
+- [ ] as op: `/sudo TestThird depth` — **TestThird** gets the answer, not you
+- [ ] `/sudo TestThird fly on` is **refused**, because TestThird has no `standards.fly`.
+      **That refusal is the feature.** Compare: `/execute as TestThird run fly on` *succeeds*
+- [ ] grant it (`/rank user TestThird set standards.fly true`), sudo again — now it works
+- [ ] the server log has a `[sudo]` line for each, naming who ran what as whom
+
+### Playtime and promotions — needs elapsed time, so start it early
+
+- [ ] `/playtime` after ten minutes reads about ten
+- [ ] go AFK for five, come back: it has **not** moved *(the whole point — vanilla's statistic
+      would have)*
+- [ ] `/leaderboard` ranks the three clients sensibly
+- [ ] set `startingGroup = "guest"`, `promotions = ["guest -> regular after 2m and 1m played"]`,
+      create both ranks, and log in with a **fresh** name: they land in `guest`, then move to
+      `regular` on their own within a minute of qualifying, with a message
+- [ ] an already-ranked player logging in is **not** dropped back to guest
+
+### Kits, MOTD, butcher, nicknames — quick sweep
+
+- [ ] `/kitaccess <kit> ops` then claim it as TestThird → refused; `everyone` → allowed
+- [ ] a kit created **this session** and set to `ops` is refused **without a restart** *(the hole
+      that was fixed)*
+- [ ] `/motd`, `/rules`, `/info`; the MOTD also appears on join, **last**
+- [ ] `/butcher 32` clears hostiles and **leaves a tamed wolf, a named cow and an item frame**
+- [ ] `/nick ~Bob` shows in chat with the `~`; tab still shows the real name; `/realname Bob`
+      answers; a nick that is another player's real name is refused
+
+### `/f bypass` — one client, in somebody else's claim
+
+- [ ] stood in a claim you are not in: you **cannot** break a block
+- [ ] `/f bypass on` → you can
+- [ ] `/f bypass off` → you cannot again
+- [ ] turn it on, **relog**, and you cannot — it dropped, which is the entire design
+- [ ] the server log has a line for each toggle
+
 ## Before a release
 
 - [x] SnakeYAML is bundled jar-in-jar and declared in the metadata — the classic works-in-dev,
