@@ -1,5 +1,38 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`/nick`, `/realname` and `/whois`.** A nickname replaces your name **in chat only** — the tab
+  list and the nameplate keep the real one, and that is the design rather than a limitation. It is
+  what keeps a nickname a flourish instead of a disguise, and it means "who is that" is answerable
+  by anyone who glances at tab without knowing a command exists. Nicknames wear a `~` by default.
+
+  **A nickname may not be another player's real name, nor another player's nickname**, checked
+  against every name the server has seen rather than who is online — impersonating somebody who is
+  asleep is the version that works, since they are not there to object. The rule lives in the store,
+  not the command, so an admin setting one for somebody else goes through the same door.
+
+  `/realname` is open to **everyone** on purpose: if only staff can tell who somebody is, the
+  feature is a disguise. Colour codes need `standards.nick.color`; without it they are stripped
+  rather than refused, because somebody who pasted a code they did not know about wanted the word.
+
+- **`/i` and `/item`** — give yourself a stack. *This reverses a NO in `COMMANDS.md`*, which had
+  reasoned that vanilla's `/give` covers it and "the short alias is the only draw". The short alias
+  **is** the draw, and in a mod whose stated thesis is that muscle memory is the product, that is
+  sufficient — the owner was still reaching for `/i` months after the verdict. A bare `/i stone`
+  gives a full stack, capped at what the item really stacks to. Op-gated; vanilla's `/give` is
+  untouched.
+
+### Fixed
+
+- **Colour codes in a nickname could not be typed at all.** Brigadier's `word()` accepts letters,
+  digits and `_.+-` and stops dead at `&`, so `standards.nick.color` gated a feature that was
+  unreachable — the second time this exact trap has cost a feature, after the permission wildcards
+  and `*`. Both are now `greedyString` split in code. `CLAUDE.md` records it as a rule: any
+  argument that can contain punctuation must not be `word()`.
+
 ## 1.3.0
 
 ### Added

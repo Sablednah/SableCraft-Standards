@@ -165,6 +165,34 @@ public final class StandardsPermissions {
     public static final PermissionNode<Boolean> PAY = node("pay", Default.EVERYONE);
     public static final PermissionNode<Boolean> ECO_ADMIN = node("eco", Default.OPS);
 
+    /**
+     * {@code /i} — spawning items out of nothing. Ops, obviously: on a survival server this is
+     * the single most consequential thing in the mod.
+     */
+    public static final PermissionNode<Boolean> ITEM = node("item", Default.OPS);
+
+    // --- nicknames ---
+    /** Set your own. Everyone, like homes — it is a social feature, not a privilege. */
+    public static final PermissionNode<Boolean> NICK = node("nick", Default.EVERYONE);
+    /**
+     * Colour codes in a nickname.
+     *
+     * <p>Ops only, and not fussiness: {@code &k} is obfuscated text, which renders as animated
+     * gibberish on every line its owner speaks and cannot be read, reported or typed back. A name
+     * nobody can transcribe is a name nobody can report.</p>
+     */
+    public static final PermissionNode<Boolean> NICK_COLOR = node("nick.color", Default.OPS);
+    /** Set or clear somebody else's — the moderator's undo for a nickname that had to go. */
+    public static final PermissionNode<Boolean> NICK_OTHERS = node("nick.others", Default.OPS);
+    /**
+     * Look a nickname up. <b>Everyone</b>, deliberately.
+     *
+     * <p>If only staff can tell who somebody really is, a nickname is a disguise rather than a
+     * flourish. The whole feature is only defensible while the real name stays one command away
+     * from any player who wonders.
+     */
+    public static final PermissionNode<Boolean> REALNAME = node("realname", Default.EVERYONE);
+
     /** Founding and running a lightweight group. Everyone, like homes — it is a social feature. */
     public static final PermissionNode<Boolean> GROUP = node("group", Default.EVERYONE);
 

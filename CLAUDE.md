@@ -359,12 +359,25 @@ cannot do that half, and it is the reason to build this rather than a smaller co
 
 **Two traps, both found by driving it over RCON and neither reachable by the self-test as written:**
 
-- ⚠ **Brigadier's `word()` cannot read an asterisk.** It accepts letters, digits and `_.+-`, so
-  `standards.home.*` was *unparseable* — the wildcards were proved correct by the self-test and
-  could not be typed by a human. The error is "Expected whitespace to end one argument", which
-  names nothing and reads like the admin's own typo. The node argument is a `greedyString` split in
-  code. `string()` would need the node quoted and nobody quotes a permission node; a custom
-  `ArgumentType` would need registering with `ArgumentTypeInfos` to survive being sent to a client.
+- ⚠ **Brigadier's `word()` accepts letters, digits and `_.+-` and nothing else.** It has now cost
+  two features, so treat it as a rule rather than an anecdote: **any argument that can contain
+  punctuation must not be `word()`.**
+
+  - `standards.home.*` was *unparseable*, so the permission wildcards were proved correct by the
+    self-test and could not be typed by a human.
+  - `/nick &cBob` was *unparseable*, so `standards.nick.color` gated colour codes nobody could
+    enter.
+
+  Both errors read "Expected whitespace to end one argument", which names nothing and looks like
+  the typist's mistake. Both are fixed the same way: a `greedyString`, split in code, with the
+  extra rule (`one word`, `optional true/false`) enforced there so the message can say what is
+  actually wrong. `string()` needs the value quoted and nobody quotes a permission node or a
+  nickname; a custom `ArgumentType` needs registering with `ArgumentTypeInfos` to survive being
+  sent to a client.
+
+  **Neither was reachable by the self-test as written**, because both tested the *logic* while
+  nothing had ever managed to enter the input. Ask of any new argument: what characters can a real
+  value contain, and does `word()` accept them?
 - ⚠ **LuckPerms owns `/perm`**, as an alias of `/luckperms`, along with `perms`, `permission`,
   `permissions` and `lp`. With LuckPerms installed but ours selected, the literals merge: our
   subcommands work and a bare `/perm` runs LuckPerms' help — invisibly, since LuckPerms' output

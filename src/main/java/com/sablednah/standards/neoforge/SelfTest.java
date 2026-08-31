@@ -86,6 +86,7 @@ public final class SelfTest {
         checkChatDecorators();
         checkInventoryViewMapping();
         checkLedger(server);
+        checkNicknames(server);
         checkPermissionStore(server);
         checkWaypointRoundTrip(server);
 
@@ -889,6 +890,15 @@ public final class SelfTest {
                 "down",
                 "standards testchat hello world",
                 "standards permissions",
+                "i stone", "i stone 12", "i minecraft:diamond_sword",
+                "item stone", "item minecraft:stone 64",
+                "nick Wanderer", "nick -",
+                // THE ONE THAT WAS BROKEN, twice over now: word() stops dead at an ampersand
+                // exactly as it does at an asterisk, so a coloured nickname was unparseable
+                // while standards.nick.color gated it. Same bug, second door.
+                "nick &cWanderer", "nick &c&lWanderer",
+                "nick player Steve Wanderer", "nick player Steve -",
+                "realname Wanderer", "whois Wanderer",
                 // Both /eco argument branches: a bare name (offline-capable) and a selector
                 // (command blocks). The order they are registered in is what makes both work.
                 "eco give Steve 100",
@@ -1019,6 +1029,79 @@ public final class SelfTest {
                 server.getCommands().getDispatcher().parse("fly sideways backwards", console);
         check("garbage arguments are rejected",
                 !nonsense.getExceptions().isEmpty() || nonsense.getReader().canRead());
+
+        // /i resolves against the real registries, so an item that does not exist must fail. A
+        // tree that accepted anything would pass every '/i <something>' check above.
+        ParseResults<CommandSourceStack> noSuchItem =
+                server.getCommands().getDispatcher().parse("i not_a_real_item", console);
+        check("/i rejects an item that does not exist",
+                !noSuchItem.getExceptions().isEmpty() || noSuchItem.getReader().canRead());
+        // ...and a count of zero, which would silently give nothing.
+        ParseResults<CommandSourceStack> zero =
+                server.getCommands().getDispatcher().parse("i stone 0", console);
+        check("/i rejects a count of zero",
+                !zero.getExceptions().isEmpty() || zero.getReader().canRead());
+    }
+
+    /**
+     * Nicknames, and above all the rule that stops one being an impersonation.
+     *
+     * <p>Every assertion here has its opposite, because a check that refuses <em>every</em>
+     * nickname would pass all the positive ones and make the feature useless, while one that
+     * refuses none would pass nothing and ship the hole.</p>
+     *
+     * <p>Uses the real store on the real server, seeded with names, and cleans up after itself.</p>
+     */
+    private void checkNicknames(MinecraftServer server) {
+        StandardsData data = StandardsData.get(server);
+        UUID alice = UUID.nameUUIDFromBytes("selftest-nick-alice".getBytes());
+        UUID mallory = UUID.nameUUIDFromBytes("selftest-nick-mallory".getBytes());
+        try {
+            data.rememberName(alice, "SelftestAlice");
+            data.rememberName(mallory, "SelftestMallory");
+
+            check("a free nickname is allowed",
+                    data.impersonates(mallory, "Wanderer").isEmpty());
+
+            // THE ONE THAT MATTERS. Taking somebody else's real name is the whole attack, and it
+            // works on everybody who reads chat rather than the tab list.
+            check("a nickname may not be another player's real name",
+                    data.impersonates(mallory, "SelftestAlice").isPresent());
+            check("...case-insensitively, or the guard is one keystroke wide",
+                    data.impersonates(mallory, "selftestALICE").isPresent());
+            check("...and it names who is being impersonated",
+                    data.impersonates(mallory, "SelftestAlice").map(alice::equals).orElse(false));
+
+            // Your own name back is always allowed, or somebody who nicknamed themselves could
+            // never undo it by typing what they are actually called.
+            check("your own real name is not an impersonation",
+                    data.impersonates(alice, "SelftestAlice").isEmpty());
+
+            data.setNick(alice, "Wanderer");
+            check("the nickname is what chat will use",
+                    data.displayName(alice, "SelftestAlice").equals("Wanderer"));
+            check("somebody without one keeps their real name",
+                    data.displayName(mallory, "SelftestMallory").equals("SelftestMallory"));
+            check("a nickname is findable, which is the price of having them at all",
+                    data.byNick("wanderer").map(alice::equals).orElse(false));
+
+            // The second door into the same room: two players rendering as one word.
+            check("a nickname may not be another player's nickname",
+                    data.impersonates(mallory, "Wanderer").isPresent());
+            check("...ignoring colour codes, because a reader cannot see them",
+                    data.impersonates(mallory, "&cWanderer").isPresent());
+            check("the owner may re-set their own nickname",
+                    data.impersonates(alice, "Wanderer").isEmpty());
+
+            data.setNick(alice, null);
+            check("clearing gives the real name back",
+                    data.displayName(alice, "SelftestAlice").equals("SelftestAlice"));
+            check("and the nickname is free again",
+                    data.impersonates(mallory, "Wanderer").isEmpty());
+        } finally {
+            data.setNick(alice, null);
+            data.setNick(mallory, null);
+        }
     }
 
     /**

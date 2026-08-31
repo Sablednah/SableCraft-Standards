@@ -58,7 +58,7 @@ public class Standards {
         // Dormant unless -Dstandards.selftest=true; see SelfTest.
         NeoForge.EVENT_BUS.register(com.sablednah.standards.neoforge.SelfTest.class);
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent event) ->
-                StandardsCommands.register(event.getDispatcher()));
+                StandardsCommands.register(event.getDispatcher(), event.getBuildContext()));
     }
 
     /**
