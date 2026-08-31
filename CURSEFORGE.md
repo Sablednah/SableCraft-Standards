@@ -150,15 +150,16 @@ about it.
 
 ## For other mods
 
-Five seams, all soft dependencies — add a `compileOnly` and Standards can be absent at runtime:
+Six seams, all soft dependencies — add a `compileOnly` and Standards can be absent at runtime:
 
 | API | For |
 |---|---|
 | `api.economy` | spending money, or *being* the economy |
 | `api.chat` | name prefixes and suffixes from several mods at once; chat channels that respect mutes |
-| `api.groups` | group membership by kind, "who owns this chunk", whether PvP is allowed there, and whether **mobs** may break blocks there |
+| `api.groups` | group membership by kind, "who owns this chunk", whether PvP is allowed there, and whether **mobs** may break blocks there. Standards' own permission ranks publish here too, as `standards:role` |
 | `api.PlayerSwitches` / `api.Stations` | driving `/fly`, `/god`, `/vanish` and the workstations from code |
 | `api.combat` | combat tagging, resolving who was really behind a hit, and whether one player may harm another at all |
+| `api.vanish` | whether a player is hidden, so a mod drawing a nameplate or a health bar on them can take it down — a floating name over nobody gives a vanish away as completely as being seen |
 
 The switches API exists because a skill granting flight should not have to build a command string
 and hope: the skill is already the authority, so it calls in directly and skips the permission check

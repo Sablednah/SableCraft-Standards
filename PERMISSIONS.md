@@ -5,13 +5,16 @@ Groups, grants and ranks, for a server that has not installed a permissions mod.
 **Status: built 2026-08-31, and driven end to end against the dev server.**
 `core/PermissionRules` (the resolver, pure), `neoforge/permissions/` (`PermissionStore`,
 `StandardsPermissionHandler`, `PermissionRoles`) and `neoforge/commands/PermissionCommands`.
-Under the self-test at 394 checks, and exercised over RCON with the handler actually selected.
-Specified 2026-08-25.
+Under the self-test at **403 checks**, exercised over RCON with the handler actually selected, and
+then **proven with two clients**: a real non-op was refused an op-gated node, kept an
+everyone-node, and was granted `standards.craft` — which defaults to *nobody*, so not even an
+operator holds it ungranted — and got a crafting table. Specified 2026-08-25, shipped in **1.3.0**
+on all three Minecraft lines.
 
-**Not yet proven:** that a *granted* node lets a real non-op run the command. `requires()` is
-evaluated at parse time against whoever typed it, so `/execute as <player>` cannot test somebody
-else's permissions and RCON cannot make a player type — see CLAUDE.md. That needs two clients and
-five minutes.
+⚠ **403 is the count with this handler active. The 26.x dev servers report 380, and that is
+correct, not a regression** — LuckPerms is the selected handler there, so the 14 `/rank` parse
+checks and the 9 `PermissionStore` round-trip checks stand down by design. Both numbers are the
+tree behaving.
 
 ## The arbitrator already exists, and it is NeoForge
 

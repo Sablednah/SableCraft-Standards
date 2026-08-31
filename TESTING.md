@@ -133,6 +133,45 @@ Every one takes `on` / `off` / `toggle`, bare, or with a player/selector.
 - [x] relog while vanished — still hidden
 - [x] `/vanish off` — reappear cleanly, no ghost
 
+## Permissions — the built-in handler (1.3) **[2P]** — TestThird must not be op
+
+Set `permissionHandler = "standards:permissions"` in `neoforge-server.toml` and restart; config
+hot-reload does not work on `/mnt/d`. **TestBuddy and Sablednah are both op level 4 in `ops.json`,
+so neither can test this** — an op passes the op-gated default anyway. TestThird is the only
+non-op of the three.
+
+Walked 2026-08-31, in this order, and the order matters:
+
+- [x] **baseline, before granting anything**: `/fly on` gives "Unknown or incomplete command",
+      and `/home` gives our own "no homes yet" text. **Both, always.** A failed `requires()`
+      removes a command from the tree entirely, so "correctly refused" and "the handler denies
+      everything" look identical from the player's side — the everyone-node is the only thing
+      that tells them apart
+- [x] `/rank user TestThird set standards.fly true` → `/fly on` works **without reconnecting**.
+      The server re-evaluates `requires()` on every command it parses
+- [x] a **group** grant: `/rank group builder create`, `set standards.craft true`,
+      `user TestThird group add builder` → `/craft` opens. This is the one that proves the
+      feature, because `standards.craft` defaults to **nobody** — ungranted, not even an
+      operator has it, so nothing but the grant can explain a crafting table
+- [x] the command goes **white and tab-completes** the moment the grant lands. Before the fix it
+      stayed red, reading "unknown command", until the player reconnected — while working if you
+      pressed enter. Almost nobody presses enter through a red line
+- [x] …but a line **already typed** in the chat box keeps its red until you touch it. Client
+      behaviour, unreachable from a server: backspace one character and it repaints. Do not
+      report this as the fix failing
+- [x] `[BLD]` renders in chat once `standards:role` is in `chat.groupTagKinds` — the permission
+      group showing up through the decorator seam with no chat code written for it
+- [x] a non-op can turn a switch **off** without holding its node, and cannot turn it back on.
+      `/god` was granted by console, TestThird turned it off themselves. Deliberate: switches
+      persist across a logout, so gating the off-ramp would strand somebody in god mode forever
+      the moment their permission changed
+- [ ] the **home limit** falls back to `defaultLimit` for a non-op, and rises with
+      `standards.home.limit.10` granted through `/rank` rather than LuckPerms
+- [ ] an explicit **deny** on an everyone-node — `/rank user TestThird set standards.home false`
+      — makes `/home` disappear for them
+- [ ] a **restart** with grants in place: the player still has them, and `/standards permissions`
+      reports the store's contents rather than an empty one
+
 ## Before a release
 
 - [x] SnakeYAML is bundled jar-in-jar and declared in the metadata — the classic works-in-dev,
@@ -230,8 +269,10 @@ TestBuddy's or TestThird's side, or deny yourself the node.
 - [ ] an **op** is never blocked — the bypass node working as intended
 - [ ] `combat.log = true` shows the classification: who, kind, cause, seconds
 
-- [ ] a **player** on that server, with no permissions mod: everyone-nodes work, op-gated ones
-      work for an op and refuse for a non-op, and the home limit falls back to `defaultLimit`
+- [~] a **player** on that server, with no permissions mod: everyone-nodes work, op-gated ones
+      work for an op and refuse for a non-op, and the home limit falls back to `defaultLimit`.
+      *First two done 2026-08-31 with TestThird (see Permissions above); the home limit is still
+      untested*
 - [ ] the built jar on a server that is **not** the dev environment — `messages.yml` written,
       commands registered, no missing-class errors from the bundled YAML
 - [x] a logo — `src/main/resources/standards.png` at 256x256, `logoFile` set, and it lands in

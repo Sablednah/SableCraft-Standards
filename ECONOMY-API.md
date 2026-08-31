@@ -1,5 +1,9 @@
 # The economy API
 
+**Status: built, and in use.** `api/economy/` — `Economy`, `EconomyProvider`, `TransactionResult`.
+Consumed by **ZombieMod** (`compat/StandardsEconomy`, paying bounties) and by **Factions**
+(`FactionBank`, `FactionCommands`), which is where the faction bank's money actually lives.
+
 How another mod uses money on a server running Standards — and how a dedicated economy mod takes
 over from us.
 

@@ -664,6 +664,16 @@ Nobody notices, because a doc that undersells is never contradicted by a failure
 status lines whenever something ships**: `grep -n "^\*\*Status:" *.md`, plus "not built", "does not
 exist", "nothing consumes", "yet". Worth doing before any release.
 
+⚠ **That grep has a hole, and it hid two docs for weeks.** `ECONOMY-API.md` and `CHAT-API.md` had
+**no status line at all**, so a sweep for stale ones could never report them — a doc with nothing
+to rot is indistinguishable from a doc that is fine. Both now carry one. **Every `*-API.md` gets a
+status line on the day it is created**, even if it only says "specified, nothing built".
+
+The other half is the consumer claim, which rots faster than the status. `VANISH-API.md` said "no
+consumer yet: LegendQuest is the intended first one" for two days after LegendQuest shipped
+`VanishSupport`. Sweep for it too — `grep -rniE "no consumer|not yet called|intended first"` — and
+check by grepping the sibling repos for the import, not by remembering.
+
 ## Where to look next
 
 - `COMMANDS.md` — the full EssentialsX/FTB catalogue with keep/skip recommendations. **This is the
@@ -683,14 +693,16 @@ exist", "nothing consumes", "yet". Worth doing before any release.
 - `COMBAT-API.md` — **built 2026-08-27.** Combat tagging, and it now opens with a "using it from
   another mod" section written for LegendQuest. `Combat.playerBehind` is public because Factions'
   power modes need the same attacker resolution and two implementations would disagree.
-- `VANISH-API.md` — **built 2026-08-29, and not yet called by anything.** Whether a player is
+- `VANISH-API.md` — **built 2026-08-29, and called by LegendQuest since 2026-08-30.** Whether a player is
   hidden, so a mod that draws *on* a player can take its decoration down. Written because a
   `/vanish`ed player kept their LegendQuest nameplate — a floating name over nobody. The point to
   keep: Standards cannot fix this itself, because "hide entities near a vanished player" catches
   other people's holograms and misses a plate that tracks from a distance. It also needs **both**
   halves — ask on spawn *and* listen for `VanishEvent` — since check-on-spawn alone is exactly what
-  leaves the plate hanging when somebody vanishes mid-session.
-- `PERMISSIONS.md` — **built 2026-08-31.** The built-in permission handler for servers with no
+  leaves the plate hanging when somebody vanishes mid-session. LegendQuest's `VanishSupport` wired
+  both without being asked twice, which is the only real evidence a seam's contract was legible to
+  somebody who did not write it.
+- `PERMISSIONS.md` — **built and shipped in 1.3.0**, 2026-08-31. The built-in permission handler for servers with no
   permissions mod: `/rank`, groups with inheritance, wildcards, and a default group. Note the
   framing correction it opens with: NeoForge's `PermissionAPI` is already the Vault-equivalent and
   the owner picks the active handler in `neoforge-server.toml`, so this is one more handler rather

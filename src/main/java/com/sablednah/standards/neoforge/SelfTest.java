@@ -962,10 +962,13 @@ public final class SelfTest {
                         && emoteCommand.getClass().getName()
                                 .startsWith("com.sablednah.standards"));
 
-        // /perm is registered on every server and visible on almost none: its requires() hides
-        // it unless Standards' own permission handler is the active one. Both directions matter —
-        // a gate that hides it always is indistinguishable from one that works, until somebody
-        // switches the handler on and finds nothing there.
+        // /rank and /perm are registered on every server and visible on almost none: their
+        // requires() hides them unless Standards' own permission handler is the active one. Both
+        // directions matter — a gate that hides them always is indistinguishable from one that
+        // works, until somebody switches the handler on and finds nothing there.
+        //
+        // Probed as /rank, never /perm: LuckPerms claims /perm as an alias of /luckperms, so on a
+        // server carrying both this would be asking about somebody else's node.
         boolean ours = com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler
                 .isActive();
         ParseResults<CommandSourceStack> perm =

@@ -486,7 +486,7 @@ public final class StandardsConfig {
                         "IT IS OFF UNLESS YOU CHOOSE IT, and not here. NeoForge owns that switch:",
                         "set permissionHandler = \"standards:permissions\" in neoforge-server.toml.",
                         "Leave it alone and LuckPerms — or whatever else you run — is untouched,",
-                        "and /perm is not registered at all.",
+                        "and /rank is not registered at all.",
                         "",
                         "Nothing below has any effect until then.")
                 .push("permissions");

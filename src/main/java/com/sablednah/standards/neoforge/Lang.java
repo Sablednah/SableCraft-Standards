@@ -56,7 +56,7 @@ public final class Lang {
         def("term.spawn", "spawn");
         def("term.balance", "balance");
         // What the built-in permission handler calls one of its groups. A server
-        // that says "rank", "role" or "grade" changes it once and /perm follows.
+        // that says "rank", "role" or "grade" changes it once and /rank follows.
         def("term.rank", "rank");
         def("term.ranks", "ranks");
     }

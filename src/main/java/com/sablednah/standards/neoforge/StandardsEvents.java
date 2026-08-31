@@ -618,7 +618,7 @@ public final class StandardsEvents {
         }
         var active = net.neoforged.neoforge.server.permission.PermissionAPI
                 .getActivePermissionHandler();
-        Standards.LOGGER.info("Permissions: answered by {} — /perm is not registered."
+        Standards.LOGGER.info("Permissions: answered by {} — /rank is not registered."
                 + " Set permissionHandler = \"standards:permissions\" in neoforge-server.toml"
                 + " to use Standards' own groups instead.", active);
     }

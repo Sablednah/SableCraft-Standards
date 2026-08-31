@@ -1,5 +1,11 @@
 # The chat decorator API
 
+**Status: built, and in use by three mods at once**, which is the only way the ordering rule was
+ever going to be tested. `api/chat/` — `Chat`, `NameDecorator`, `ChatRouter`. **LegendQuest**
+decorates (`ChatSupport`) and routes party chat (`PartyChat`); **Factions** decorates and routes
+faction and ally chat (`FactionChat`); Standards itself renders group tags through `GroupTags`,
+including its own permission ranks as `standards:role`.
+
 How another mod adds a prefix or a suffix to a player's name in chat — and how several of them do
 it at once without knowing about each other.
 
