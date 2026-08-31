@@ -185,9 +185,21 @@ entirely on these — claims, groups, chat and economy — and is the proof they
 
 ## Requirements
 
-| Minecraft | NeoForge | Java |
-|---|---|---|
-| 1.21.11 | 21.11.42+ | 21 |
+Standards is built for three Minecraft lines. **Take the jar that names your version** — every
+file carries it, so `standards-1.3.0+mc26.1.2.jar` is the 26.1 one.
+
+| Minecraft | NeoForge | Java | Jar |
+|---|---|---|---|
+| 1.21.11 | 21.11+ | **21** | `…+mc1.21.11.jar` |
+| 26.1.x | 26.1+ | **25** | `…+mc26.1.2.jar` |
+| 26.2.x | 26.2+ | **25** | `…+mc26.2.jar` |
+
+⚠ **26.x needs Java 25, not 21.** That is Minecraft's requirement rather than ours, and it is the
+one thing here that will stop a server booting — with an error that does not obviously say so. If
+you are moving up from 1.21.11, change the Java your server launches with at the same time.
+
+Built and self-tested against NeoForge 21.11.42, 26.1.2.95 and 26.2.0.72. The floors above are what
+the jars actually declare, so a later build of the same line is fine.
 
 **Install on the server. That is all.** No dependencies. Nothing for your players to install, and
 nothing that stops them joining from a stock client.
