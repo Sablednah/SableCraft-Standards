@@ -88,6 +88,7 @@ public final class SelfTest {
         checkLedger(server);
         checkNicknames(server);
         checkInfoRuns();
+        checkPromotionRules();
         checkPermissionStore(server);
         checkWaypointRoundTrip(server);
 
@@ -1056,6 +1057,129 @@ public final class SelfTest {
                 server.getCommands().getDispatcher().parse("i stone 0", console);
         check("/i rejects a count of zero",
                 !zero.getExceptions().isEmpty() || zero.getReader().canRead());
+    }
+
+    /**
+     * Promotion rules: the parser, and the two clocks.
+     *
+     * <p>The parser is what meets a real config file, which is to say a real typo. Every accepted
+     * shape is asserted alongside a rejected one, because a parser that accepts everything would
+     * pass all the positive checks and then promote the whole server on a malformed line.</p>
+     */
+    private void checkPromotionRules() {
+        var P = com.sablednah.standards.neoforge.permissions.Promotions.class;
+        java.util.function.Function<String, java.util.Optional<
+                com.sablednah.standards.neoforge.permissions.Promotions.Rule>> parse =
+                com.sablednah.standards.neoforge.permissions.Promotions::parse;
+
+        var real = parse.apply("guest -> regular after 24h");
+        check("a real-time rule parses", real.isPresent());
+        check("...with the right groups and clock",
+                real.map(r -> r.from().equals("guest") && r.to().equals("regular")
+                        && r.realSeconds() == 86400L && r.playedSeconds() == 0L).orElse(false));
+
+        var played = parse.apply("guest -> regular after 2h played");
+        check("a played-time rule parses",
+                played.map(r -> r.playedSeconds() == 7200L && r.realSeconds() == 0L).orElse(false));
+
+        var both = parse.apply("guest -> regular after 24h and 2h played");
+        check("both clocks in one rule parse",
+                both.map(r -> r.realSeconds() == 86400L && r.playedSeconds() == 7200L)
+                        .orElse(false));
+
+        // The other direction. A rule that cannot be read must promote nobody, never everybody.
+        check("a rule with no arrow is refused", parse.apply("guest regular after 24h").isEmpty());
+        check("a rule with no 'after' is refused", parse.apply("guest -> regular 24h").isEmpty());
+        check("a rule with no duration is refused", parse.apply("guest -> regular after ").isEmpty());
+        check("a rule with an unreadable duration is refused",
+                parse.apply("guest -> regular after soon").isEmpty());
+        check("a rule with no target group is refused",
+                parse.apply("guest ->  after 24h").isEmpty());
+
+        // Both clocks given means BOTH must pass — the stricter half must not be decorative.
+        var rule = both.orElseThrow();
+        StandardsData data = StandardsData.get(
+                net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer());
+        UUID who = UUID.nameUUIDFromBytes("selftest-promotion".getBytes());
+        // Both clocks are PERSISTED, so a previous run's minutes are still here. Without this the
+        // second run of the self-test starts already qualified and the "not yet" assertions fail —
+        // which is exactly how the missing cleanup was found.
+        data.forgetTiming(who);
+        try {
+            long now = 1_000_000_000_000L;
+            data.rememberFirstSeen(who, now - 86400_000L * 2);   // two days ago: real time passed
+            check("real time alone does not satisfy a rule that also wants played time",
+                    !rule.satisfiedBy(data, who, now));
+            data.addPlayedMinutes(who, 119);
+            check("...nor does nearly enough played time", !rule.satisfiedBy(data, who, now));
+            data.addPlayedMinutes(who, 1);
+            check("both clocks passing satisfies it", rule.satisfiedBy(data, who, now));
+            check("...but not for somebody the clock has not started for",
+                    !rule.satisfiedBy(data, UUID.nameUUIDFromBytes("nobody".getBytes()), now));
+
+            // And the played-only rule ignores the wall clock entirely.
+            check("a played-only rule is satisfied by played time alone",
+                    played.orElseThrow().satisfiedBy(data, who, now));
+
+            // The load-bearing half: satisfying a rule must actually MOVE them. Only meaningful
+            // with our handler active — under LuckPerms there is no store to move them in.
+            if (com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler
+                    .isActive()) {
+                checkPromotionMoves(data, who, now, List.of(rule));
+            }
+        } finally {
+            data.forgetTiming(who);
+            check("the promotion clocks are reset for the next run",
+                    data.playedMinutes(who) == 0 && data.firstSeen(who).isEmpty());
+        }
+    }
+
+    /**
+     * A satisfied rule actually changes the player's groups.
+     *
+     * <p>Separate from the parser checks because it is a different claim. A rule can be parsed
+     * perfectly, report itself satisfied, and move nobody — and that failure would look exactly
+     * like a rule nobody had qualified for yet, which is to say like nothing at all.</p>
+     */
+    private void checkPromotionMoves(StandardsData data, UUID who, long now,
+            List<com.sablednah.standards.neoforge.permissions.Promotions.Rule> rules) {
+        var store = com.sablednah.standards.neoforge.permissions.PermissionStore.get(
+                net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer());
+        String from = "selftest-guest";
+        String to = "selftest-regular";
+        var rule = rules.get(0);
+        var real = List.of(new com.sablednah.standards.neoforge.permissions.Promotions.Rule(
+                from, to, rule.realSeconds(), rule.playedSeconds()));
+        try {
+            store.createGroup(from);
+            store.addToGroup(who, from);
+
+            // The target does not exist yet. Moving them now would take them OUT of guest and put
+            // them nowhere — a promotion to less than they had.
+            check("a rule whose target group is missing moves nobody",
+                    com.sablednah.standards.neoforge.permissions.Promotions
+                            .promote(store, data, who, real, now).isEmpty());
+            check("...and leaves them where they were",
+                    store.groupsOf(who).stream().anyMatch(g -> g.equalsIgnoreCase(from)));
+
+            store.createGroup(to);
+            var moved = com.sablednah.standards.neoforge.permissions.Promotions
+                    .promote(store, data, who, real, now);
+            check("a satisfied rule promotes", moved.isPresent());
+            check("...into the target group",
+                    store.groupsOf(who).stream().anyMatch(g -> g.equalsIgnoreCase(to)));
+            check("...and out of the old one",
+                    store.groupsOf(who).stream().noneMatch(g -> g.equalsIgnoreCase(from)));
+            check("a second pass does not promote them again",
+                    com.sablednah.standards.neoforge.permissions.Promotions
+                            .promote(store, data, who, real, now).isEmpty());
+        } finally {
+            store.deleteGroup(from);
+            store.deleteGroup(to);
+            check("the promotion fixtures are gone",
+                    store.group(from).isEmpty() && store.group(to).isEmpty()
+                            && store.groupsOf(who).isEmpty());
+        }
     }
 
     /**

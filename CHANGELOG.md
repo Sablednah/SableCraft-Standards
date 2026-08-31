@@ -55,6 +55,31 @@
   `python3 scripts/nodes.py`. Plus `/standards nodes`, which lists what a running server has
   actually registered, including the start-up-built ones no static list can know.
 
+- **Automatic promotions — a guest ladder that runs itself.**
+
+  ```toml
+  startingGroup = "guest"
+  promotions = ["guest -> regular after 24h and 2h played"]
+  ```
+
+  **Two clocks, because they answer different questions.** *Real time* since we first saw somebody
+  asks for patience — a few minutes is enough to lose the fly-by griefer who is on another server
+  by now, and it costs an honest new player nothing. *Played time* asks them to have actually done
+  something, and is counted **only while they are not AFK** — unlike Minecraft's own `PLAY_TIME`
+  statistic, which happily counts a player idling in a corner all night, which is exactly the
+  promotion you did not want to give. Give both and both must pass.
+
+  `startingGroup` is **not** `defaultGroup`: that one is consulted last for everybody and nobody is
+  a member of it, while this is real membership a player can be promoted *out of*. A player who
+  already has a group is left alone, so an admin's ranking is never undone by a later login.
+
+  Conditions are a seam rather than a fixed pair — a vote, a website purchase, a moderator's nod are
+  the same shape as a clock, and `Rule.satisfiedBy` is the only place that decides.
+
+  Configure a rule under LuckPerms and the server **says so at startup** instead of silently doing
+  nothing, and names LuckPerms' own `tracks` as the equivalent. The warning only appears when rules
+  exist.
+
 ### Fixed
 
 - **A message could reach a player with a placeholder still in it.** `/kitaccess` raised
