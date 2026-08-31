@@ -245,6 +245,39 @@ and for how long.
 `/afk [reason]` · `/lurk` — by command or by timer, cleared by moving or speaking. Speaking in
 another mod's chat channel clears it too.
 
+## Nicknames
+
+`/nick <name>` — what chat calls you. `/nick -` puts it back. Node `standards.nick`, everyone.
+
+**Chat only, deliberately.** The tab list and the nameplate above your head keep your real name.
+That is the whole reason nicknames are safe to switch on: a player who wonders who somebody is can
+glance at tab without knowing any command exists. Nicknames render with a `~` marker by default
+(`nick.prefix`) so a chosen name reads differently from a real one.
+
+**A nickname may not be another player's real name, nor another player's nickname.** Checked
+against every name the server has ever seen, not just who is online — impersonating somebody who
+is asleep is the version that works, because they are not there to object.
+
+`/realname <nick>` and `/whois <nick>` — who that actually is. Node `standards.realname`, and
+**everyone gets it**: if only staff can tell who somebody is, a nickname is a disguise rather than
+a flourish.
+
+Colour codes need `standards.nick.color` (ops). Without it they are stripped rather than refused —
+somebody who pasted a code they did not know about wanted the word. `standards.nick.others` lets a
+moderator set or clear somebody else's, which is the undo for a nickname that had to go.
+
+## Items
+
+`/i <item> [count]` — give yourself a stack. `/item` is the same command. Node `standards.item`,
+ops.
+
+A bare `/i stone` gives a **full stack**, capped at what the item actually stacks to, so a tool or
+a shulker box gives one. `/i stone 1` when you want exactly one.
+
+Vanilla's `/give` is untouched — this is a shorter door into the same room, for the commonest case
+there is: giving something to yourself. `/give @s minecraft:stone 64` is four times the typing and
+needs a selector to do it.
+
 ## Server
 
 `/gc` — memory, uptime and tick timing.

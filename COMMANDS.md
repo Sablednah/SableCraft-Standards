@@ -125,7 +125,7 @@ never learn which ledger answered.
 | `/msg` `/w` `/tell` `/r` | ✓ | ✗ | Private messages | **DONE** | Vanilla `/msg` exists but has no `/r`, which is the half people use. |
 | `/msgtoggle` `/ignore` | ✓ | ✗ | Block messages | YES | |
 | `/socialspy` | ✓ | ✗ | Staff see private messages | YES | Ships with `/msg`. |
-| `/nick` | ✓ | ✓ | Nickname | **YES** | FTB has it. Needs a colour-code permission and a "real name still findable" rule. |
+| `/nick` `/realname` `/whois` | ✓ | ✓ | Nickname | **DONE** | Chat only — tab and the nameplate keep the real name, which is what stops a nickname being a disguise. A nickname may not be another player's real name **or** another player's nickname, checked against the name cache so it covers people who are offline. `~` marker, colour codes behind `standards.nick.color`, and `/realname` open to everyone. |
 | `/realname` | ✓ | ✗ | Who is behind a nickname | YES | Required if `/nick` exists. |
 | `/me` | ✓ | ✗ | Emote | NO | Vanilla `/me`. |
 | `/mail` | ✓ | ✗ | Offline messages | **DONE** | *Answered: wanted.* Envisioned with **post box blocks** holding written books — see the block note below. |
@@ -176,7 +176,7 @@ never learn which ledger answered.
 | `/anvil` `/grindstone` | ✓ | partial | Portable stations | **DONE** | The two that earn their place. Loom, stonecutter, smithing and cartography deliberately left out. |
 | `/repair` `/fix` | ✓ | ✗ | Repair held item | MAYBE | Straightforwardly a cheat on a survival server. Op-only, or config-off by default. |
 | `/more` `/condense` | ✓ | ✗ | Fill stack / compact items | MAYBE | `/condense` is genuinely handy and not a cheat. |
-| `/give` `/item` `/i` | ✓ | ✗ | Spawn items | NO | Vanilla `/give`. The short alias is the only draw. |
+| `/give` `/item` `/i` | ✓ | ✗ | Spawn items | **DONE** | *Verdict overturned.* The short alias **is** the draw, and in a mod whose stated thesis is that muscle memory is the product, that is sufficient — the owner was still typing `/i` months after this said NO. `/i <item> [count]`, a full stack by default, op-gated. Vanilla's `/give` is untouched. |
 | `/clearinventory` `/ci` | ✓ | ✗ | Clear inventory | NO | Vanilla `/clear`. |
 | `/itemname` `/itemlore` | ✓ | ✗ | Rename/relabel an item | MAYBE | Nice for server builds and lore items. |
 | `/skull` `/head` | ✓ | ✗ | Player-head shortcut | YES | Cheap. |

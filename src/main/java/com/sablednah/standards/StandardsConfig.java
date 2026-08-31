@@ -59,6 +59,10 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_MODERATION;
     public static final ModConfigSpec.BooleanValue ENABLE_STATIONS;
     public static final ModConfigSpec.BooleanValue ENABLE_ECONOMY;
+    public static final ModConfigSpec.BooleanValue ENABLE_NICK;
+    public static final ModConfigSpec.BooleanValue ENABLE_ITEM;
+    public static final ModConfigSpec.IntValue NICK_MAX_LENGTH;
+    public static final ModConfigSpec.ConfigValue<String> NICK_PREFIX;
 
     // --- teleporting ---
     public static final ModConfigSpec.IntValue TELEPORT_WARMUP;
@@ -245,6 +249,18 @@ public final class StandardsConfig {
                         "Off also stops Standards registering itself as an economy provider,",
                         "which is what you want if a dedicated economy mod is installed.")
                 .define("economy", true);
+        ENABLE_ITEM = BUILDER
+                .comment("/i and /item — give yourself a stack. Vanilla's /give is untouched;",
+                        "this is the short form for the commonest case, which is giving",
+                        "something to yourself. Op-gated. Turn it off on a server where even",
+                        "staff should not be spawning items.")
+                .define("item", true);
+        ENABLE_NICK = BUILDER
+                .comment("/nick and /realname. A nickname replaces the name in chat only —",
+                        "the tab list and the nameplate keep the real one, which is what stops",
+                        "a nickname being a disguise. /realname is open to everyone for the",
+                        "same reason.")
+                .define("nick", true);
         BUILDER.pop();
 
         BUILDER.comment("Teleporting: every command that moves a player goes through these.")
@@ -478,6 +494,23 @@ public final class StandardsConfig {
         BALTOP_SIZE = BUILDER
                 .comment("How many accounts /baltop lists.")
                 .defineInRange("baltopSize", 10, 1, 100);
+        BUILDER.pop();
+
+        BUILDER.comment("Nicknames.").push("nick");
+        NICK_MAX_LENGTH = BUILDER
+                .comment("Longest a nickname may be, counted AFTER colour codes are removed",
+                        "so '&c&lBob' costs three characters rather than seven. A name is read",
+                        "on every line its owner speaks; long ones are what make people turn",
+                        "chat prefixes off.")
+                .defineInRange("maxLength", 16, 1, 64);
+        NICK_PREFIX = BUILDER
+                .comment("Marker put in front of a nickname in chat, so a reader can tell a",
+                        "chosen name from a real one at a glance. EssentialsX uses '~' and",
+                        "server populations already read it that way.",
+                        "Blank removes it — which makes nicknames indistinguishable from real",
+                        "names in chat, so /realname becomes the only way to tell. Fine on a",
+                        "roleplay server, a poor idea on a public one.")
+                .define("prefix", "~");
         BUILDER.pop();
 
         BUILDER.comment("The built-in permission handler: groups and grants for a server with no",

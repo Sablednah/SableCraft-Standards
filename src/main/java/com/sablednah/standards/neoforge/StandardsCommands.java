@@ -22,7 +22,9 @@ import com.sablednah.standards.neoforge.commands.SpeedCommand;
 import com.sablednah.standards.neoforge.commands.StationCommands;
 import com.sablednah.standards.neoforge.commands.GroupCommands;
 import com.sablednah.standards.neoforge.commands.HomeCommands;
+import com.sablednah.standards.neoforge.commands.ItemCommands;
 import com.sablednah.standards.neoforge.commands.MoveCommands;
+import com.sablednah.standards.neoforge.commands.NickCommands;
 import com.sablednah.standards.neoforge.commands.PermissionCommands;
 import com.sablednah.standards.neoforge.commands.SwitchCommand;
 import com.sablednah.standards.neoforge.commands.TpaCommands;
@@ -50,7 +52,14 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public final class StandardsCommands {
 
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+    /**
+     * @param build the registry-aware context brigadier argument types need. Taken as well as the
+     *              dispatcher because {@code ItemArgument} cannot be built without it, and passing
+     *              the event's own context is what makes {@code /i} tab-complete a modpack's items
+     *              rather than only vanilla's.
+     */
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
+            net.minecraft.commands.CommandBuildContext build) {
         int before = dispatcher.getRoot().getChildren().size();
 
         // --- switches: the tri-state pattern, see SwitchCommand ---
@@ -234,6 +243,21 @@ public final class StandardsCommands {
                     StandardsPermissions.SOCIALSPY, StandardsPermissions.ADMIN,
                     player -> StandardsAttachments.of(player).socialSpy(),
                     (player, on) -> StandardsAttachments.of(player).setSocialSpy(on)));
+        }
+
+        // --- giving yourself things ---
+        if (StandardsConfig.ENABLE_ITEM.get()) {
+            dispatcher.register(ItemCommands.give("i", build));
+            dispatcher.register(ItemCommands.give("item", build));
+        }
+
+        // --- nicknames ---
+        if (StandardsConfig.ENABLE_NICK.get()) {
+            dispatcher.register(NickCommands.nick());
+            // /realname at its plain name AND at /whois, because half of every server's staff
+            // reaches for one and half for the other. Own trees, same reasoning as /j.
+            dispatcher.register(NickCommands.realName("realname"));
+            dispatcher.register(NickCommands.realName("whois"));
         }
 
         // --- moderation: exactly three, on purpose ---

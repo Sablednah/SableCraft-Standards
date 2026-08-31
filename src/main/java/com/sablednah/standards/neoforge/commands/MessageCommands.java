@@ -126,8 +126,11 @@ public final class MessageCommands {
             return 0;
         }
 
+        // Nicknamed, like ordinary chat: /me is a chat line by another door, and a player whose
+        // name is one thing when they talk and another when they emote is nobody at all.
         String line = Lang.fmt("msg.chat.emote",
-                "player", from.getName().getString(), "action", action);
+                "player", com.sablednah.standards.neoforge.ChatFormatter.displayName(from),
+                "action", action);
         for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
             if (StandardsAttachments.of(viewer).ignores(from.getUUID())) {
                 continue;

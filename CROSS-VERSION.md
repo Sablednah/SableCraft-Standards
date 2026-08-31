@@ -54,6 +54,14 @@ structurally cannot reach.
 - **`DamageResistant(TagKey)` → `DamageResistant(HolderSet)`**, so it needs a level to resolve the
   tag against.
 
+### Divergences carried by individual commands
+
+- **`ItemInput.createItemStack`** takes `(int count, boolean allowOversized)` on 1.21.11 and
+  `(int count)` on 26.x. `/i` is the only caller. ⚠ Note the 1.21.11 Minecraft sources live inside
+  **`neoforge-21.11.42-sources.jar`**, while 26.x splits them into `minecraft-patched-*-sources.jar`
+  — reading the wrong one is how this was got wrong the first time, and it is the same trap as the
+  stale `.apisrc` below wearing different clothes.
+
 ### 26.2 — what actually moved
 
 - **`ChatFormatting` was stripped to a bare enum** of code characters: no `isFormat()`, no name, no

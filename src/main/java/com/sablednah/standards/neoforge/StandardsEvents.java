@@ -551,7 +551,9 @@ public final class StandardsEvents {
         event.setCanceled(true);
         deliver(server, player, formatted.orElseGet(() -> Feedback.colored(
                 Lang.fmt("msg.chat.plain",
-                        "player", player.getName().getString(),
+                        // The nickname, not the real name: this is the same chat line, reached
+                        // when the only reason to take delivery over was somebody's ignore list.
+                        "player", ChatFormatter.displayName(player),
                         "message", Feedback.stripCodes(event.getRawText())))));
     }
 

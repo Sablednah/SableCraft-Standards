@@ -61,7 +61,8 @@ public final class StandardsData extends SavedData {
 
     private record Snapshot(List<HomeSet> homes, List<NamedWarp> warps,
                             Map<UUID, Double> accounts, Map<UUID, String> names,
-                            Optional<Waypoint> spawn, List<LastSeen> lastSeen) {
+                            Optional<Waypoint> spawn, List<LastSeen> lastSeen,
+                            Map<UUID, String> nicks) {
         static final Codec<Snapshot> CODEC = RecordCodecBuilder.create(i -> i.group(
                 HomeSet.CODEC.listOf().optionalFieldOf("homes", List.of()).forGetter(Snapshot::homes),
                 NamedWarp.CODEC.listOf().optionalFieldOf("warps", List.of()).forGetter(Snapshot::warps),
@@ -71,7 +72,9 @@ public final class StandardsData extends SavedData {
                         .optionalFieldOf("names", Map.of()).forGetter(Snapshot::names),
                 Waypoint.CODEC.optionalFieldOf("spawn").forGetter(Snapshot::spawn),
                 LastSeen.CODEC.listOf().optionalFieldOf("lastSeen", List.of())
-                        .forGetter(Snapshot::lastSeen))
+                        .forGetter(Snapshot::lastSeen),
+                Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.STRING)
+                        .optionalFieldOf("nicks", Map.of()).forGetter(Snapshot::nicks))
                 .apply(i, Snapshot::new));
     }
 
@@ -90,6 +93,8 @@ public final class StandardsData extends SavedData {
     private final Map<UUID, Double> accounts = new LinkedHashMap<>();
     private final Map<UUID, String> names = new LinkedHashMap<>();
     private final Map<UUID, LastSeen> lastSeen = new LinkedHashMap<>();
+    /** Chosen display names. Absent for anybody who has not set one — most players. */
+    private final Map<UUID, String> nicks = new LinkedHashMap<>();
     private Waypoint spawn;
 
     private StandardsData() {}
@@ -101,6 +106,7 @@ public final class StandardsData extends SavedData {
         names.putAll(snapshot.names());
         spawn = snapshot.spawn().orElse(null);
         snapshot.lastSeen().forEach(e -> lastSeen.put(e.player(), e));
+        nicks.putAll(snapshot.nicks());
     }
 
     private Snapshot snapshot() {
@@ -109,7 +115,7 @@ public final class StandardsData extends SavedData {
                 .toList();
         return new Snapshot(homeSets, List.copyOf(warps.values()),
                 Map.copyOf(accounts), Map.copyOf(names), Optional.ofNullable(spawn),
-                List.copyOf(lastSeen.values()));
+                List.copyOf(lastSeen.values()), Map.copyOf(nicks));
     }
 
     /** The single instance for this save. Stored on the overworld so there is one ledger. */
@@ -163,6 +169,99 @@ public final class StandardsData extends SavedData {
     /** Every name we have ever seen, for command suggestions that include offline players. */
     public List<String> knownNames() {
         return names.values().stream().sorted(String.CASE_INSENSITIVE_ORDER).toList();
+    }
+
+    // --- nicknames ---
+
+    /**
+     * This player's chosen display name, if they have one.
+     *
+     * <p>Stored here rather than on the player attachment for the usual reason — <b>offline
+     * access</b>. {@code /realname} has to answer for somebody who logged off an hour ago, which
+     * is exactly when a moderator is asking.</p>
+     */
+    public Optional<String> nick(UUID player) {
+        return Optional.ofNullable(nicks.get(player));
+    }
+
+    /**
+     * What to call this player: their nickname if set, otherwise their real name.
+     *
+     * <p>One accessor so chat, {@code /realname} and anything added later cannot disagree about
+     * who somebody is.</p>
+     */
+    public String displayName(UUID player, String realName) {
+        return nicks.getOrDefault(player, realName);
+    }
+
+    /** Set or clear a nickname. Pass {@code null} to clear. */
+    public void setNick(UUID player, String nick) {
+        if (nick == null || nick.isBlank()) {
+            if (nicks.remove(player) != null) {
+                setDirty();
+            }
+            return;
+        }
+        nicks.put(player, nick);
+        setDirty();
+    }
+
+    /**
+     * Who is using this nickname, ignoring colour codes and case.
+     *
+     * <p>Compared on the <em>stripped</em> text, because {@code &cBob} and {@code &9Bob} read as
+     * the same word to every human in the chat window and the whole point of uniqueness is what a
+     * reader can tell apart.</p>
+     */
+    public Optional<UUID> byNick(String nick) {
+        String wanted = Feedback.stripCodes(nick).trim();
+        return nicks.entrySet().stream()
+                .filter(e -> Feedback.stripCodes(e.getValue()).trim().equalsIgnoreCase(wanted))
+                .map(Map.Entry::getKey)
+                .findFirst();
+    }
+
+    /**
+     * Whether this nickname would impersonate somebody.
+     *
+     * <p><b>The check that makes nicknames safe to have at all.</b> Two separate holes, and both
+     * have to be closed here rather than in the command, because a nickname set by an admin or by
+     * another mod goes through the same door:</p>
+     *
+     * <ul>
+     * <li><b>Another player's real name.</b> Calling yourself {@code Sablednah} is the whole
+     *     attack, and it works on every player who reads chat rather than tab.</li>
+     * <li><b>Another player's nickname.</b> Two people rendering as the same word is the same
+     *     problem arriving a second way, and a reader has no means of telling which is which.</li>
+     * </ul>
+     *
+     * <p>Both are checked against the <em>name cache</em>, not the online list — an impersonation
+     * of somebody who is asleep is the version worth having, since they are not there to object.
+     * Taking your own real name back is always allowed.</p>
+     *
+     * @return the UUID being impersonated, or empty if the nickname is free
+     */
+    public Optional<UUID> impersonates(UUID chooser, String nick) {
+        String wanted = Feedback.stripCodes(nick).trim();
+        if (wanted.isEmpty()) {
+            return Optional.empty();
+        }
+        Optional<UUID> byRealName = names.entrySet().stream()
+                .filter(e -> !e.getKey().equals(chooser) && e.getValue().equalsIgnoreCase(wanted))
+                .map(Map.Entry::getKey)
+                .findFirst();
+        if (byRealName.isPresent()) {
+            return byRealName;
+        }
+        return byNick(wanted).filter(owner -> !owner.equals(chooser));
+    }
+
+    /** Every nickname in use, for {@code /realname} suggestions. */
+    public List<String> knownNicks() {
+        return nicks.values().stream()
+                .map(n -> Feedback.stripCodes(n).trim())
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
     }
 
     // --- last seen ---
