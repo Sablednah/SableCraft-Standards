@@ -2,7 +2,7 @@
 
 **Generated from the source — do not edit by hand.** `python3 scripts/nodes.py` rebuilds it from `StandardsPermissions.java`, which is the only place a node is really declared.
 
-72 declared nodes, plus the runtime ones described at the bottom.
+85 declared nodes, plus the runtime ones described at the bottom.
 
 Standards asks NeoForge's `PermissionAPI` for every one of these, so they work with LuckPerms, with Standards' own handler (`/rank`, see [`PERMISSIONS.md`](PERMISSIONS.md)), or with nothing installed at all — in which case the **Default** column is the whole answer.
 
@@ -113,6 +113,29 @@ Standards asks NeoForge's `PermissionAPI` for every one of these, so they work w
 | `standards.baltop` | `everyone` | Use `/baltop`. |
 | `standards.eco` | `ops` | Use `/eco`. |
 | `standards.pay` | `everyone` | Use `/pay`. |
+
+## Item tools
+
+| Node | Default | What it allows |
+|---|---|---|
+| `standards.condense` | `everyone` | Merge your own partial stacks. Everyone , and the only one of these a normal player wants: it creates nothing and converts nothing, it just tidies up what you are already carrying. |
+| `standards.itemlore` | `ops` | Use `/itemlore`. |
+| `standards.itemname` | `ops` | Use `/itemname`. |
+| `standards.more` | `ops` | Fill the held stack. Item duplication, plainly, so ops only. |
+| `standards.powertool` | `ops` | Bind a command to an item. Runs as the holder, so it is a shortcut and not an escalation. |
+| `standards.repair` | `ops` | Repair the held item. A cheat — an anvil and the levels you did not spend. |
+| `standards.repair.all` | `ops` | Repair everything you are carrying at once. |
+
+## Where you are
+
+| Node | Default | What it allows |
+|---|---|---|
+| `standards.compass` | `everyone` | Use `/compass`. |
+| `standards.depth` | `everyone` | Your depth and your bearing. Everyone, because on an ordinary server F3 already shows both and there is nothing to protect. |
+| `standards.playtime` | `everyone` | How long people have actually played. Everyone — it is a scoreboard, not a secret. |
+| `standards.playtime.others` | `everyone` | Use `/playtime` on another player. |
+| `standards.sudo` | `ops` | `/sudo` — run a command as somebody, with their permissions. Ops only and obviously so, but note what it is not: it cannot give anybody an ability they lack, because the command is parsed against their source. |
+| `standards.world` | `ops` | `/world` and `/worlds` — moving between dimensions keeping your coordinates. |
 
 ## Admin teleports
 

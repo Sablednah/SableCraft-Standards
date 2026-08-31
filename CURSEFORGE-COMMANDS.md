@@ -301,6 +301,72 @@ mobs, and never anything the game itself marks as placed-on-purpose. Passive mob
 `all`. A radius kill is a lag tool and a griefing tool wearing the same coat, and the difference is
 entirely in that list. Node `standards.butcher`, ops.
 
+## Held-item tools
+
+`/repair` — mend what you are holding. `/repair all` mends everything you carry, behind its own
+node. Tells you when the item cannot be damaged rather than reporting success on a stack of
+cobblestone. Op-gated: it is an anvil and the levels you did not spend.
+
+`/more` — fill the held stack. Duplication, so ops only.
+
+`/condense` — merge your partial stacks. **Open to everyone**, because it creates nothing and
+converts nothing; it tidies what you already carry. Deliberately *not* the nine-ingots-into-a-block
+conversion EssentialsX does under this name — that is a crafting operation, and `/craft` is right
+there.
+
+`/itemname <name>` and `/itemlore add <line>` / `/itemlore clear` — `&` colours work. Lore is
+add-a-line rather than set-everything, because a whole-list command needs a separator and whichever
+character were chosen is the one somebody wants in their text. `/itemname -` clears.
+
+## Power tools
+
+`/powertool <command>` — bind a command to the item you are holding and run it by right-clicking.
+`/pt` is the same command. `/pt clear`, `/pt clearall`, `/pt list`.
+
+A **staff shortcut**: a stick that runs `/jump` so you can get about a build without typing. Bound
+per player per item type, so every stick you own runs it — not the particular one, which would
+travel to whoever you gave it to.
+
+**It cannot be an escalation.** The command is dispatched as the holder, with the holder's
+permissions. If they could not type it, the stick will not run it either.
+
+## Where you are
+
+`/depth` — your Y, and how far above or below sea level (read from the world, not hardcoded to 63).
+`/compass` — your bearing and the eight-point direction.
+
+Both are redundant with F3 on an ordinary server. They earn their keep on one running the
+**`reducedDebugInfo`** gamerule, where players have no coordinates and no bearing at all. Separate
+nodes, so you can hand out a compass and not a Y coordinate.
+
+## Worlds
+
+`/world <dimension>` — same X and Z, different world. `/worlds` lists them.
+
+What `/tppos` cannot do without you typing coordinates. **It does not scale coordinates**: x=800
+stays x=800. That rule belongs to portals rather than to worlds, and a command that silently divided
+by eight would be wrong exactly when it mattered.
+
+## Running a command as somebody
+
+`/sudo <player> <command>` — and **with their permissions**, which is the whole point.
+
+Vanilla's `/execute as` does not do this. Brigadier checks permissions when it *parses*, against
+whoever typed the line, so `/execute as Steve run fly on` runs with yours and succeeds whatever
+Steve's are. This parses against the target, so **it can fail — and that refusal is the answer you
+asked for**. It is how you find out what a rank can really do without asking somebody to log in.
+
+Every use is logged with who ran what as whom.
+
+## Playtime
+
+`/playtime [player]` and `/leaderboard` (also `/playtop`).
+
+Counts time online and **not away**. Minecraft's own play-time statistic happily counts somebody
+idling in a corner all night, which is exactly the number you did not want. Same counter the
+promotion ladder waits on — a board and a promotion that disagreed about how long somebody had
+played would both be wrong to somebody.
+
 ## Items
 
 `/i <item> [count]` — give yourself a stack. `/item` is the same command. Node `standards.item`,

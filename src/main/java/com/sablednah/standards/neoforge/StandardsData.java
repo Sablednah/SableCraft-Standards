@@ -63,7 +63,7 @@ public final class StandardsData extends SavedData {
                             Map<UUID, Double> accounts, Map<UUID, String> names,
                             Optional<Waypoint> spawn, List<LastSeen> lastSeen,
                             Map<UUID, String> nicks, Map<UUID, Long> firstSeen,
-                            Map<UUID, Long> playedMinutes) {
+                            Map<UUID, Long> playedMinutes, Map<String, String> powerTools) {
         static final Codec<Snapshot> CODEC = RecordCodecBuilder.create(i -> i.group(
                 HomeSet.CODEC.listOf().optionalFieldOf("homes", List.of()).forGetter(Snapshot::homes),
                 NamedWarp.CODEC.listOf().optionalFieldOf("warps", List.of()).forGetter(Snapshot::warps),
@@ -80,7 +80,10 @@ public final class StandardsData extends SavedData {
                         .optionalFieldOf("firstSeen", Map.of()).forGetter(Snapshot::firstSeen),
                 Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.LONG)
                         .optionalFieldOf("playedMinutes", Map.of())
-                        .forGetter(Snapshot::playedMinutes))
+                        .forGetter(Snapshot::playedMinutes),
+                Codec.unboundedMap(Codec.STRING, Codec.STRING)
+                        .optionalFieldOf("powerTools", Map.of())
+                        .forGetter(Snapshot::powerTools))
                 .apply(i, Snapshot::new));
     }
 
@@ -105,6 +108,14 @@ public final class StandardsData extends SavedData {
     private final Map<UUID, Long> firstSeen = new LinkedHashMap<>();
     /** Minutes each player has been online and NOT away. See {@code Promotions}. */
     private final Map<UUID, Long> playedMinutes = new LinkedHashMap<>();
+    /**
+     * {@code "uuid|item id"} to the command bound to it.
+     *
+     * <p>A composite key rather than a nested map, which is the trick {@code StandardsGroups} uses
+     * for its homes and invites: a map of maps needs a codec for the inner one and reads worse in
+     * the saved file for no gain.</p>
+     */
+    private final Map<String, String> powerTools = new LinkedHashMap<>();
     private Waypoint spawn;
 
     private StandardsData() {}
@@ -119,6 +130,7 @@ public final class StandardsData extends SavedData {
         nicks.putAll(snapshot.nicks());
         firstSeen.putAll(snapshot.firstSeen());
         playedMinutes.putAll(snapshot.playedMinutes());
+        powerTools.putAll(snapshot.powerTools());
     }
 
     private Snapshot snapshot() {
@@ -128,7 +140,7 @@ public final class StandardsData extends SavedData {
         return new Snapshot(homeSets, List.copyOf(warps.values()),
                 Map.copyOf(accounts), Map.copyOf(names), Optional.ofNullable(spawn),
                 List.copyOf(lastSeen.values()), Map.copyOf(nicks),
-                Map.copyOf(firstSeen), Map.copyOf(playedMinutes));
+                Map.copyOf(firstSeen), Map.copyOf(playedMinutes), Map.copyOf(powerTools));
     }
 
     /** The single instance for this save. Stored on the overworld so there is one ledger. */
@@ -207,6 +219,11 @@ public final class StandardsData extends SavedData {
         return Optional.ofNullable(firstSeen.get(player));
     }
 
+    /** Everybody we have counted a minute for, for the playtime board. */
+    public List<UUID> playersWithPlaytime() {
+        return List.copyOf(playedMinutes.keySet());
+    }
+
     /** Minutes online and not away. Zero for anybody we have not counted yet. */
     public long playedMinutes(UUID player) {
         return playedMinutes.getOrDefault(player, 0L);
@@ -244,6 +261,51 @@ public final class StandardsData extends SavedData {
         if (changed) {
             setDirty();
         }
+    }
+
+    // --- power tools ---
+
+    private static String toolKey(UUID player, String itemId) {
+        return player + "|" + itemId;
+    }
+
+    /** The command bound to this item for this player, if any. */
+    public Optional<String> powerTool(UUID player, String itemId) {
+        return Optional.ofNullable(powerTools.get(toolKey(player, itemId)));
+    }
+
+    /** Bind, or unbind with {@code null}. @return true if anything changed */
+    public boolean setPowerTool(UUID player, String itemId, String command) {
+        String key = toolKey(player, itemId);
+        boolean changed = command == null
+                ? powerTools.remove(key) != null
+                : !command.equals(powerTools.put(key, command));
+        if (changed) {
+            setDirty();
+        }
+        return changed;
+    }
+
+    /** Every binding this player holds, as item id to command. */
+    public Map<String, String> powerToolsOf(UUID player) {
+        String prefix = player + "|";
+        Map<String, String> out = new LinkedHashMap<>();
+        powerTools.forEach((key, command) -> {
+            if (key.startsWith(prefix)) {
+                out.put(key.substring(prefix.length()), command);
+            }
+        });
+        return out;
+    }
+
+    /** @return how many were removed */
+    public int clearPowerTools(UUID player) {
+        String prefix = player + "|";
+        int before = powerTools.size();
+        if (powerTools.keySet().removeIf(k -> k.startsWith(prefix))) {
+            setDirty();
+        }
+        return before - powerTools.size();
     }
 
     // --- nicknames ---

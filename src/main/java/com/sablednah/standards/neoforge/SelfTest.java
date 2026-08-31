@@ -89,6 +89,7 @@ public final class SelfTest {
         checkNicknames(server);
         checkInfoRuns();
         checkPromotionRules();
+        checkCompassBearings();
         checkPermissionStore(server);
         checkWaypointRoundTrip(server);
 
@@ -893,6 +894,15 @@ public final class SelfTest {
                 "standards testchat hello world",
                 "standards permissions", "standards nodes",
                 "i stone", "i stone 12", "i minecraft:diamond_sword",
+                "repair", "repair all", "fix", "more", "condense",
+                "itemname Excalibur", "itemname &cExcalibur", "itemname -",
+                "itemlore add A blade of legend", "itemlore clear",
+                "powertool jump", "powertool clear", "powertool clearall", "powertool list",
+                "pt jump", "pt list",
+                "depth", "compass",
+                "world minecraft:the_nether", "worlds",
+                "sudo Steve fly on", "sudo Steve home",
+                "playtime", "playtime Steve", "leaderboard", "playtop",
                 "motd", "rules", "info",
                 "butcher", "butcher 32", "butcher 32 all", "killall",
                 "tpx Steve", "tpx Steve Alex", "tphere @a", "tppos 0 64 0",
@@ -1057,6 +1067,42 @@ public final class SelfTest {
                 server.getCommands().getDispatcher().parse("i stone 0", console);
         check("/i rejects a count of zero",
                 !zero.getExceptions().isEmpty() || zero.getReader().canRead());
+    }
+
+    /**
+     * The compass, which is arithmetic nobody would notice being wrong.
+     *
+     * <p>Two conversions stacked: Minecraft's yaw is 0 = <em>south</em> and grows clockwise, and a
+     * bearing is 0 = north. A compass that is 180 degrees out still moves the right way when you
+     * turn, so it looks entirely plausible until somebody navigates by it.</p>
+     *
+     * <p>The boundaries matter more than the middles. North is the wrap — 359 and 1 must both be
+     * north — and every name owns the 45 degrees <em>centred</em> on it, so the edges are at 22.5
+     * rather than at 0.</p>
+     */
+    private void checkCompassBearings() {
+        java.util.function.IntFunction<String> at =
+                b -> com.sablednah.standards.neoforge.commands.LocationCommands.cardinal(b);
+        check("0 degrees is north", at.apply(0).equals(Lang.get("msg.where.n")));
+        check("90 is east", at.apply(90).equals(Lang.get("msg.where.e")));
+        check("180 is south", at.apply(180).equals(Lang.get("msg.where.s")));
+        check("270 is west", at.apply(270).equals(Lang.get("msg.where.w")));
+        check("45 is north-east", at.apply(45).equals(Lang.get("msg.where.ne")));
+        check("225 is south-west", at.apply(225).equals(Lang.get("msg.where.sw")));
+
+        // The wrap, which is where an off-by-one lives.
+        check("359 is still north", at.apply(359).equals(Lang.get("msg.where.n")));
+        check("1 is still north", at.apply(1).equals(Lang.get("msg.where.n")));
+        check("22 is north, just", at.apply(22).equals(Lang.get("msg.where.n")));
+        check("23 has tipped into north-east", at.apply(23).equals(Lang.get("msg.where.ne")));
+
+        // And it must not throw or wander off the end for anything a wrapped yaw can produce.
+        boolean allNamed = true;
+        for (int b = 0; b < 360; b++) {
+            String name = at.apply(b);
+            allNamed &= name != null && !name.isBlank() && !name.startsWith("msg.");
+        }
+        check("every bearing from 0 to 359 has a name", allNamed);
     }
 
     /**
