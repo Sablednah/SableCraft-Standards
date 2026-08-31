@@ -8,13 +8,19 @@ god mode, homes, warps, teleports, and a built-in economy — for **NeoForge**, 
 
 | | |
 |---|---|
-| **Minecraft** | 1.21.11 |
-| **Loader** | NeoForge 21.11.42 |
-| **Java** | 21 |
+| **Minecraft** | 26.2.x *(this branch)* — also **1.21.11** on `main` and **26.1.x** on `mc26.1` |
+| **Loader** | NeoForge 26.2+ *(21.11+ on `main`, 26.1+ on `mc26.1`)* |
+| **Java** | **25** — 21 on the 1.21.11 line. Minecraft's requirement, not ours |
 | **Licence** | MIT |
 
-> **Status: early.** The foundation is built and verified; the command list is still being decided.
-> See [`COMMANDS.md`](COMMANDS.md) for what is coming and [what is working today](#what-works-today).
+Releases carry all three jars, each naming its Minecraft version:
+`standards-1.3.0+mc26.1.2.jar`. Branch per version — see [`CROSS-VERSION.md`](CROSS-VERSION.md) for
+why, and for what actually moved between the lines.
+
+> **Status: shipping.** 1.3.0, released on all three lines, under a self-test of some 400 checks
+> that runs on every server start. The command set is broad and the five APIs are built and driven
+> by two sibling mods; a handful of commands are still open in [`COMMANDS.md`](COMMANDS.md), which
+> is the live decision list rather than a roadmap for something unbuilt.
 
 ---
 
