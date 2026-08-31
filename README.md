@@ -123,8 +123,24 @@ Standards asks NeoForge's `PermissionAPI` for every check, so it works the same 
 any other handler, or with none at all.
 
 **With no permissions mod**, NeoForge answers every question with the node's own default — op-gated
-nodes for operators, everyone-nodes for everyone, and *nothing grantable*. That is fine for almost
-all of the mod, but five commands default to **nobody** on purpose, because they are capabilities a
+nodes for operators, everyone-nodes for everyone, and *nothing grantable*.
+
+Standards now ships a handler for exactly that server. One line in `neoforge-server.toml`:
+
+```toml
+permissionHandler = "standards:permissions"
+```
+
+and `/rank` appears: groups with inheritance, per-player grants, `standards.home.*` wildcards, an
+explicit deny that beats everything, and a default group everybody is in. It is **dormant unless
+you choose it** — install LuckPerms and nothing here changes. If you outgrow it, install LuckPerms
+and change that one line back. See [`PERMISSIONS.md`](PERMISSIONS.md).
+
+Its groups are also *groups*: put somebody in `moderator` and they get the nodes, a chat tag, and
+visibility to any other mod through the groups API, in one edit. That is the half LuckPerms cannot
+do, and the reason this exists rather than being a smaller copy of it.
+
+Without either, five commands default to **nobody** on purpose, because they are capabilities a
 mod hands out temporarily rather than things every player has:
 
 `/craft` `/anvil` `/grindstone` `/enderchest` `/trashcan`
@@ -273,7 +289,8 @@ Needs a JDK 21.
 - [`ECONOMY-API.md`](ECONOMY-API.md), [`CHAT-API.md`](CHAT-API.md),
   [`GROUPS-API.md`](GROUPS-API.md) — the seams other mods build on.
 - [`COMBAT-API.md`](COMBAT-API.md) — combat tagging, and how another mod hooks it.
-- [`PERMISSIONS.md`](PERMISSIONS.md) — a built-in permission handler, specified for 1.2.
+- [`PERMISSIONS.md`](PERMISSIONS.md) — the built-in permission handler: `/rank`, the resolution
+  order, and what LuckPerms does when both are installed.
 - [`CROSS-VERSION.md`](CROSS-VERSION.md) — living on several Minecraft lines at once.
 
 ## Credits

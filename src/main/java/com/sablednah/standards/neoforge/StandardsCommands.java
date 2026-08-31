@@ -23,6 +23,7 @@ import com.sablednah.standards.neoforge.commands.StationCommands;
 import com.sablednah.standards.neoforge.commands.GroupCommands;
 import com.sablednah.standards.neoforge.commands.HomeCommands;
 import com.sablednah.standards.neoforge.commands.MoveCommands;
+import com.sablednah.standards.neoforge.commands.PermissionCommands;
 import com.sablednah.standards.neoforge.commands.SwitchCommand;
 import com.sablednah.standards.neoforge.commands.TpaCommands;
 import com.sablednah.standards.neoforge.commands.WarpCommands;
@@ -259,6 +260,18 @@ public final class StandardsCommands {
             dispatcher.register(EconomyCommands.balance("money"));
         }
 
+        // --- the built-in permission handler ---
+        // Always registered, never always visible: the tree's own requires() hides it unless our
+        // handler is the active one, and that cannot be decided here. Commands are built while
+        // the level loads; the handler is chosen later, at handleServerStarting. A check at
+        // registration time would therefore see 'not us' on every server and hide it forever.
+        dispatcher.register(PermissionCommands.build("perm"));
+        // And at /rank, because LuckPerms claims /perm as an alias of /luckperms. Ours still
+        // wins every subcommand — brigadier merges the literals — but a bare /perm runs whichever
+        // mod registered its executes() last, and that is not a coin toss worth shipping. Own
+        // tree rather than a redirect, same reasoning as /j and /bal.
+        dispatcher.register(PermissionCommands.build("rank"));
+
         dispatcher.register(root());
         Standards.LOGGER.info("Registered {} Standards commands",
                 dispatcher.getRoot().getChildren().size() - before);
@@ -270,6 +283,8 @@ public final class StandardsCommands {
                 .requires(StandardsPermissions.require(StandardsPermissions.ADMIN))
                 .then(Commands.literal("reload").executes(StandardsCommands::reload))
                 .then(Commands.literal("economy").executes(StandardsCommands::economyInfo))
+                .then(Commands.literal("permissions")
+                        .executes(StandardsCommands::permissionInfo))
                 .then(Commands.literal("testchat")
                         .then(Commands.argument("message", StringArgumentType.greedyString())
                                 .executes(StandardsCommands::testChat)));
@@ -324,6 +339,31 @@ public final class StandardsCommands {
         Lang.load();
         Feedback.reply(ctx.getSource(), Lang.get("msg.admin.reloaded"), true);
         return 1;
+    }
+
+    /**
+     * Which handler is answering permission questions — the first thing to check when a gated
+     * command has quietly disappeared for everybody.
+     *
+     * <p>That symptom has one obvious cause and one that is not obvious at all. A failed
+     * {@code requires()} removes a command from the tree entirely, so a permissions manager whose
+     * storage did not come up answers false to everything and the whole mod looks broken, with
+     * nothing on screen to say why. Asking here beats reading the boot log for an error somebody
+     * else's mod printed twenty minutes ago.</p>
+     */
+    private static int permissionInfo(CommandContext<CommandSourceStack> ctx) {
+        var active = net.neoforged.neoforge.server.permission.PermissionAPI
+                .getActivePermissionHandler();
+        if (com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler.isActive()) {
+            int groups = com.sablednah.standards.neoforge.permissions.PermissionStore
+                    .get(ctx.getSource().getServer()).allGroups().size();
+            Feedback.reply(ctx.getSource(), Lang.fmt("msg.perm.handler_ours",
+                    "groups", String.valueOf(groups)), false);
+            return 1;
+        }
+        Feedback.reply(ctx.getSource(), Lang.fmt("msg.perm.handler_other",
+                "name", String.valueOf(active)), false);
+        return 0;
     }
 
     /** Which economy is actually holding the money — the first question when one misbehaves. */

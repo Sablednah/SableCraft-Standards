@@ -331,6 +331,75 @@ registers.
 `/home`, never `/standards home`. Muscle memory is the product. `/standards` is for administering
 the mod itself and nothing else lives under it.
 
+### 13. The permission handler is a registrant, not an arbitrator
+
+`neoforge/permissions/` ships `StandardsPermissionHandler`, and the thing to keep straight is that
+**NeoForge's `PermissionAPI` is already the Vault here.** Handlers register at
+`PermissionGatherEvent.Handler`; the owner names the active one in `neoforge-server.toml`. It is an
+explicit setting, not a priority contest, and it is not contested. So Standards offers one more
+handler and never arbitrates. Do not add a config switch of our own beside NeoForge's — that would
+be the arbitration layer this deliberately refuses to build.
+
+Three consequences that are easy to get wrong:
+
+- **The resolver is pure.** `core/PermissionRules` imports `java.util` and nothing else, so the
+  self-test exercises the real decision logic against fixtures rather than a duplicate. Scopes
+  arrive as *tiers*, nearest the player first, and the first tier that says anything wins — which
+  makes "a deny on the player beats everything" and "a deny in a group beats its parent" one rule.
+- **`/perm` and `/rank` are registered always and visible almost never.** Their `requires()` checks
+  `StandardsPermissionHandler.isActive()`, evaluated **per source, not at registration**: commands
+  are built while the level loads and the handler is not chosen until `handleServerStarting`, so a
+  registration-time check sees "not us" on every server and hides the tree forever.
+- **The store is `SavedData`, not an attachment**, for the same reason as homes and balances —
+  `getOfflinePermission` is most of what an admin actually does.
+
+The payoff is `PermissionRoles`: a permission group is published through the groups seam as
+`standards:role`, so one edit grants nodes *and* a chat tag *and* cross-mod visibility. LuckPerms
+cannot do that half, and it is the reason to build this rather than a smaller copy of LuckPerms.
+
+**Two traps, both found by driving it over RCON and neither reachable by the self-test as written:**
+
+- ⚠ **Brigadier's `word()` cannot read an asterisk.** It accepts letters, digits and `_.+-`, so
+  `standards.home.*` was *unparseable* — the wildcards were proved correct by the self-test and
+  could not be typed by a human. The error is "Expected whitespace to end one argument", which
+  names nothing and reads like the admin's own typo. The node argument is a `greedyString` split in
+  code. `string()` would need the node quoted and nobody quotes a permission node; a custom
+  `ArgumentType` would need registering with `ArgumentTypeInfos` to survive being sent to a client.
+- ⚠ **LuckPerms owns `/perm`**, as an alias of `/luckperms`, along with `perms`, `permission`,
+  `permissions` and `lp`. With LuckPerms installed but ours selected, the literals merge: our
+  subcommands work and a bare `/perm` runs LuckPerms' help — invisibly, since LuckPerms' output
+  never reaches RCON. Hence `/rank`, registered as its own tree.
+
+And one thing that is *not* true, despite what the bytecode suggests: **LuckPerms does not force
+itself.** It claims the slot only when the config still names `neoforge:default_handler`. Set
+`standards:permissions` explicitly and ours wins with LuckPerms sitting there registered and
+unused — verified both ways on the dev server.
+
+**A third trap, and it needed two clients** — it belongs to the *other* bug family, the one where
+the server is right and the client was never told:
+
+- ⚠ **A newly granted command renders red.** The server re-evaluates `requires()` on every command
+  it parses, so a grant works immediately — a real non-op granted `standards.craft` got a crafting
+  table with no reconnect. But the client holds a copy of the command tree, sent once on join, and
+  uses it for tab-complete and for colouring the line as it is typed. So the player is told they
+  have the command, types it, sees red *"unknown command"*, and reports it broken. Almost nobody
+  presses enter through a red line.
+
+  `PermissionCommands.refresh` resends the tree on every edit — `server.getCommands().sendCommands(player)`
+  — to the one player for a user edit, to everyone for a group edit.
+
+  **The residue that looks like the fix failing:** the client repaints a line when its *text*
+  changes, not when a tree arrives. A line already sitting in the chat box keeps its red until
+  touched. Watched directly: a granted `/anvil` stayed red, then went white on one
+  backspace-and-retype. Nothing server-side prompts a repaint — do not "fix" it again.
+
+**Incidental, and worth keeping:** the two-client run also exercised `SwitchCommand`'s off-ramp
+rule with a genuine non-op for the first time. TestThird could turn god mode **off** without
+holding `standards.god`, and could not turn it back on. That asymmetry is deliberate — switches
+persist across a logout, so gating the off-ramp behind the same node leaves a player stuck
+invulnerable forever the moment their permission changes — and it had only ever been reasoned
+about, never watched.
+
 ## 1.21.11 API notes (verified against the decompiled sources, not guessed)
 
 Extract them once with:
@@ -621,8 +690,10 @@ exist", "nothing consumes", "yet". Worth doing before any release.
   other people's holograms and misses a plate that tracks from a distance. It also needs **both**
   halves — ask on spawn *and* listen for `VanishEvent` — since check-on-spawn alone is exactly what
   leaves the plate hanging when somebody vanishes mid-session.
-- `PERMISSIONS.md` — **specified, scheduled for 1.2.** A built-in permission handler for servers
-  with no permissions mod. Note the framing correction it opens with: NeoForge's `PermissionAPI`
-  is already the Vault-equivalent and the owner picks the active handler in `neoforge-server.toml`,
-  so this is one more handler rather than an arbitration layer.
+- `PERMISSIONS.md` — **built 2026-08-31.** The built-in permission handler for servers with no
+  permissions mod: `/rank`, groups with inheritance, wildcards, and a default group. Note the
+  framing correction it opens with: NeoForge's `PermissionAPI` is already the Vault-equivalent and
+  the owner picks the active handler in `neoforge-server.toml`, so this is one more handler rather
+  than an arbitration layer. Also records what LuckPerms does when both are installed, and the two
+  bugs the first real use found.
 - `CROSS-VERSION.md` — the plan for living on several Minecraft lines at once.

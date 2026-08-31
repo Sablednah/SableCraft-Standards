@@ -251,3 +251,31 @@ another mod's chat channel clears it too.
 
 `/standards reload` — **messages only**, and it says so. Commands are registered at startup based on
 config, so a config change needs a restart; reloading messages is the part that can be done live.
+
+`/standards permissions` — which handler is actually answering permission questions. The first
+thing to check when a gated command has quietly disappeared for everybody: a permissions manager
+whose storage failed to start answers false to everything, so every gated command vanishes from the
+tree and players see only "Unknown or incomplete command".
+
+## Permissions — `/rank`
+
+Only present when Standards' own permission handler is the active one
+(`permissionHandler = "standards:permissions"` in `neoforge-server.toml`). Node:
+`standards.permissions`, ops by default — deliberately separate from `standards.admin`, so a
+moderator can reload messages without also being able to grant themselves everything.
+
+`/rank groups` · `/rank group <name> create|delete|info` · `/rank group <name> set <node> [true|false]`
+· `/rank group <name> unset <node>` · `/rank group <name> parent add|remove <other>` ·
+`/rank group <name> tag <tag|->`
+
+`/rank user <player> group add|remove <group>` · `/rank user <player> set <node> [true|false]` ·
+`/rank user <player> unset <node>` · `/rank user <player> info`
+
+`/rank check <player> <node>` — one node, and **which rule answered it**, not just yes or no.
+
+Players are named rather than selected, so an offline player can be granted a rank — which is most
+of what an admin does with a permissions system.
+
+Also at `/perm`, but **`/rank` is the reliable name**: LuckPerms claims `/perm` as an alias of
+`/luckperms`, so on a server carrying both, a bare `/perm` runs LuckPerms while the subcommands
+still reach ours.
