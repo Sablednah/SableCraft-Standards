@@ -677,6 +677,20 @@ Nobody notices, because a doc that undersells is never contradicted by a failure
 status lines whenever something ships**: `grep -n "^\*\*Status:" *.md`, plus "not built", "does not
 exist", "nothing consumes", "yet". Worth doing before any release.
 
+⚠ **Two CurseForge documents per mod, and a feature belongs in both.** `CURSEFORGE-COMMANDS.md` is
+the reference for somebody already running it; **`CURSEFORGE.md` is the page somebody reads before
+deciding to install**. Factions 1.2.0 shipped with `/f bypass` in the first and absent from the
+second, so its headline feature was missing from the only page a prospective user sees. Caught by
+fetching the live page after publishing rather than trusting the paste. Neither is pushed
+automatically — the owner pastes them by hand.
+
+⚠ **The project description is not the design doc, and must not read like one.** `PERMISSIONS.md`
+names LuckPerms thirty-odd times, correctly: it records the gap that was filled and the ground
+deliberately not re-tread. The same reasoning copied onto the CurseForge page read as an attack —
+seven mentions in one section, mostly distancing. The page says what the mod does, names an
+alternative once as reassurance, and states scope limits as positives ("no SQL backend, no web
+editor; enough to run a server, and honest about the line"). Same information, nobody named.
+
 ⚠ **`NODES.md` is generated — regenerate it whenever a permission node is added, removed or
 re-defaulted**: `python3 scripts/nodes.py`. A hand-kept list of seventy-odd nodes is the document
 this repo would certainly ship stale, and unlike a status line nobody could ever notice: a missing
