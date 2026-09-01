@@ -218,9 +218,9 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
 - [x] `/depth` at sea level says exactly that; up a hill says *above*; in a cave says *below*
 - [x] `/compass` — face each way and check it against F3. **North is the wrap**: it should read
       north just either side of 0, not flip to south
-- [ ] set `reduced_debug_info true` and confirm both still answer *(the case they exist for)*.
-      ⚠ **Note the name.** 1.21.11 renamed every gamerule to snake_case; this was written up as
-      `reducedDebugInfo` in eight places and none of them would ever have worked
+- [x] set `reduced_debug_info true` and confirm both still answer *(the case they exist for)*.
+      **Confirmed 2026-09-01.** ⚠ **Note the name.** 1.21.11 renamed every gamerule to snake_case;
+      this was written up as `reducedDebugInfo` in eight places and none would ever have worked
 
 ### Worlds and admin teleports — one client
 
@@ -253,13 +253,13 @@ for them means `requires()` said no.
 
 ### Playtime and promotions — needs elapsed time, so start it early
 
-- [ ] `/playtime` after ten minutes reads about ten
+- [x] `/playtime` after ten minutes reads about ten
 - [x] go AFK, come back: it has **not** moved *(the whole point — vanilla's statistic would have)*.
       **Confirmed 2026-09-01.** Proved quickly because the dev server had `awayAfterSeconds = 30`
       left over from earlier testing — a value that is wrong for everything else and was exactly
       right for this. Raised back to the shipped 300 afterwards; drop it again if this ever needs
       re-proving.
-- [ ] `/leaderboard` ranks the three clients sensibly
+- [x] `/leaderboard` ranks the three clients sensibly
 - [x] set `startingGroup = "guest"`, `promotions = [...]`, create both ranks, and log in with a
       **fresh** name: they land in `guest`, then move to `regular` on their own within a minute of
       qualifying, with a message. **Confirmed 2026-09-01** — both clients placed in `guest` on
@@ -267,7 +267,7 @@ for them means `requires()` said no.
 - [x] the promotion message reaches the player. It did; it was **missed in the join spam** the
       first time, which is what prompted `/rank` being opened to non-ops — one line in a busy chat
       with no way to check afterwards is a feature a player cannot see
-- [ ] an already-ranked player logging in is **not** dropped back to guest
+- [x] an already-ranked player logging in is **not** dropped back to guest
 
 ### Kits, MOTD, butcher, nicknames — quick sweep
 
