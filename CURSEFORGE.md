@@ -96,25 +96,22 @@ typo is findable instead of embarrassing.
 version" is answerable by scrolling to the bottom, and a message you have *not* edited is quietly
 updated to the current wording while anything you have touched is left exactly alone.
 
-## Permissions, and one thing to know first
+## Permissions
 
-Standards uses NeoForge's own `PermissionAPI`, which means **LuckPerms works out of the box** — and
-so does having no permissions mod at all. Verified both ways: a fresh server with nothing installed
-gives ordinary players the everyone-commands and operators the op-gated ones, and a LuckPerms grant
-applies live without a restart.
+Every gate is a permission node, never a hardcoded op check — so a donor rank can have ten homes and
+a builder can have `/craft` without anybody being handed `/stop`.
 
-Every gate is a node, never a hardcoded op check, so a donor rank can have ten homes and a builder
-rank can have `standards.craft` without anybody being handed `/stop`.
+Standards asks NeoForge's own `PermissionAPI`, so whatever you already run answers those questions
+and nothing here gets in its way. **LuckPerms works out of the box**, with no configuration on
+either side.
 
-### And now you can grant them without installing anything
+### Ranks without installing a permissions mod
 
-With no permissions mod, NeoForge answers every question with the node's own default — which means
-**you cannot grant anybody anything.** A trusted regular cannot have flight, a donor cannot have ten
-homes, and a builder cannot have `/craft` without being made an operator, which also hands them
-`/stop`.
+With nothing installed, NeoForge answers every question with the node's own default — which means
+you cannot grant anybody anything. A trusted regular cannot have flight, a donor cannot have ten
+homes, and a builder cannot have `/craft` without being made an operator.
 
-So Standards ships a permission handler for exactly that server. One line in
-`neoforge-server.toml`:
+So there is a handler for exactly that server. One line in `neoforge-server.toml`:
 
 ```toml
 permissionHandler = "standards:permissions"
@@ -133,12 +130,14 @@ and `/rank` appears:
 Groups with inheritance, per-player grants, `standards.*` wildcards, an explicit deny that beats
 everything, and a default group everybody is in without being put there.
 
-**It is dormant unless you choose it.** NeoForge decides which handler is active, not us — install
-LuckPerms and nothing here changes, and `/rank` is not even registered. If you outgrow this, install
-LuckPerms and change that one line back. No import, no export, nothing to migrate off.
+**Dormant unless you pick it.** NeoForge decides which handler is active — leave that line alone and
+this one never runs, and `/rank` is not even registered. Switching either way is that one line, with
+nothing to import and nothing to migrate off.
 
-**It tells you *why*.** Every hour lost to a permissions system is spent asking why a player has
-something, and yes-or-no cannot answer that:
+### It tells you *why*
+
+Every hour lost to a permissions system is spent asking why a player has something, and yes-or-no
+cannot answer that:
 
 ```
 > /rank check Steve standards.home.others
@@ -147,18 +146,42 @@ something, and yes-or-no cannot answer that:
   standards.god = no (nothing set — the node's own default)
 ```
 
-That second line matters as much as the first. A bare "no" reads as a rule somebody wrote, and
-sends you looking for one that does not exist.
+That second line matters as much as the first. A bare "no" reads as a rule somebody wrote, and sends
+you looking for one that does not exist.
 
-**Its groups are also groups.** Put somebody in `moderator` and they get their permission nodes, a
-chat tag, and visibility to every other mod on the server — one edit, no second list to keep in
-sync. LuckPerms cannot do that half: its groups are a permissions concept, and nothing else on the
-server can ask about them. That is why this exists rather than being a smaller copy of LuckPerms.
+### A rank is a group, not just a bundle of nodes
 
-What it deliberately does **not** have: per-world contexts, temporary nodes, tracks, weights, SQL
-backends, a web editor. Chasing those loses — a half-built LuckPerms is worse than none, because it
-looks like it will keep up and then does not. This is *enough to run a small server*, and honest
-about it.
+Put somebody in `moderator` and they get their permission nodes, a **chat tag**, and **visibility to
+every other mod on the server** — one edit, no second list to keep in sync. A faction mod, a party
+mod or a quest mod can ask who your moderators are, because ranks are published through the same
+groups API everything else here uses.
+
+That is the reason this exists. Permissions on their own are a solved problem; ranks that the rest
+of the server can actually see are not.
+
+### Players can climb it on their own
+
+```toml
+startingGroup = "guest"
+promotions = ["guest -> regular after 24h and 2h played"]
+```
+
+New players land in `guest` and move up by themselves. Two clocks, because they answer different
+questions: **real time** asks for patience — a few minutes is enough to lose the fly-by griefer who
+is on another server by now — and **played time** asks them to have actually done something.
+
+Played time counts only while somebody is **online and not away**. Minecraft's own statistic happily
+counts a player idling in a corner all night, which is exactly the promotion you did not want to
+give. Give both and both must pass.
+
+`/rank` on its own is open to everyone and shows what you are and what is left: *"next: regular —
+needs 18m more and 45m more played"*. A ladder a player cannot see is one that happens to them.
+
+### What it is not
+
+No per-world contexts, no temporary nodes, no promotion tracks, no weights, no SQL backend, no web
+editor. This is **enough to run a server**, and honest about the line: if you need any of that, a
+dedicated permissions mod is a better tool and switching to one costs a single config line.
 
 ## For other mods
 
