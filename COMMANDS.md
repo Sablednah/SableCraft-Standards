@@ -222,7 +222,7 @@ never learn which ledger answered.
 | `/world` `/worlds` | ✓ | ✗ | Switch worlds | **DONE** | Keeps your X and Z and changes only the world, which is what `/tppos` cannot do without you typing coordinates. **Does not scale coordinates** — x=800 stays x=800; that rule belongs to portals, and silently dividing by eight would be wrong exactly when it mattered. |
 | `/near` | ✓ | ✓ | Nearby players | YES | (Also listed in Chat.) |
 | `/getpos` `/coords` `/whereami` | ✓ | ✗ | Your coordinates | YES | F3 exists; this works on servers that hide it. |
-| `/depth` `/compass` | ✓ | ✗ | Depth / bearing | **DONE** | Redundant with F3 — *except* on a server running the `reducedDebugInfo` gamerule, where players have no coordinates or bearing at all and these are the only way to give some back. Separate nodes, so an owner can hand out a compass and not a Y coordinate. |
+| `/depth` `/compass` | ✓ | ✗ | Depth / bearing | **DONE** | Redundant with F3 — *except* on a server running the `reduced_debug_info` gamerule, where players have no coordinates or bearing at all and these are the only way to give some back. Separate nodes, so an owner can hand out a compass and not a Y coordinate. |
 | `/butcher` `/killall` | ✓ | ✗ | Clear entities in a radius | **DONE** | Hostiles only unless you add `all`. **Never** players, tamed animals, named mobs or anything vanilla marks persistent — that skip list is the whole command, and it is why `/killall` has a bad name elsewhere. |
 | `/spawnmob` `/spawner` | ✓ | ✗ | Spawn mobs / change spawners | NO | Vanilla `/summon`; ZombieMod owns the interesting half. |
 | `/tree` `/bigtree` | ✓ | ✗ | Grow a tree | NO | |

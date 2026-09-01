@@ -102,7 +102,7 @@
     are, and what you are working towards — *"next: regular — needs 18m more and 45m more played"*.
     Needing an operator to tell you your own rank made the ladder something happening **to** a
     player rather than something they were climbing. The editing subcommands stay op-gated.
-  - **`/depth` `/compass`** — redundant with F3, *except* on a server running `reducedDebugInfo`,
+  - **`/depth` `/compass`** — redundant with F3, *except* on a server running `reduced_debug_info`,
     where players have no coordinates or bearing at all. Separate nodes, so you can give out a
     compass and not a Y coordinate.
   - **`/world` `/worlds`** — same X and Z, different dimension. **Does not scale coordinates**:

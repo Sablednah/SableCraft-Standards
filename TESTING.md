@@ -218,7 +218,9 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
 - [x] `/depth` at sea level says exactly that; up a hill says *above*; in a cave says *below*
 - [x] `/compass` — face each way and check it against F3. **North is the wrap**: it should read
       north just either side of 0, not flip to south
-- [ ] set `reducedDebugInfo true` and confirm both still answer *(the case they exist for)*
+- [ ] set `reduced_debug_info true` and confirm both still answer *(the case they exist for)*.
+      ⚠ **Note the name.** 1.21.11 renamed every gamerule to snake_case; this was written up as
+      `reducedDebugInfo` in eight places and none of them would ever have worked
 
 ### Worlds and admin teleports — one client
 
@@ -269,14 +271,24 @@ for them means `requires()` said no.
 
 ### Kits, MOTD, butcher, nicknames — quick sweep
 
-- [ ] `/kitaccess <kit> ops` then claim it as TestThird → refused; `everyone` → allowed
-- [ ] a kit created **this session** and set to `ops` is refused **without a restart** *(the hole
-      that was fixed)*
+- [x] `/kitaccess <kit> ops` then claim it as TestThird → refused; `everyone` → allowed
+- [x] a kit created **this session** and set to `ops` is refused **without a restart** *(the hole
+      that was fixed)*. **Confirmed 2026-09-01**
 - [x] `/motd`, `/rules`, `/info`; the MOTD also appears on join, **last**. **Confirmed
       2026-09-01**, including `{player}` and `{rank}` filling in on the join message
-- [ ] `/butcher 32` clears hostiles and **leaves a tamed wolf, a named cow and an item frame**
-- [ ] `/nick ~Bob` shows in chat with the `~`; tab still shows the real name; `/realname Bob`
-      answers; a nick that is another player's real name is refused
+- [x] `/butcher 32` clears hostiles and **leaves a tamed wolf, a named cow and an item frame**.
+      Confirmed: cows and item frames survived, a skeleton did not
+- [x] ⚠ **…and it left ZombieMod's zombies alone, which was wrong.** They carry a hidden custom
+      name (their genus) and some are persistence-required, so both "somebody's mob" guards fired
+      on exactly the horde `/butcher` exists to clear. **Mods use custom names as a data channel**,
+      and nothing can tell that apart from a player's name tag. Hence `force`
+- [ ] `/butcher 32 force` **does** clear them — and still leaves the tamed wolf and the item frame,
+      which force never overrides
+- [x] `/nick ~Bob` shows in chat with the `~`; tab still shows the real name; `/realname Bob`
+      answers; a nick that is another player's real name is refused. **Confirmed 2026-09-01**,
+      including the one that matters: **refused against an OFFLINE player's name**. That is the
+      version of impersonation that works, because the victim is not there to object — and it is
+      why the check reads the name cache rather than the online list
 
 ### `/f bypass` — one client, in somebody else's claim
 

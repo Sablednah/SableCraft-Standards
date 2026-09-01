@@ -54,6 +54,20 @@ structurally cannot reach.
 - **`DamageResistant(TagKey)` → `DamageResistant(HolderSet)`**, so it needs a level to resolve the
   tag against.
 
+### ⚠ Gamerules are snake_case now
+
+`reducedDebugInfo` is **`reduced_debug_info`**, and the same goes for the rest — `sendCommandFeedback`
+is `send_command_feedback`, `mobGriefing` is `mob_griefing`. Every gamerule was renamed.
+
+Not a compile error, because no code here reads one: it cost nothing but a documentation bug in
+**eight places**, where `/depth` and `/compass` told an owner to set a gamerule that does not exist
+under that name. Found by trying to set it on the dev server, which is the only way it could have
+been — the wrong name was in prose the compiler never sees.
+
+Worth remembering as a shape rather than a fact: **the things a doc tells an owner to type are not
+checked by anything.** A renamed gamerule, config key or command in prose survives every build and
+every self-test.
+
 ### Divergences carried by individual commands
 
 - **`ItemInput.createItemStack`** takes `(int count, boolean allowOversized)` on 1.21.11 and

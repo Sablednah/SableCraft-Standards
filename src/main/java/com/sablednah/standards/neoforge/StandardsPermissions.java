@@ -202,7 +202,7 @@ public final class StandardsPermissions {
      * Your depth and your bearing.
      *
      * <p>Everyone, because on an ordinary server F3 already shows both and there is nothing to
-     * protect. They earn their keep on a server running {@code reducedDebugInfo}, and that owner
+     * protect. They earn their keep on a server running {@code reduced_debug_info}, and that owner
      * can take these away — which is the point of them being separate nodes.</p>
      */
     public static final PermissionNode<Boolean> DEPTH = node("depth", Default.EVERYONE);
