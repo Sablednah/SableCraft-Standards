@@ -192,8 +192,10 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
 - [x] `/more` on a **shulker box** gives 1, not 64 — the cap is per item. **Confirmed via `/i`
       too**: a bare `/i` gives 1 for a sword, 64 for stone and **16 for an ender pearl** — the
       result that proves the maximum is read off the item rather than assumed to be 64
-- [ ] `/condense` with three half stacks of dirt merges them and reports the count moved
-- [ ] `/itemname &cExcalibur` — red name, and `&c` is **not** literal text
+- [x] `/condense` with three half stacks of dirt merges them and reports **slots freed**.
+      **Reworded 2026-09-01** — it used to report items *moved*, so two stacks of 32 said "32" and
+      eight of 8 said "56". Both accurate, neither the answer anybody wanted
+- [x] `/itemname &cExcalibur` — red name, and `&c` is **not** literal text
 - [ ] `/itemname -` clears it
 - [ ] `/itemlore add A blade of legend`, twice — two lines, in order; `/itemlore clear` empties
 
@@ -213,16 +215,21 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
 
 ### Where you are — one client
 
-- [ ] `/depth` at sea level says exactly that; up a hill says *above*; in a cave says *below*
-- [ ] `/compass` — face each way and check it against F3. **North is the wrap**: it should read
+- [x] `/depth` at sea level says exactly that; up a hill says *above*; in a cave says *below*
+- [x] `/compass` — face each way and check it against F3. **North is the wrap**: it should read
       north just either side of 0, not flip to south
 - [ ] set `reducedDebugInfo true` and confirm both still answer *(the case they exist for)*
 
 ### Worlds and admin teleports — one client
 
 - [ ] `/worlds` lists overworld, nether, end
-- [ ] `/world minecraft:the_nether` from x=800 puts you at **x=800**, not 100 — and does not
+- [x] `/world minecraft:the_nether` from x=800 puts you at **x=800**, not 100 — and does not
       suffocate you in the ceiling *(safe landing doing its job)*
+- [x] ⚠ **…and does not land you ON the Nether roof.** Found 2026-09-01: standing above the clouds
+      carried y=200 across, and the safe-landing search found solid ground with air above it on top
+      of the bedrock ceiling. A perfectly safe landing somewhere nobody is supposed to stand. The Y
+      is now clamped to the destination's own `logicalHeight` — the number portals respect —
+      **before** the search runs. Retest from high up in the overworld
 - [ ] `/world` naming the world you are in says so instead of teleporting
 - [ ] `/tpx <player>`, `/tphere <player>`, `/tppos 0 80 0`, and `/tppos 0 80 0 minecraft:the_end`
 - [ ] **vanilla `/tp @s ~ ~ ~` still works** — we deliberately did not merge onto it

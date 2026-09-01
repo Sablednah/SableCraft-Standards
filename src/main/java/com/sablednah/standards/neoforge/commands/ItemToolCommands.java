@@ -142,7 +142,8 @@ public final class ItemToolCommands {
             throws CommandSyntaxException {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
         var inventory = player.getInventory();
-        int merged = 0;
+        int moved = 0;
+        int freed = 0;
         for (int a = 0; a < inventory.getContainerSize(); a++) {
             ItemStack into = inventory.getItem(a);
             if (into.isEmpty() || into.getCount() >= into.getMaxStackSize()) {
@@ -154,22 +155,52 @@ public final class ItemToolCommands {
                     continue;
                 }
                 int room = into.getMaxStackSize() - into.getCount();
-                int moved = Math.min(room, from.getCount());
-                if (moved <= 0) {
+                int take = Math.min(room, from.getCount());
+                if (take <= 0) {
                     continue;
                 }
-                into.grow(moved);
-                from.shrink(moved);
-                merged += moved;
+                into.grow(take);
+                from.shrink(take);
+                moved += take;
+                if (from.isEmpty()) {
+                    // Clear the slot rather than leaving a zero-count stack sitting in it.
+                    // shrink() to nothing leaves the slot holding an empty stack, which the
+                    // client can render as a ghost item until something else disturbs it.
+                    inventory.setItem(b, ItemStack.EMPTY);
+                    freed++;
+                }
                 if (into.getCount() >= into.getMaxStackSize()) {
                     break;
                 }
             }
         }
-        Feedback.chat(player, merged == 0
-                ? Lang.get("msg.item.nothing_to_condense")
-                : Lang.fmt("msg.item.condensed", "count", String.valueOf(merged)));
-        return merged;
+        Feedback.chat(player, report(moved, freed));
+        // Slots freed, because that is what the command is FOR. The item count is the honest
+        // answer to a question nobody asked.
+        return freed;
+    }
+
+    /**
+     * Say what they actually gained.
+     *
+     * <p>The first version reported items <em>moved</em>, which is accurate and unhelpful: two
+     * stacks of 32 merging reports "32", and eight stacks of 8 reports "56", because that is how
+     * many crossed from one slot to another. A player reads those numbers as a count of what they
+     * have, and neither is that.</p>
+     *
+     * <p>What they wanted to know is how much room they got back. Three outcomes, because
+     * "0 slots freed" on a tidy-up that genuinely merged something reads as a command that did
+     * nothing — two half stacks becoming one full one and one part one frees no slot at all.</p>
+     */
+    private static String report(int moved, int freed) {
+        if (moved == 0) {
+            return Lang.get("msg.item.nothing_to_condense");
+        }
+        if (freed == 0) {
+            return Lang.fmt("msg.item.condensed_no_slots", "count", String.valueOf(moved));
+        }
+        return Lang.fmt("msg.item.condensed",
+                "slots", String.valueOf(freed), "count", String.valueOf(moved));
     }
 
     // --- /itemname and /itemlore ---

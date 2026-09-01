@@ -513,7 +513,8 @@ public final class Lang {
         def("msg.item.nothing_to_repair", "{term.prefix} &7Nothing you are carrying is damaged.");
         def("msg.item.already_full", "{term.prefix} &7That is already a full stack of &f{count}&7.");
         def("msg.item.more", "{term.prefix} &7Added &f{count}&7 more &f{item}&7.");
-        def("msg.item.condensed", "{term.prefix} &7Tidied &f{count}&7 item(s) into fuller stacks.");
+        def("msg.item.condensed", "{term.prefix} &7Tidied up — &f{slots}&7 slot(s) free. {term.dim}({count} items moved)");
+        def("msg.item.condensed_no_slots", "{term.prefix} &7Merged &f{count}&7 item(s) into fuller stacks, but nothing emptied a slot.");
         def("msg.item.nothing_to_condense", "{term.prefix} &7Nothing to tidy — no half-empty stacks.");
         def("msg.item.named", "{term.prefix} &7That is now called &f{name}&7.");
         def("msg.item.name_cleared", "{term.prefix} &7Name removed.");
