@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.4.0
+
+**Tested with two clients before release**, which found six bugs the self-test structurally could
+not reach — a `/sudo` that told the caller nothing, `/condense` counting the wrong thing and
+leaving ghost items, `/world` landing on the Nether roof, `/butcher` skipping exactly the modded
+mobs it exists to clear, and `/nick` refusing your own name. Each is described under **Fixed**.
 
 ### Added
 
@@ -118,6 +123,32 @@
 
 ### Fixed
 
+- **`/sudo` told the caller nothing.** The target saw the refusal as though they had typed it —
+  correct — but from the asking side an attempt and a refusal looked identical. It now reports the
+  outcome, and distinguishes **refused** from **no such command**: brigadier reports a permission
+  refusal as *"Unknown or incomplete command"*, which is true for the target and useless for you.
+
+- **`/condense` counted the wrong thing, and left ghost items.** It reported items *moved* — two
+  stacks of 32 said "32" — when what a player wants to know is **slots freed**. And a fully drained
+  stack was left in its slot at zero count, which a client can render as a phantom item.
+
+- **`/world` could land you on the Nether roof.** Your Y carried across, so arriving from above the
+  clouds put the safe-landing search on top of the bedrock ceiling: a perfectly safe landing
+  somewhere nobody is meant to stand. The Y is now clamped to the destination's own `logicalHeight`.
+
+- **`/butcher` skipped the mobs it exists to clear.** ZombieMod names every zombie (hidden) and
+  marks some persistent, so both "somebody's mob" guards fired on the whole horde. **Mods use
+  custom names as a data channel** and nothing can tell that from a player's name tag — hence the
+  new `force` tier, which drops those two guesses and keeps the three certainties.
+
+- **`/nick <your own name>` was refused as impersonation.** Offline UUIDs are case-sensitive, so
+  the name cache holds `Sablednah` and `sablednah` as two players and your own name matched the
+  other. Your own name now clears the nickname instead — nobody has ever meant "impersonate
+  myself".
+
+- **A bare `/nick` said "Unknown or incomplete command".** It now shows what chat calls you, with a
+  clickable `[Clear]`.
+
 - **A message could reach a player with a placeholder still in it.** `/kitaccess` raised
   `msg.kit.unknown` without its `{list}` argument, so an admin was told *"No kit called x. Try:
   {list}"*, braces and all — four other call sites passed it and one did not. `Lang.fmt` now warns
@@ -182,7 +213,7 @@
   an alias of `/luckperms`, so on a server carrying both, a bare `/perm` runs LuckPerms' help while
   our subcommands still work. `/rank` is claimed by nothing.
 
-- The self-test is at **403 checks**, including the resolution order in both directions, the
+- The self-test is at **403 checks** *(as of 1.3.0; see 1.4.0 for the current figure)*, including the resolution order in both directions, the
   wildcard command forms, and a round trip through `PermissionAPI` itself. Beyond that it was
   driven with two clients against the dev server: a genuine non-op was refused an op-gated node,
   kept an everyone-node, was granted `standards.craft` — which defaults to *nobody*, so not even an
