@@ -73,14 +73,54 @@ public final class SudoCommand {
 
         Standards.LOGGER.info("[sudo] {} ran '{}' as {}",
                 ctx.getSource().getTextName(), command, target.getName().getString());
+        String who = target.getName().getString();
         Feedback.reply(ctx.getSource(), Lang.fmt("msg.sudo.running",
-                "player", target.getName().getString(), "command", command), true);
+                "player", who, "command", command), true);
 
+        var dispatcher = ctx.getSource().getServer().getCommands().getDispatcher();
         // THE LINE THE COMMAND EXISTS FOR. Parsing against the target's own source is what makes
         // their permissions apply — hand it ours and this would be /execute as with extra steps.
-        ctx.getSource().getServer().getCommands()
-                .performPrefixedCommand(target.createCommandSourceStack(), command);
-        return 1;
+        var parsed = dispatcher.parse(command, target.createCommandSourceStack());
+
+        if (!reachable(parsed)) {
+            // It did not parse for them. Two very different reasons, and telling them apart is
+            // the most useful thing this command does: re-parse as the CALLER, who we know can
+            // see more of the tree. Parses for us and not for them means requires() said no —
+            // which is the answer somebody testing a rank actually wanted, and is otherwise
+            // reported as the thoroughly misleading "Unknown or incomplete command".
+            boolean callerCanSeeIt = reachable(dispatcher.parse(command, ctx.getSource()));
+            Feedback.fail(ctx.getSource(), callerCanSeeIt
+                    ? Lang.fmt("msg.sudo.refused", "player", who, "command", command)
+                    : Lang.fmt("msg.sudo.unknown", "command", command));
+            return 0;
+        }
+
+        try {
+            int result = dispatcher.execute(parsed);
+            Feedback.reply(ctx.getSource(), Lang.fmt("msg.sudo.ok",
+                    "player", who, "command", command), false);
+            return result;
+        } catch (com.mojang.brigadier.exceptions.CommandSyntaxException failed) {
+            // The target has already been told by their own source — they saw the error as though
+            // they had typed it, which is correct. This is the caller's copy, so they are not left
+            // guessing whether anything happened at all.
+            Feedback.fail(ctx.getSource(), Lang.fmt("msg.sudo.failed",
+                    "player", who, "command", command, "reason", failed.getRawMessage().getString()));
+            return 0;
+        }
+    }
+
+    /**
+     * Whether a parse actually reached something runnable.
+     *
+     * <p>{@code getExceptions()} alone is not enough and neither is a non-null context — the same
+     * trap {@code SelfTest} documents. A command hidden by {@code requires()} produces a parse that
+     * simply stops early, so the reader still has text left to consume.</p>
+     */
+    private static boolean reachable(com.mojang.brigadier.ParseResults<CommandSourceStack> parsed) {
+        return parsed.getExceptions().isEmpty()
+                && !parsed.getReader().canRead()
+                && parsed.getContext().getLastChild().getCommand() != null;
     }
 
     private SudoCommand() {}

@@ -223,11 +223,18 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
 
 ### `/sudo` — TWO clients, and this is the interesting one
 
-- [ ] as op: `/sudo TestThird depth` — **TestThird** gets the answer, not you
-- [ ] `/sudo TestThird fly on` is **refused**, because TestThird has no `standards.fly`.
+- [x] as op: `/sudo TestThird depth` — **TestThird** gets the answer, not you
+- [x] `/sudo TestThird fly on` is **refused**, because TestThird has no `standards.fly`.
       **That refusal is the feature.** Compare: `/execute as TestThird run fly on` *succeeds*
-- [ ] grant it (`/rank user TestThird set standards.fly true`), sudo again — now it works
-- [ ] the server log has a `[sudo]` line for each, naming who ran what as whom
+- [x] grant it (`/rank user TestThird set standards.fly true`), sudo again — now it works
+- [x] the server log has a `[sudo]` line for each, naming who ran what as whom
+
+**Confirmed 2026-09-01, and it found a gap.** The target saw the refusal as though they had typed
+it — correct — but the *caller* was told nothing, so an attempt and a refusal looked identical from
+the side that asked. `/sudo` now reports the outcome, and distinguishes **refused** from **no such
+command**: brigadier reports a permission refusal as "Unknown or incomplete command", which is true
+for the target and useless for you. On failure it re-parses as the caller; parses for you and not
+for them means `requires()` said no.
 
 ### Playtime and promotions — needs elapsed time, so start it early
 
@@ -238,9 +245,13 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
       right for this. Raised back to the shipped 300 afterwards; drop it again if this ever needs
       re-proving.
 - [ ] `/leaderboard` ranks the three clients sensibly
-- [ ] set `startingGroup = "guest"`, `promotions = ["guest -> regular after 2m and 1m played"]`,
-      create both ranks, and log in with a **fresh** name: they land in `guest`, then move to
-      `regular` on their own within a minute of qualifying, with a message
+- [x] set `startingGroup = "guest"`, `promotions = [...]`, create both ranks, and log in with a
+      **fresh** name: they land in `guest`, then move to `regular` on their own within a minute of
+      qualifying, with a message. **Confirmed 2026-09-01** — both clients placed in `guest` on
+      login and promoted themselves unattended, and it survived a restart
+- [x] the promotion message reaches the player. It did; it was **missed in the join spam** the
+      first time, which is what prompted `/rank` being opened to non-ops — one line in a busy chat
+      with no way to check afterwards is a feature a player cannot see
 - [ ] an already-ranked player logging in is **not** dropped back to guest
 
 ### Kits, MOTD, butcher, nicknames — quick sweep

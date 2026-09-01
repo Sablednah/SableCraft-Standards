@@ -558,6 +558,12 @@ public final class Lang {
         def("msg.world.already", "{term.prefix} &7You are already in &f{world}&7.");
         def("msg.world.list", "{term.prefix} &7{count} world(s): &f{list}");
         def("msg.sudo.running", "{term.prefix} &7Running &f/{command}&7 as &f{player}&7...");
+        def("msg.sudo.ok", "{term.prefix} &a{player}&7 ran &f/{command}&7.");
+        // The line the command exists to print. Brigadier would report this as "Unknown or
+        // incomplete command", which is true from their side and useless from yours.
+        def("msg.sudo.refused", "&c&f{player}&c may not run &f/{command}&c — they do not have the permission.");
+        def("msg.sudo.failed", "&c&f/{command}&c failed for &f{player}&c: {reason}");
+        def("msg.sudo.unknown", "&cThere is no command &f/{command}&c.");
         def("msg.sudo.empty", "&cRun what, exactly?");
         def("msg.sudo.recursive", "&cNo. That way lies a loop.");
         def("msg.playtime.self", "{term.prefix} &7You have played for &f{time}&7.");
