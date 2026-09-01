@@ -70,6 +70,11 @@ every self-test.
 
 ### Divergences carried by individual commands
 
+- **`/f raid`'s side glow hits both of the known 26.x moves at once**, which made it a good check
+  that they were written down properly: `ChunkPos.x` → `x()` on 26.1, and `PlayerTeam.setColor`
+  taking an `Optional<TeamColor>` on 26.2. `FactionRaidEvents` and `FactionStandards` now carry the
+  same divergence for the same reason, and the comment in each points at the other.
+
 - **`ItemInput.createItemStack`** takes `(int count, boolean allowOversized)` on 1.21.11 and
   `(int count)` on 26.x. `/i` is the only caller. ⚠ Note the 1.21.11 Minecraft sources live inside
   **`neoforge-21.11.42-sources.jar`**, while 26.x splits them into `minecraft-patched-*-sources.jar`
