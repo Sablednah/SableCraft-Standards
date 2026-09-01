@@ -199,7 +199,7 @@ entirely on these — claims, groups, chat and economy — and is the proof they
 ## Requirements
 
 Standards is built for three Minecraft lines. **Take the jar that names your version** — every
-file carries it, so `standards-1.3.0+mc26.1.2.jar` is the 26.1 one.
+file carries it, so `standards-1.4.0+mc26.1.2.jar` is the 26.1 one.
 
 | Minecraft | NeoForge | Java | Jar |
 |---|---|---|---|

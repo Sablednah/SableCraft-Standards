@@ -15,12 +15,12 @@ delta", and "Stage 3: what the two deltas say".
 Predictions below; results here. **352 Standards checks and 42 Factions checks pass identically on
 1.21.11, 26.1.2 and 26.2.**
 
-> ⚠ **The counts stopped being identical in 1.3.0, and that is correct.** `main` reports 403 and the
-> 26.x lines report 380, because the permissions self-test asks what the *active handler* is: the
-> 14 `/rank` parse checks and 9 `PermissionStore` round-trip checks stand down unless Standards' own
-> handler is selected, and LuckPerms holds that slot on the 26.x dev servers. A future port
-> comparing raw numbers across lines will otherwise read a deliberate skip as a regression. Compare
-> PASSED/FAILED, not totals.
+> ⚠ **The counts stopped being identical in 1.3.0, and that is correct.** The permissions
+> self-test asks what the *active handler* is: the `/rank` parse checks, the `PermissionStore`
+> round trip and the promotion move all stand down unless Standards' own handler is selected,
+> because there is no store for them to act on. As of 1.4.0 that is **521 with it, 491 without** —
+> and the gap grows every time a permissions check is added. A future port comparing raw numbers
+> across lines would read a deliberate skip as a regression. **Compare PASSED/FAILED, not totals.**
 
 **And proven on real upgraded worlds, which is the half that matters.** The 1.21.11 dev world was
 copied onto a 26.1.2 server and played: the full raid and standard cycle ran, and everything behaved

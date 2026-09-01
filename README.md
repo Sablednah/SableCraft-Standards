@@ -14,11 +14,11 @@ god mode, homes, warps, teleports, and a built-in economy — for **NeoForge**, 
 | **Licence** | MIT |
 
 Releases carry all three jars, each naming its Minecraft version:
-`standards-1.3.0+mc26.1.2.jar`. Branch per version — see [`CROSS-VERSION.md`](CROSS-VERSION.md) for
+`standards-1.4.0+mc26.1.2.jar`. Branch per version — see [`CROSS-VERSION.md`](CROSS-VERSION.md) for
 why, and for what actually moved between the lines.
 
-> **Status: shipping.** 1.3.0, released on all three lines, under a self-test of some 400 checks
-> that runs on every server start. The command set is broad and the five APIs are built and driven
+> **Status: shipping.** 1.4.0, released on all three lines, under a self-test of **over 500 checks**
+> that runs on every server start, plus a hand walkthrough with two clients. The command set is broad and the five APIs are built and driven
 > by two sibling mods; a handful of commands are still open in [`COMMANDS.md`](COMMANDS.md), which
 > is the live decision list rather than a roadmap for something unbuilt.
 
