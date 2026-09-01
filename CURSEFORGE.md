@@ -80,6 +80,18 @@ so this is resolved server-side and works everywhere.
 that mentions money follows, without editing a hundred lines. `&` colour codes work throughout,
 including `&#RRGGBB` hex.
 
+**The welcome message knows who it is greeting.** `/motd`, `/rules` and `/info` take `{player}`
+(their nickname if they have one), `{name}`, `{rank}`, `{playtime}`, `{world}`, `{online}` and
+`{max}`:
+
+```yaml
+msg.motd.1: "&7Welcome back, &f{player}&7. You are &f{rank}&7."
+msg.motd.2: "&7{online} of {max} online. You have played for {playtime}."
+```
+
+A placeholder that does not exist is reported in the server log rather than shown to a player, so a
+typo is findable instead of embarrassing.
+
 **Upgrades keep your edits.** New keys are appended under a heading so "what is new in this
 version" is answerable by scrolling to the bottom, and a message you have *not* edited is quietly
 updated to the current wording while anything you have touched is left exactly alone.

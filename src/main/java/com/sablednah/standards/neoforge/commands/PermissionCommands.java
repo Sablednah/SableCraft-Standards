@@ -83,13 +83,19 @@ import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 public final class PermissionCommands {
 
     public static LiteralArgumentBuilder<CommandSourceStack> build(String name) {
+        // The ROOT is open to anybody, and only answers about themselves. Everything that edits
+        // is gated below. A player on a guest ladder has an obvious question — "what am I, and
+        // what do I need to do" — and needing an operator to answer it makes the ladder feel like
+        // something happening TO them rather than something they are climbing.
         return Commands.literal(name)
                 .requires(source -> StandardsPermissionHandler.isActive()
-                        && StandardsPermissions.require(StandardsPermissions.PERMISSIONS)
-                                .test(source))
-                .executes(PermissionCommands::overview)
-                .then(Commands.literal("groups").executes(PermissionCommands::listGroups))
+                        && StandardsPermissions.require(StandardsPermissions.RANK).test(source))
+                .executes(PermissionCommands::mine)
+                .then(Commands.literal("groups")
+                        .requires(admin())
+                        .executes(PermissionCommands::listGroups))
                 .then(Commands.literal("group")
+                        .requires(admin())
                         .then(Commands.argument("group", StringArgumentType.word())
                                 .suggests(PermissionCommands::suggestGroups)
                                 .executes(PermissionCommands::groupInfo)
@@ -120,6 +126,7 @@ public final class PermissionCommands {
                                         .then(Commands.argument("tag", StringArgumentType.word())
                                                 .executes(PermissionCommands::tag)))))
                 .then(Commands.literal("user")
+                        .requires(admin())
                         .then(Commands.argument("player", StringArgumentType.word())
                                 .suggests(PermissionCommands::suggestKnownPlayers)
                                 .executes(PermissionCommands::userInfo)
@@ -143,6 +150,7 @@ public final class PermissionCommands {
                                                 .suggests(PermissionCommands::suggestNodes)
                                                 .executes(PermissionCommands::unsetUserNode)))))
                 .then(Commands.literal("check")
+                        .requires(admin())
                         .then(Commands.argument("player", StringArgumentType.word())
                                 .suggests(PermissionCommands::suggestKnownPlayers)
                                 .then(Commands.argument("spec", StringArgumentType.greedyString())
@@ -150,7 +158,79 @@ public final class PermissionCommands {
                                         .executes(PermissionCommands::check))));
     }
 
+    /** Everything under here edits somebody's permissions, so it needs the admin node. */
+    private static java.util.function.Predicate<CommandSourceStack> admin() {
+        return StandardsPermissions.require(StandardsPermissions.PERMISSIONS);
+    }
+
     // --- reading ---
+
+    /**
+     * {@code /rank} on its own — what <em>you</em> are, and what comes next.
+     *
+     * <p>Answers only about the person asking, so it is safe for everybody. The "what next" half
+     * is the part that matters on a server with a ladder: a guest who can see they need another
+     * hour is climbing something, while one who can only see the word "guest" is just waiting for
+     * a thing to happen to them.</p>
+     *
+     * <p>Operators get the same answer here. The admin view is {@code /rank user <player> info},
+     * which is a different question.</p>
+     */
+    private static int mine(CommandContext<CommandSourceStack> ctx) {
+        if (!(ctx.getSource().getEntity() instanceof ServerPlayer player)) {
+            // The console has no rank. Send it to the overview it actually wants.
+            return overview(ctx);
+        }
+        PermissionStore store = store(ctx);
+        List<String> ranks = store.groupsOf(player.getUUID());
+        StringBuilder sb = new StringBuilder(ranks.isEmpty()
+                ? Lang.get("msg.perm.mine_none")
+                : Lang.fmt("msg.perm.mine", "list", String.join(", ", ranks)));
+        nextRung(ctx, player, ranks).ifPresent(line -> sb.append("\n").append(line));
+        Feedback.chat(player, sb.toString());
+        return ranks.size();
+    }
+
+    /**
+     * The promotion they are working towards, and how far off it is.
+     *
+     * <p>Empty when no rule applies — the top of the ladder, or a server with none — because a
+     * line saying nothing is worse than no line.</p>
+     */
+    private static Optional<String> nextRung(CommandContext<CommandSourceStack> ctx,
+            ServerPlayer player, List<String> ranks) {
+        var data = StandardsData.get(ctx.getSource().getServer());
+        long now = System.currentTimeMillis();
+        for (var rule : com.sablednah.standards.neoforge.permissions.Promotions.rules()) {
+            if (ranks.stream().noneMatch(r -> r.equalsIgnoreCase(rule.from()))) {
+                continue;
+            }
+            if (rule.satisfiedBy(data, player.getUUID(), now)) {
+                // Qualified but not yet moved — they are inside the up-to-a-minute check window.
+                return Optional.of(Lang.fmt("msg.perm.next_ready", "name", rule.to()));
+            }
+            List<String> waiting = new java.util.ArrayList<>();
+            if (rule.realSeconds() > 0) {
+                long since = data.firstSeen(player.getUUID()).map(f -> (now - f) / 1000L).orElse(0L);
+                long left = Math.max(0, rule.realSeconds() - since);
+                if (left > 0) {
+                    waiting.add(Lang.fmt("msg.perm.next_real",
+                            "time", com.sablednah.standards.core.Duration.describe(left)));
+                }
+            }
+            if (rule.playedSeconds() > 0) {
+                long left = Math.max(0,
+                        rule.playedSeconds() - data.playedMinutes(player.getUUID()) * 60L);
+                if (left > 0) {
+                    waiting.add(Lang.fmt("msg.perm.next_played",
+                            "time", com.sablednah.standards.core.Duration.describe(left)));
+                }
+            }
+            return Optional.of(Lang.fmt("msg.perm.next", "name", rule.to(),
+                    "needs", String.join(Lang.get("msg.perm.next_and"), waiting)));
+        }
+        return Optional.empty();
+    }
 
     private static int overview(CommandContext<CommandSourceStack> ctx) {
         PermissionStore store = store(ctx);

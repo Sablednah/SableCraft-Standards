@@ -286,6 +286,31 @@ Nodes: `standards.tp`, and `standards.tp.others` for moving other people.
 `/motd`, `/rules`, `/info` — whatever you want to say. The MOTD also prints when somebody joins,
 last, so it is not pushed off the screen by the other join messages.
 
+### Placeholders
+
+All three take these, so the welcome can greet somebody properly rather than shouting at the room:
+
+| Placeholder | Gives |
+|---|---|
+| `{player}` | their **nickname** if they have one, otherwise their name — what the rest of the server calls them |
+| `{name}` | always the real name, so you can use both |
+| `{rank}` | their permission rank(s), when this server runs Standards' own handler |
+| `{playtime}` | how long they have played, **not** counting time away |
+| `{world}` | the dimension they are in |
+| `{online}` `{max}` | player counts |
+
+```yaml
+msg.motd.1: "&7Welcome back, &f{player}&7. You are &f{rank}&7."
+msg.motd.2: "&7{online} of {max} online. You have played for {playtime}."
+```
+
+**A placeholder that does not exist is reported in the server log, not shown to the player.** Write
+`{rankk}` and you get a line naming the key, rather than a welcome message that greets everybody
+with a pair of braces.
+
+`/motd` from the console fills the server-wide ones and reports the rest as *unknown* — there is no
+player to ask about.
+
 **The text lives in `messages.yml`**, as numbered keys: `msg.rules.1`, `msg.rules.2`, and so on,
 printed until a number is missing. There is deliberately no second file format — `messages.yml`
 already handles colour codes, your own vocabulary and upgrades without losing your edits, and a

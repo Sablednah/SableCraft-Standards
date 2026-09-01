@@ -232,8 +232,11 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
 ### Playtime and promotions — needs elapsed time, so start it early
 
 - [ ] `/playtime` after ten minutes reads about ten
-- [ ] go AFK for five, come back: it has **not** moved *(the whole point — vanilla's statistic
-      would have)*
+- [x] go AFK, come back: it has **not** moved *(the whole point — vanilla's statistic would have)*.
+      **Confirmed 2026-09-01.** Proved quickly because the dev server had `awayAfterSeconds = 30`
+      left over from earlier testing — a value that is wrong for everything else and was exactly
+      right for this. Raised back to the shipped 300 afterwards; drop it again if this ever needs
+      re-proving.
 - [ ] `/leaderboard` ranks the three clients sensibly
 - [ ] set `startingGroup = "guest"`, `promotions = ["guest -> regular after 2m and 1m played"]`,
       create both ranks, and log in with a **fresh** name: they land in `guest`, then move to
