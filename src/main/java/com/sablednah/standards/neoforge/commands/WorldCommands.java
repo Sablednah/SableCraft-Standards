@@ -61,7 +61,7 @@ public final class WorldCommands {
             return 0;
         }
         Waypoint where = new Waypoint(level.dimension(),
-                player.getX(), player.getY(), player.getZ(),
+                player.getX(), landingY(player.getY(), level), player.getZ(),
                 player.getYRot(), player.getXRot());
         Teleports.Attempt attempt = Teleports.request(player, where, true,
                 Lang.fmt("msg.world.went", "world", name(level)));
@@ -78,6 +78,32 @@ public final class WorldCommands {
         Feedback.reply(ctx.getSource(), Lang.fmt("msg.world.list",
                 "count", String.valueOf(names.size()), "list", String.join(", ", names)), false);
         return names.size();
+    }
+
+    /**
+     * Bring a Y that means nothing in the destination into a height that does.
+     *
+     * <p><b>The Nether roof, and it was found the first time this was used.</b> Standing above the
+     * clouds at y=200 and typing {@code /world the_nether} carried that Y across, and the
+     * safe-landing search duly found solid ground with air above it — <em>on top of the bedrock
+     * ceiling</em>. Technically a safe landing and entirely the wrong place: the roof is outside
+     * the playable area and most servers treat standing on it as an exploit.</p>
+     *
+     * <p>{@code logicalHeight} is the game's own answer to this question — it is what portals and
+     * chorus fruit respect, and it is 128 in the Nether against a world height of 256. Clamping to
+     * it means the safe-landing search starts somewhere the destination considers real, and then
+     * does its usual job of finding a floor.</p>
+     *
+     * <p>Only ever moves the Y <em>down</em>. Coming the other way — Nether to overworld — the Y is
+     * already inside the range and nothing here should touch it, since keeping your coordinates is
+     * the whole point of the command.</p>
+     */
+    public static double landingY(double y, ServerLevel level) {
+        int floor = level.getMinY() + 1;
+        // -2 rather than -1: the top logical block is the ceiling itself in the Nether, and
+        // arriving inside bedrock is a different bad answer to the same question.
+        int ceiling = level.getMinY() + level.dimensionType().logicalHeight() - 2;
+        return Math.max(floor, Math.min(y, ceiling));
     }
 
     /** The short readable name — {@code the_nether} rather than {@code minecraft:the_nether}. */
