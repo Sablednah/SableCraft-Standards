@@ -290,7 +290,7 @@ public final class StandardsCommands {
             dispatcher.register(PowerToolCommand.build("pt"));
         }
 
-        // --- where you are, for a server running reducedDebugInfo ---
+        // --- where you are, for a server running reduced_debug_info ---
         if (StandardsConfig.ENABLE_WHERE.get()) {
             dispatcher.register(LocationCommands.depth());
             dispatcher.register(LocationCommands.compass());
