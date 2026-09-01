@@ -582,6 +582,10 @@ public final class Lang {
         def("msg.nick.set_other", "{term.prefix} &f{player}&7 is now &f{name}&7 in chat.");
         def("msg.nick.cleared_other", "{term.prefix} &f{player}&7 goes by their own name again.");
         def("msg.nick.set_by", "{term.prefix} &7You are now &f{name}&7 in chat, set by &f{by}&7.");
+        def("msg.nick.current", "{term.prefix} &7Chat calls you &f{name}&7.");
+        def("msg.nick.none", "{term.prefix} &7You have no nickname — chat calls you &f{name}&7. {term.dim}(/nick <name>)");
+        def("msg.nick.clear_button", "&7[&cClear&7]");
+        def("msg.nick.clear_tooltip", "Go back to your real name");
         def("msg.nick.empty", "&cThat leaves nothing to read.");
         def("msg.nick.one_word", "&cOne word — a name with a space in it reads as two people, and nothing can look it up.");
         def("msg.nick.too_long", "&cAt most &f{max}&c characters — that one is &f{length}&c. It goes on every line you say.");
