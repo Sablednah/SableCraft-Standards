@@ -371,7 +371,7 @@ should be going off during ordinary play.
 `/compass` — your bearing and the eight-point direction.
 
 Both are redundant with F3 on an ordinary server. They earn their keep on one running the
-**`reducedDebugInfo`** gamerule, where players have no coordinates and no bearing at all. Separate
+**`reduced_debug_info`** gamerule, where players have no coordinates and no bearing at all. Separate
 nodes, so you can hand out a compass and not a Y coordinate.
 
 ## Worlds

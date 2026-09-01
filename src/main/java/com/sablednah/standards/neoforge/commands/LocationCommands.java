@@ -17,7 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
  * <h2>Pointless on most servers, and the exception is the whole reason they exist</h2>
  *
  * <p>F3 shows both, so on an ordinary server these are a curiosity. But a server that sets the
- * <b>{@code reducedDebugInfo} gamerule</b> — which is how you run an exploration or hardcore server
+ * <b>{@code reduced_debug_info} gamerule</b> — which is how you run an exploration or hardcore server
  * without everybody reading coordinates off the debug screen — leaves its players with no depth and
  * no bearing at all. On that server these two commands are the only way to get them, and the owner
  * gets to decide how much to give back.</p>

@@ -293,7 +293,7 @@ public final class StandardsConfig {
                 .define("powertool", true);
         ENABLE_WHERE = BUILDER
                 .comment("/depth and /compass. Mostly redundant with F3 — but a server running",
-                        "the reducedDebugInfo gamerule leaves players with no coordinates and no",
+                        "the reduced_debug_info gamerule leaves players with no coordinates and no",
                         "bearing at all, and these become the only way to give some of it back.",
                         "Separate nodes, so you can hand out a compass and not a Y coordinate.")
                 .define("where", true);

@@ -906,6 +906,7 @@ public final class SelfTest {
                 "playtime", "playtime Steve", "leaderboard", "playtop",
                 "motd", "rules", "info",
                 "butcher", "butcher 32", "butcher 32 all", "killall",
+                "butcher 32 force", "butcher 32 all force", "killall 16 force",
                 "tpx Steve", "tpx Steve Alex", "tphere @a", "tppos 0 64 0",
                 "tppos 0 64 0 minecraft:the_nether",
                 "kitaccess starter ops", "kitaccess starter permission",
