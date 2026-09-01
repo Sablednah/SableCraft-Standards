@@ -312,6 +312,42 @@ failure would have been completely silent. A logout hook that never ran would le
 the override across every session forever, with no error, no log line and nothing to notice — the
 exact thing the design exists to prevent.
 
+## `/f raid` — built 2026-09-02, never played **[2P]**
+
+Nothing below has met a player. The self-test covers the state machine, the cooldown and that
+nothing lingers; it cannot tell you whether a raid *feels* like an event.
+
+**Setup.** Two factions with two accounts, neither peaceful, and `enableRaids` on (default). Give
+the defender a planted standard — the objective only exists if there is a flag to take.
+
+- [ ] `/f raid <them>` announces to the **whole server**, including a third player in neither
+      faction *(a raid nobody can see is a war with extra steps)*
+- [ ] both sides **glow by side** — attackers gold, defenders aqua — and it is visible through walls
+- [ ] the standard carrier keeps their **red**, not the side colour *(they are already on a team, so
+      the raid glow deliberately leaves them alone)*
+- [ ] `/f raids` lists it with the time left; a bare `/f raid` does the same rather than erroring
+- [ ] **taking the standard ends it**, announced as the attackers winning
+- [ ] **all attackers logging off ends it**, announced as repelled
+- [ ] letting the clock run out ends it as held *(set `raidMinutes = 1` for this)*
+- [ ] the glow **stops** within a second or two of the raid ending, both sides
+- [ ] declaring again immediately is refused, naming the **cooldown** and the time left
+- [ ] …but raiding a *different* faction straight away is allowed *(the cooldown is per pair)*
+- [ ] with the defender **offline**, declaring is refused and says how many need to be online.
+      **This is the rule that replaces declining** — get it wrong and a sleeping faction can be
+      farmed
+- [ ] a **peaceful** faction can neither raid nor be raided
+- [ ] declaring a raid **on yourself** is refused
+- [ ] ⚠ **start a raid, stop the server, start it again: the raid is GONE.** The one that fails
+      silently — a raid surviving a restart could expire with nobody online to defend it
+
+### With `raidGatesOverclaim = true`
+
+- [ ] overclaiming an over-extended enemy **outside** a raid is refused, and the message names
+      `/f raid` as the thing that would fix it
+- [ ] during a declared raid against them, the same claim **works**
+- [ ] with the setting **off** (the default), overclaiming works as it always did *(this is the
+      check that an updating server's game did not change under it)*
+
 ## Before a release
 
 - [x] SnakeYAML is bundled jar-in-jar and declared in the metadata — the classic works-in-dev,
