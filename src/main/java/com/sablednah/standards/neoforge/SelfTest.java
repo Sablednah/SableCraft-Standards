@@ -1336,6 +1336,17 @@ public final class SelfTest {
             check("the owner may re-set their own nickname",
                     data.impersonates(alice, "Wanderer").isEmpty());
 
+            // Your own name back is a CLEAR, not an impersonation. The command layer does this,
+            // but the store must agree that it was never an impersonation in the first place —
+            // and the case that broke it was the OTHER casing of your own name being a separate
+            // offline UUID in the cache.
+            data.rememberName(mallory, "SelftestAlice");   // same name, different id: offline case
+            check("a duplicate name under another id is still an impersonation",
+                    data.impersonates(alice, "SelftestAlice").isPresent());
+            data.rememberName(mallory, "SelftestMallory"); // put it back
+            check("...and your own name is not, once the duplicate is gone",
+                    data.impersonates(alice, "SelftestAlice").isEmpty());
+
             data.setNick(alice, null);
             check("clearing gives the real name back",
                     data.displayName(alice, "SelftestAlice").equals("SelftestAlice"));

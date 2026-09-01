@@ -73,6 +73,11 @@ public final class NickCommands {
     public static LiteralArgumentBuilder<CommandSourceStack> nick() {
         return Commands.literal("nick")
                 .requires(StandardsPermissions.require(StandardsPermissions.NICK))
+                // A bare /nick SHOWS, it does not clear. Clearing on an argumentless command is
+                // destructive by omission: half-typing something should never throw away what you
+                // set. The button does the clearing in one click, which is what somebody typing a
+                // bare /nick actually wanted anyway.
+                .executes(NickCommands::show)
                 .then(Commands.argument("name", StringArgumentType.greedyString())
                         .executes(ctx -> setOwn(ctx, StringArgumentType.getString(ctx, "name"))))
                 // The two-argument form is a separate literal branch rather than an optional
@@ -92,6 +97,29 @@ public final class NickCommands {
                 .then(Commands.argument("nick", StringArgumentType.word())
                         .suggests(NickCommands::suggestNicks)
                         .executes(NickCommands::realNameOf));
+    }
+
+    /**
+     * {@code /nick} on its own — what you currently are, and a button to stop being it.
+     *
+     * <p>Added after testing: it was falling through to brigadier's "Unknown or incomplete
+     * command", which is the least useful thing a command can say to somebody who typed its name
+     * correctly.</p>
+     */
+    private static int show(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        Optional<String> nick = StandardsData.get(ctx.getSource().getServer())
+                .nick(player.getUUID());
+        if (nick.isEmpty()) {
+            Feedback.chat(player, Lang.fmt("msg.nick.none",
+                    "name", player.getName().getString()));
+            return 0;
+        }
+        Feedback.chatWithButtons(player,
+                Lang.fmt("msg.nick.current", "name", nick.get()),
+                Feedback.button(Lang.get("msg.nick.clear_button"), "/nick " + CLEAR,
+                        Lang.get("msg.nick.clear_tooltip")));
+        return 1;
     }
 
     private static int setOwn(CommandContext<CommandSourceStack> ctx, String raw)
@@ -138,6 +166,27 @@ public final class NickCommands {
         String nick = mayColour ? raw : Feedback.stripCodes(raw);
 
         String plain = Feedback.stripCodes(nick).trim();
+
+        // YOUR OWN NAME IS NOT A NICKNAME, it is the absence of one — so asking for it clears.
+        //
+        // Reported in testing, where it was refused as impersonating somebody. The cause is the
+        // offline-UUID trap: online-mode=false derives the id from "OfflinePlayer:<name>"
+        // verbatim, so 'Sablednah' and 'sablednah' are genuinely different players and the name
+        // cache holds both. The guard excludes the chooser by UUID, which is correct, and the
+        // OTHER casing is a different UUID — so your own name looked like somebody else's.
+        //
+        // Handling it here rather than teaching the guard about casing is deliberate. Treating the
+        // two spellings as one player would be wrong: on an offline server they really can be two
+        // people. But nobody has ever meant "impersonate myself", and clearing is what they asked
+        // for in the only words that occurred to them.
+        if (plain.equalsIgnoreCase(targetName)) {
+            data.setNick(target, null);
+            Feedback.reply(ctx.getSource(), own
+                    ? Lang.fmt("msg.nick.cleared", "name", targetName)
+                    : Lang.fmt("msg.nick.cleared_other", "player", targetName), !own);
+            return 1;
+        }
+
         // One word. The argument is greedy only so an ampersand can be typed at all — see the
         // note on the tree — not so that nicknames may contain spaces. A name with a space in it
         // cannot be looked up by /realname, cannot be tab-completed, and reads as two people.
