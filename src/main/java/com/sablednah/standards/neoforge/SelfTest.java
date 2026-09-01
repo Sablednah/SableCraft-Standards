@@ -90,6 +90,7 @@ public final class SelfTest {
         checkInfoRuns();
         checkPromotionRules();
         checkCompassBearings();
+        checkWorldLanding(server);
         checkPermissionStore(server);
         checkWaypointRoundTrip(server);
 
@@ -1067,6 +1068,39 @@ public final class SelfTest {
                 server.getCommands().getDispatcher().parse("i stone 0", console);
         check("/i rejects a count of zero",
                 !zero.getExceptions().isEmpty() || zero.getReader().canRead());
+    }
+
+    /**
+     * {@code /world} must not drop somebody on the Nether roof.
+     *
+     * <p>Found in testing, first time it was used: standing above the clouds carried y=200 into
+     * the Nether, and the safe-landing search found solid ground with air above it — on top of the
+     * bedrock ceiling. A perfectly safe landing in a place nobody is supposed to stand.</p>
+     *
+     * <p>Asserted against the real dimensions on the running server rather than fixtures, because
+     * the number that matters is the Nether's own {@code logicalHeight} and hardcoding 128 here
+     * would be testing the constant rather than the lookup.</p>
+     */
+    private void checkWorldLanding(MinecraftServer server) {
+        ServerLevel nether = server.getLevel(net.minecraft.world.level.Level.NETHER);
+        ServerLevel overworld = server.overworld();
+        if (nether == null) {
+            return; // a pack without the Nether has nothing to prove here
+        }
+        int roof = nether.getMinY() + nether.dimensionType().logicalHeight();
+        double landed = com.sablednah.standards.neoforge.commands.WorldCommands
+                .landingY(200.0, nether);
+        check("a Y above the Nether's logical height is brought below it", landed < roof);
+        check("...and not below the world either", landed > nether.getMinY());
+
+        // The other direction: a Y that is already fine must be left exactly alone, or the
+        // command stops keeping your coordinates, which is the only reason it exists.
+        check("a Y inside the Nether's range is untouched",
+                com.sablednah.standards.neoforge.commands.WorldCommands
+                        .landingY(64.0, nether) == 64.0);
+        check("going the other way, a high overworld Y is untouched",
+                com.sablednah.standards.neoforge.commands.WorldCommands
+                        .landingY(200.0, overworld) == 200.0);
     }
 
     /**
