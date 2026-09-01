@@ -259,7 +259,8 @@ for them means `requires()` said no.
 - [ ] `/kitaccess <kit> ops` then claim it as TestThird → refused; `everyone` → allowed
 - [ ] a kit created **this session** and set to `ops` is refused **without a restart** *(the hole
       that was fixed)*
-- [ ] `/motd`, `/rules`, `/info`; the MOTD also appears on join, **last**
+- [x] `/motd`, `/rules`, `/info`; the MOTD also appears on join, **last**. **Confirmed
+      2026-09-01**, including `{player}` and `{rank}` filling in on the join message
 - [ ] `/butcher 32` clears hostiles and **leaves a tamed wolf, a named cow and an item frame**
 - [ ] `/nick ~Bob` shows in chat with the `~`; tab still shows the real name; `/realname Bob`
       answers; a nick that is another player's real name is refused
