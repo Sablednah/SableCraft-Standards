@@ -485,13 +485,16 @@ public final class Lang {
     // deleting from the end. There is no second file format for this on purpose — messages.yml
     // already handles colours, terms and upgrades, and a motd.txt would need all of it again.
     static {
-        def("msg.motd.1", "{term.prefix} &7Welcome to the server.");
+        // Placeholders these three may use: {player} {name} {rank} {playtime} {world}
+        // {online} {max}. Anything else is reported in the log rather than shown to a player.
+        def("msg.motd.1", "{term.prefix} &7Welcome back, &f{player}&7. You are &f{rank}&7.");
         def("msg.motd.2", "{term.dim}  Type &f/rules&r{term.dim} for the rules, and &f/help&r{term.dim} for commands.");
         def("msg.rules.1", "{term.prefix} &7House rules:");
         def("msg.rules.2", " &71. &fBe civil.");
         def("msg.rules.3", " &72. &fDo not take what is not yours.");
         def("msg.rules.4", " &73. &fAsk before building next to somebody.");
-        def("msg.info.1", "{term.prefix} &7This server runs &fSableCraft Standards&7.");
+        def("msg.info.1", "{term.prefix} &7This server runs &fSableCraft Standards&7. &f{online}&7 of &f{max}&7 online.");
+        def("msg.info.unknown", "unknown");
         def("msg.info.empty", "{term.prefix} &7Nothing has been written here yet. {term.dim}(edit messages.yml)");
     }
 
@@ -637,6 +640,13 @@ public final class Lang {
         def("msg.perm.joined", "{term.prefix} &f{player}&7 is now in &f{name}&7.");
         // Said to the player being promoted, so it wants to feel earned rather than administrative.
         def("msg.perm.promoted", "{term.prefix} &aYou have been promoted to &f{name}&a.");
+        def("msg.perm.mine", "{term.prefix} &7You are &f{list}&7.");
+        def("msg.perm.mine_none", "{term.prefix} &7You have no {term.rank} yet.");
+        def("msg.perm.next", "{term.dim}  next:&r &f{name}&7 — needs {needs}");
+        def("msg.perm.next_and", " and ");
+        def("msg.perm.next_real", "&f{time}&7 more");
+        def("msg.perm.next_played", "&f{time}&7 more played");
+        def("msg.perm.next_ready", "{term.dim}  next:&r &f{name}&7 — &aearned, any moment now");
         def("msg.perm.left", "{term.prefix} &f{player}&7 is no longer in &f{name}&7.");
     }
 
@@ -953,7 +963,20 @@ public final class Lang {
         sb.append("# file; '&' colour codes work everywhere. Deleted keys fall back to these\n");
         sb.append("# defaults, so trimming the file to just your changes is fine — an upgrade\n");
         sb.append("# appends genuinely new keys at the end and will not undo your trimming.\n");
-        sb.append("# Applied on restart and on /standards reload.\n\n");
+        sb.append("# Applied on restart and on /standards reload.\n");
+        sb.append("#\n");
+        sb.append("# The motd, rules and info messages take these placeholders as well:\n");
+        sb.append("#   {player}   their nickname if they have one, otherwise their name\n");
+        sb.append("#   {name}     always their real name\n");
+        sb.append("#   {rank}     their permission rank(s), if this server's handler is active\n");
+        sb.append("#   {playtime} how long they have played, not counting time away\n");
+        sb.append("#   {world}    the dimension they are in\n");
+        sb.append("#   {online}   {max}   player counts\n");
+        sb.append("# A placeholder that does not exist is reported in the server log rather than\n");
+        sb.append("# shown to a player, so a typo is findable instead of embarrassing.\n");
+        sb.append("#\n");
+        sb.append("# motd/rules/info are NUMBERED RUNS: msg.rules.1, .2, .3 ... printed until a\n");
+        sb.append("# number is missing. Add lines by adding keys; shorten by deleting from the end.\n\n");
         String section = "";
         for (Map.Entry<String, String> entry : DEFAULTS.entrySet()) {
             String key = entry.getKey();
