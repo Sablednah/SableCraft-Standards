@@ -8,6 +8,8 @@ import com.sablednah.standards.neoforge.StandardsPermissions;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * {@code /motd}, {@code /rules} and {@code /info} — whatever the owner wants to say.
@@ -41,7 +43,9 @@ public final class InfoCommands {
     }
 
     private static int show(CommandContext<CommandSourceStack> ctx, String prefix) {
-        String text = render(prefix);
+        String text = ctx.getSource().getEntity() instanceof ServerPlayer player
+                ? render(prefix, player)
+                : render(prefix, ctx.getSource().getServer());
         if (text.isEmpty()) {
             Feedback.reply(ctx.getSource(), Lang.get("msg.info.empty"), false);
             return 0;
@@ -61,6 +65,29 @@ public final class InfoCommands {
      * player, and so the join handler can share it.</p>
      */
     public static String render(String prefix) {
+        return render(prefix, null, null);
+    }
+
+    /** For a player: every placeholder is answerable. */
+    public static String render(String prefix, ServerPlayer player) {
+        return render(prefix, player, player.level().getServer());
+    }
+
+    /** For the console: the server-wide placeholders only. */
+    public static String render(String prefix, MinecraftServer server) {
+        return render(prefix, null, server);
+    }
+
+    /**
+     * The numbered run, with placeholders filled.
+     *
+     * <p>Every supported placeholder is passed on every line whether the text uses it or not,
+     * which is what lets {@link Lang#fmt} warn about one that is <em>not</em> supported. An owner
+     * who writes <code>{rankk}</code> gets a line in the log naming the key, instead of a welcome
+     * message that greets everybody with a pair of braces.</p>
+     */
+    private static String render(String prefix, ServerPlayer player, MinecraftServer server) {
+        Object[] values = placeholders(player, server);
         StringBuilder sb = new StringBuilder();
         for (int line = 1; line <= MAX_LINES; line++) {
             String key = prefix + "." + line;
@@ -70,9 +97,53 @@ public final class InfoCommands {
             if (sb.length() > 0) {
                 sb.append("\n");
             }
-            sb.append(Lang.get(key));
+            sb.append(Lang.fmt(key, values));
         }
         return sb.toString();
+    }
+
+    /**
+     * What an owner may write in {@code messages.yml}.
+     *
+     * <p>Deliberately a short list. Every one is either about the reader or about the server as a
+     * whole, both of which a welcome message legitimately wants — and nothing here can fail, since
+     * a missing answer becomes a dash rather than an exception on somebody's login.</p>
+     */
+    private static Object[] placeholders(ServerPlayer player, MinecraftServer server) {
+        String none = Lang.get("msg.info.unknown");
+        String name = player == null ? none : player.getName().getString();
+        // The nickname where they have one, because that is what the rest of the server calls
+        // them — a welcome that uses their real name when nobody else does reads oddly.
+        String shown = player == null ? none
+                : com.sablednah.standards.neoforge.ChatFormatter.displayName(player);
+        String rank = none;
+        String playtime = none;
+        String world = none;
+        if (player != null && server != null) {
+            world = player.level().dimension().identifier().getPath();
+            var data = com.sablednah.standards.neoforge.StandardsData.get(server);
+            long minutes = data.playedMinutes(player.getUUID());
+            playtime = minutes <= 0 ? Lang.get("msg.playtime.none")
+                    : com.sablednah.standards.core.Duration.describe(minutes * 60L);
+            if (com.sablednah.standards.neoforge.permissions.StandardsPermissionHandler.isActive()) {
+                var ranks = com.sablednah.standards.neoforge.permissions.PermissionStore.get(server)
+                        .groupsOf(player.getUUID());
+                if (!ranks.isEmpty()) {
+                    rank = String.join(", ", ranks);
+                }
+            }
+        }
+        int online = server == null ? 0 : server.getPlayerList().getPlayerCount();
+        int max = server == null ? 0 : server.getPlayerList().getMaxPlayers();
+        return new Object[] {
+            "player", shown,
+            "name", name,
+            "rank", rank,
+            "playtime", playtime,
+            "world", world,
+            "online", String.valueOf(online),
+            "max", String.valueOf(max),
+        };
     }
 
     private InfoCommands() {}

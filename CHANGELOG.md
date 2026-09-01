@@ -93,6 +93,15 @@
   - **`/powertool` `/pt`** — bind a command to an item, run it by right-clicking. A **staff**
     shortcut, distinct from LegendQuest's `/bind`, which is a game ability on an item. Dispatched
     as the holder with the holder's permissions, so it can never be an escalation.
+  - **`/motd` `/rules` `/info` take placeholders** — `{player}` (their nickname if they have one),
+    `{name}`, `{rank}`, `{playtime}`, `{world}`, `{online}`, `{max}` — so the welcome can greet
+    somebody properly instead of shouting at the room. The full list is in the header of
+    `messages.yml`. A placeholder that does not exist is **reported in the log rather than shown to
+    a player**, which is the unfilled-placeholder guard below catching its second bug.
+  - **`/rank` on its own is open to everyone**, and answers only about the person asking: what you
+    are, and what you are working towards — *"next: regular — needs 18m more and 45m more played"*.
+    Needing an operator to tell you your own rank made the ladder something happening **to** a
+    player rather than something they were climbing. The editing subcommands stay op-gated.
   - **`/depth` `/compass`** — redundant with F3, *except* on a server running `reducedDebugInfo`,
     where players have no coordinates or bearing at all. Separate nodes, so you can give out a
     compass and not a Y coordinate.

@@ -226,6 +226,17 @@ msg.home.went: "&bBeaming down to &f{name}&b..."
 back to the defaults — so trimming the file to just your changes is fine, and an update that adds
 messages will never break it. `/standards reload` re-reads it.
 
+**The welcome message knows who it is greeting.** `/motd`, `/rules` and `/info` are numbered runs
+(`msg.motd.1`, `.2`, …, printed until a number is missing) and take `{player}`, `{name}`, `{rank}`,
+`{playtime}`, `{world}`, `{online}` and `{max}`:
+
+```yaml
+msg.motd.1: "&7Welcome back, &f{player}&7. You are &f{rank}&7."
+```
+
+A placeholder that does not exist is reported in the log rather than shown to a player, so a typo
+is findable instead of embarrassing. The full list is in the header of `messages.yml` itself.
+
 ---
 
 ## The economy

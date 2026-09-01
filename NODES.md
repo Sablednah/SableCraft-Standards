@@ -2,7 +2,7 @@
 
 **Generated from the source — do not edit by hand.** `python3 scripts/nodes.py` rebuilds it from `StandardsPermissions.java`, which is the only place a node is really declared.
 
-85 declared nodes, plus the runtime ones described at the bottom.
+86 declared nodes, plus the runtime ones described at the bottom.
 
 Standards asks NeoForge's `PermissionAPI` for every one of these, so they work with LuckPerms, with Standards' own handler (`/rank`, see [`PERMISSIONS.md`](PERMISSIONS.md)), or with nothing installed at all — in which case the **Default** column is the whole answer.
 
@@ -171,6 +171,7 @@ Standards asks NeoForge's `PermissionAPI` for every one of these, so they work w
 |---|---|---|
 | `standards.admin` | `ops` | `/standards` — administering the mod itself, not using it. |
 | `standards.permissions` | `ops` | Editing the built-in permission handler's groups and grants. Separate from `ADMIN` because the two are different jobs: reloading messages is a caretaker's task, and handing out permissions is how somebody becomes an operator by proxy. |
+| `standards.rank` | `everyone` | See your own rank with a bare `/rank`, and what you are working towards. Everyone , and separate from `PERMISSIONS` for that reason. |
 
 ## Built at runtime
 

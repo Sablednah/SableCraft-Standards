@@ -295,6 +295,15 @@ public final class StandardsPermissions {
      * make them able to grant themselves {@code standards.*}.</p>
      */
     public static final PermissionNode<Boolean> PERMISSIONS = node("permissions", Default.OPS);
+    /**
+     * See <em>your own</em> rank with a bare {@code /rank}, and what you are working towards.
+     *
+     * <p><b>Everyone</b>, and separate from {@link #PERMISSIONS} for that reason. A player on a
+     * guest ladder has an obvious question — what am I, and what do I need to do — and needing to
+     * ask an operator makes the ladder something happening to them rather than something they are
+     * climbing. It answers only about the person asking.</p>
+     */
+    public static final PermissionNode<Boolean> RANK = node("rank", Default.EVERYONE);
 
     private static PermissionNode<Boolean> node(String path, Default fallback) {
         PermissionNode<Boolean> created = new PermissionNode<>(
