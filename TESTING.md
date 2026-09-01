@@ -282,8 +282,17 @@ for them means `requires()` said no.
       name (their genus) and some are persistence-required, so both "somebody's mob" guards fired
       on exactly the horde `/butcher` exists to clear. **Mods use custom names as a data channel**,
       and nothing can tell that apart from a player's name tag. Hence `force`
-- [ ] `/butcher 32 force` **does** clear them — and still leaves the tamed wolf and the item frame,
-      which force never overrides
+- [x] `/butcher 32 force` **does** clear them — and still leaves the tamed wolf and the item frame,
+      which force never overrides. **Confirmed 2026-09-01**, and passive animals survived too:
+      `force` drops the two guesses about intent, not the `all` tier
+- [x] a bare `/nick` **shows** your nickname with a clickable `[Clear]`, rather than brigadier's
+      "incomplete command". It deliberately does **not** clear: half-typing a command should never
+      throw away what you set, and the button does it in one click
+- [x] `/nick <your own name>` **clears**, rather than being refused as impersonation. It was
+      refused: offline UUIDs are case-sensitive, so the cache holds `Sablednah` and `sablednah` as
+      two players and your own name matched the other one. Not fixed by teaching the guard about
+      casing — on an offline server those really can be two people — but by noting that nobody has
+      ever meant "impersonate myself"
 - [x] `/nick ~Bob` shows in chat with the `~`; tab still shows the real name; `/realname Bob`
       answers; a nick that is another player's real name is refused. **Confirmed 2026-09-01**,
       including the one that matters: **refused against an OFFLINE player's name**. That is the
