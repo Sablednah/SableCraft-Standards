@@ -40,6 +40,26 @@ import net.minecraft.world.item.ItemStack;
  * not a way to hand somebody an ability they do not have. If they could not type it, the stick will
  * not run it either.</p>
  *
+ * <h2>Main hand only</h2>
+ *
+ * <p>A bound tool fires from the <b>main hand</b> and nowhere else. Put it in your off-hand and it
+ * does nothing — confirmed in testing, and deliberate rather than an oversight.</p>
+ *
+ * <p>Two reasons. Vanilla raises the interact event for <em>both</em> hands on a single click, so
+ * something has to be ignored or every bound {@code /jump} takes you twice as far as you meant.
+ * And the off-hand is where a shield, a torch or a map lives: a command firing from it would go off
+ * during ordinary play, which is exactly what a staff shortcut must not do.</p>
+ *
+ * <h2>Main hand only</h2>
+ *
+ * <p>A bound tool fires from the <b>main hand</b> and nowhere else. Put it in your off-hand and it
+ * does nothing — confirmed in testing, and deliberate rather than an oversight.</p>
+ *
+ * <p>Two reasons. Vanilla raises the interact event for <em>both</em> hands on a single click, so
+ * one of them has to be ignored or every bound {@code /jump} takes you twice as far as you meant.
+ * And the off-hand is where a shield, a torch or a map lives: a command firing from there would go
+ * off during ordinary play, which is exactly what a staff shortcut must not do.</p>
+ *
  * <h2>Bound to the item type, not the stack</h2>
  *
  * <p>Every stick you own runs it, not the particular one. Storing it on the stack would need a
