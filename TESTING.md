@@ -184,12 +184,14 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
 
 ### Held-item tools — one client
 
-- [ ] `/repair` on a damaged pick mends it; on a **stack of cobblestone** it says the item cannot
+- [x] `/repair` on a damaged pick mends it; on a **stack of cobblestone** it says the item cannot
       be damaged rather than claiming success
 - [ ] `/repair` on an undamaged tool says it is already whole
 - [ ] `/repair all` with two damaged tools reports **2**
-- [ ] `/more` on a part stack fills it; on a full one says so
-- [ ] `/more` on a **shulker box** gives 1, not 64 — the cap is per item
+- [x] `/more` on a part stack fills it; on a full one says so
+- [x] `/more` on a **shulker box** gives 1, not 64 — the cap is per item. **Confirmed via `/i`
+      too**: a bare `/i` gives 1 for a sword, 64 for stone and **16 for an ender pearl** — the
+      result that proves the maximum is read off the item rather than assumed to be 64
 - [ ] `/condense` with three half stacks of dirt merges them and reports the count moved
 - [ ] `/itemname &cExcalibur` — red name, and `&c` is **not** literal text
 - [ ] `/itemname -` clears it
@@ -197,10 +199,14 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
 
 ### Power tools — one client, and the double-fire is the risk
 
-- [ ] `/pt jump` on a stick, then **right-click**: you jump-teleport
-- [ ] **right-click a block** with it: you teleport and **no block is placed**
-- [ ] you move **once** per click, not twice *(the off-hand event fires too — this is the check
-      that guards it)*
+- [x] `/pt jump` on a stick, then **right-click**: you jump-teleport
+- [x] **right-click a block** with it: you teleport and **no block is placed**
+- [x] you move **once** per click, not twice *(the off-hand event fires too — this is the check
+      that guards it)*. **Confirmed 2026-09-01**
+- [x] …and the flip side of that guard: a bound tool in the **off-hand** does **nothing**. That is
+      deliberate — the off-hand holds a shield or a torch, and a command firing from it would go
+      off during ordinary play. Found by testing, and now said out loud in the class rather than
+      buried in the double-fire comment
 - [ ] `/pt list` shows it; `/pt clear` stops it; `/pt clearall` empties
 - [ ] it survives a **relog** — bindings are saved, unlike `/f bypass`
 - [ ] `/pt powertool something` is refused

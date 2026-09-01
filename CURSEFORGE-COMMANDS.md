@@ -355,6 +355,16 @@ travel to whoever you gave it to.
 **It cannot be an escalation.** The command is dispatched as the holder, with the holder's
 permissions. If they could not type it, the stick will not run it either.
 
+**Main hand only.** In your off-hand a bound tool does nothing. Minecraft raises the interact event
+for both hands on one click, so one has to be ignored or every bound `/jump` takes you twice as far
+— and the off-hand is where a shield or a torch lives, which is not somewhere a command should be
+going off during ordinary play.
+
+**Main hand only.** In your off-hand a bound tool does nothing. Minecraft raises the interact event
+for both hands on one click, so something has to be ignored or every bound `/jump` takes you twice
+as far — and the off-hand is where a shield or a torch lives, which is not somewhere a command
+should be going off during ordinary play.
+
 ## Where you are
 
 `/depth` — your Y, and how far above or below sea level (read from the world, not hardcoded to 63).
