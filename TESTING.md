@@ -196,8 +196,8 @@ non-op** of the three clients; `/sudo` and the permission checks need them.
       **Reworded 2026-09-01** — it used to report items *moved*, so two stacks of 32 said "32" and
       eight of 8 said "56". Both accurate, neither the answer anybody wanted
 - [x] `/itemname &cExcalibur` — red name, and `&c` is **not** literal text
-- [ ] `/itemname -` clears it
-- [ ] `/itemlore add A blade of legend`, twice — two lines, in order; `/itemlore clear` empties
+- [x] `/itemname -` clears it
+- [x] `/itemlore add A blade of legend`, twice — two lines, in order; `/itemlore clear` empties
 
 ### Power tools — one client, and the double-fire is the risk
 
@@ -280,11 +280,16 @@ for them means `requires()` said no.
 
 ### `/f bypass` — one client, in somebody else's claim
 
-- [ ] stood in a claim you are not in: you **cannot** break a block
-- [ ] `/f bypass on` → you can
-- [ ] `/f bypass off` → you cannot again
-- [ ] turn it on, **relog**, and you cannot — it dropped, which is the entire design
-- [ ] the server log has a line for each toggle
+- [x] stood in a claim you are not in: you **cannot** break a block
+- [x] `/f bypass on` → you can
+- [x] `/f bypass off` → you cannot again
+- [x] turn it on, **relog**, and you cannot — it dropped, which is the entire design
+- [x] the server log has a line for each toggle
+
+**All confirmed 2026-09-01.** The relog is the one that mattered: it is the only check here whose
+failure would have been completely silent. A logout hook that never ran would leave staff holding
+the override across every session forever, with no error, no log line and nothing to notice — the
+exact thing the design exists to prevent.
 
 ## Before a release
 
