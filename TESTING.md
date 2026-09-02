@@ -312,13 +312,62 @@ failure would have been completely silent. A logout hook that never ran would le
 the override across every session forever, with no error, no log line and nothing to notice — the
 exact thing the design exists to prevent.
 
-## `/f raid` — built 2026-09-02, never played **[2P]**
+## `/f raid` — built 2026-09-02, part-played **[2P]**
 
-Nothing below has met a player. The self-test covers the state machine, the cooldown and that
-nothing lingers; it cannot tell you whether a raid *feels* like an event.
+The self-test covers the state machine, the cooldown and that nothing lingers; it cannot tell you
+whether a raid *feels* like an event. One evening's play found three bugs and rewrote the win
+conditions, so **the ticks below marked "Confirmed" were confirmed against the OLD rules** where
+they say so.
 
 **Setup.** Two factions with two accounts, neither peaceful, and `enableRaids` on (default). Give
 the defender a planted standard — the objective only exists if there is a flag to take.
+
+⚠ The dev server is currently on `raidMinutes = 2` and `raidCooldownMinutes = 1` so a raid can be
+played through in one sitting. **Put them back to 20 and 120 before any real play.**
+
+### The new win conditions **[2P]** — rewritten 2026-09-02 evening, none of it played
+
+The whole point of the rewrite, and every line is unplayed:
+
+- [ ] take their standard — the raid **keeps running**, and says so. *(This is the change: the old
+      build ended the raid at the moment of theft, which deleted the walk home)*
+- [ ] with the flag in your hands, **claim one of their chunks too** — you can now do both in one
+      raid, which is what "let the raid continue so they can take that too" was asking for
+- [ ] carry it home and **plant it on your own claimed land** → raid ends, announced as won
+- [ ] ⚠ plant a trophy you took **weeks ago** (i.e. not from your current target) while a raid is
+      running → **does not** end it. The latch has to be picky about whose flag it was
+- [ ] their flag stolen back off you a minute *after* you planted it does **not** un-win the raid
+
+### The flagless case **[2P]** — the bug that started all this
+
+The original symptom: *"no combination of placing standard, giving it back, stealing their land,
+could complete the raid."*
+
+- [ ] raid a faction flying **no** standard, take **one chunk** of their land → the raid ends,
+      announced as won *(and it costs them exactly one chunk — the per-raid claim limit is the
+      anti-bullying half)*
+- [ ] repeat, but **they plant a flag mid-raid** before you claim → taking land no longer ends it,
+      and the flag is the objective again
+- [ ] ⚠ do the flagless test with `raidGatesOverclaim` **off** (the default) as well as on. The
+      claim count was only recorded under the gate until tonight, so this win was unreachable on
+      a default server — exactly the configuration most people run
+
+### Flying several standards **[2P]** — built 2026-09-02 evening, unplayed
+
+- [ ] with your own flag already up, plant a **captured** one → it flies, rather than being
+      refused. *(The refusal is what you hit tonight: "I place it, it said I already had a
+      standard")*
+- [ ] `/f standard` lists **your own** plus every trophy, each with its position and whether it is
+      still under open sky
+- [ ] `/f power` shows the captured bonus with **one** trophy up, and the **same** number with
+      three. Flat is deliberate — the reward is that they have to take all three
+- [ ] roof **one** trophy over → that one stops earning, the others do not, and the bonus survives
+      until the last uncovered one is gone. *(This is the "ablative armour" — the bonus falls off
+      one flag at a time)*
+- [ ] break your own flag while flying trophies → your own regen drops to base, the flat trophy
+      bonus stays
+- [ ] a **hoarded** standard (in a chest, never planted) blocks its owner from raising a new one —
+      it must **not**. Only a planted, uncovered one denies them
 
 - [ ] `/f raid <them>` announces to the **whole server**, including a third player in neither
       faction *(a raid nobody can see is a war with extra steps)*
@@ -326,8 +375,8 @@ the defender a planted standard — the objective only exists if there is a flag
 - [x] the standard carrier keeps their **red**, not the side colour *(they are already on a team, so
       the raid glow deliberately leaves them alone)*. **Confirmed**
 - [ ] `/f raids` lists it with the time left; a bare `/f raid` does the same rather than erroring
-- [x] **taking the standard ends it**, announced as the attackers winning. **Confirmed
-      2026-09-02**, twice, in 8 and 22 seconds
+- [x] ~~**taking the standard ends it**~~ — confirmed 2026-09-02 against the **old** rule, which
+      has since been replaced by plant-to-win. See the section above; this line is history
 - [ ] **all attackers logging off ends it**, announced as repelled
 - [x] letting the clock run out ends it as held *(set `raidMinutes = 1` for this)*. **Confirmed**
       — and crucially **without crashing**, which the first attempt did not manage
