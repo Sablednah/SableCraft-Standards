@@ -323,12 +323,14 @@ the defender a planted standard — the objective only exists if there is a flag
 - [ ] `/f raid <them>` announces to the **whole server**, including a third player in neither
       faction *(a raid nobody can see is a war with extra steps)*
 - [ ] both sides **glow by side** — attackers gold, defenders aqua — and it is visible through walls
-- [ ] the standard carrier keeps their **red**, not the side colour *(they are already on a team, so
-      the raid glow deliberately leaves them alone)*
+- [x] the standard carrier keeps their **red**, not the side colour *(they are already on a team, so
+      the raid glow deliberately leaves them alone)*. **Confirmed**
 - [ ] `/f raids` lists it with the time left; a bare `/f raid` does the same rather than erroring
-- [ ] **taking the standard ends it**, announced as the attackers winning
+- [x] **taking the standard ends it**, announced as the attackers winning. **Confirmed
+      2026-09-02**, twice, in 8 and 22 seconds
 - [ ] **all attackers logging off ends it**, announced as repelled
-- [ ] letting the clock run out ends it as held *(set `raidMinutes = 1` for this)*
+- [x] letting the clock run out ends it as held *(set `raidMinutes = 1` for this)*. **Confirmed**
+      — and crucially **without crashing**, which the first attempt did not manage
 - [ ] the glow **stops** within a second or two of the raid ending, both sides
 - [ ] declaring again immediately is refused, naming the **cooldown** and the time left
 - [ ] …but raiding a *different* faction straight away is allowed *(the cooldown is per pair)*
