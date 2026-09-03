@@ -410,7 +410,8 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] the glow **stops** within a second or two of the raid ending, both sides. **Confirmed
       2026-09-03** — the un-teaming half, which is what crashed the server the first time a raid
       ended
-- [ ] declaring again immediately is refused, naming the **cooldown** and the time left
+- [x] declaring again immediately is refused, naming the **cooldown** and the time left.
+      **Confirmed 2026-09-03**
 - [ ] …but raiding a *different* faction straight away is allowed *(the cooldown is per pair)*
 - [ ] with the defender **offline**, declaring is refused and says how many need to be online.
       **This is the rule that replaces declining** — get it wrong and a sleeping faction can be
