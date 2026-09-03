@@ -394,7 +394,10 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 
 - [ ] `/f raid <them>` announces to the **whole server**, including a third player in neither
       faction *(a raid nobody can see is a war with extra steps)*
-- [ ] both sides **glow by side** — attackers gold, defenders aqua — and it is visible through walls
+- [x] both sides **glow by side** — attackers gold, defenders aqua — and it is visible through
+      walls. **Confirmed 2026-09-03**, and it took until then only because carrying a standard
+      keeps you red: every earlier raid had the tester holding a flag, so the side colours had
+      never once been on screen
 - [x] the standard carrier keeps their **red**, not the side colour *(they are already on a team, so
       the raid glow deliberately leaves them alone)*. **Confirmed**
 - [ ] `/f raids` lists it with the time left; a bare `/f raid` does the same rather than erroring
@@ -403,7 +406,9 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [ ] **all attackers logging off ends it**, announced as repelled
 - [x] letting the clock run out ends it as held *(set `raidMinutes = 1` for this)*. **Confirmed**
       — and crucially **without crashing**, which the first attempt did not manage
-- [ ] the glow **stops** within a second or two of the raid ending, both sides
+- [x] the glow **stops** within a second or two of the raid ending, both sides. **Confirmed
+      2026-09-03** — the un-teaming half, which is what crashed the server the first time a raid
+      ended
 - [ ] declaring again immediately is refused, naming the **cooldown** and the time left
 - [ ] …but raiding a *different* faction straight away is allowed *(the cooldown is per pair)*
 - [ ] with the defender **offline**, declaring is refused and says how many need to be online.
