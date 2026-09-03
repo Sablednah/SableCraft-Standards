@@ -411,8 +411,11 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       farmed
 - [ ] a **peaceful** faction can neither raid nor be raided
 - [ ] declaring a raid **on yourself** is refused
-- [ ] ⚠ **start a raid, stop the server, start it again: the raid is GONE.** The one that fails
-      silently — a raid surviving a restart could expire with nobody online to defend it
+- [x] ⚠ **start a raid, stop the server, start it again: the raid is GONE.** The one that fails
+      silently — a raid surviving a restart could expire with nobody online to defend it.
+      **Confirmed 2026-09-03**, stopped 90s into a live raid
+- [ ] the **action-bar countdown** runs for both sides, tightens (`4m 12s` → `45s` → a bare `9`),
+      goes red under thirty, and finishes with `RAID OVER`. Added 2026-09-03
 
 ### With `raidGatesOverclaim = true`
 
