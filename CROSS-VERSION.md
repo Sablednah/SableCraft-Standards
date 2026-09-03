@@ -87,9 +87,17 @@ every self-test.
   colour. `Style.applyFormat` and `withColor` both survive, so the only loss is the *question* —
   and owning the five formatting constants ourselves works on all three lines and cannot rot.
 - **`EntityType`'s constants moved to `EntityTypes`.**
-- **Dyed items are collections**: `Items.GRAY_STAINED_GLASS_PANE` →
-  `Items.STAINED_GLASS_PANE.pick(DyeColor.GRAY)`. CityWorld had 145 of these; we had **one**,
-  because almost nothing here touches blocks or items. That prediction held exactly.
+- **Dyed items — and dyed *blocks* — are collections**: `Items.GRAY_STAINED_GLASS_PANE` →
+  `Items.STAINED_GLASS_PANE.pick(DyeColor.GRAY)`, and equally
+  `Blocks.RED_BANNER` → `Blocks.BANNER.pick(DyeColor.RED)`. CityWorld had 145 of these; we had
+  **one** at port time, because almost nothing here touches blocks or items. That prediction held
+  exactly.
+
+  ⚠ **It is the divergence most likely to reappear**, and it did: `/f fixture standards`, written on
+  1.21.11 four days later, named nine banner blocks by colour and hit all nine on the first 26.2
+  compile. Worth knowing before writing the code rather than after — anything that reaches for a
+  *coloured* block or item by name is a `pick(DyeColor)` on 26.2, and the port branch stores the
+  `DyeColor` rather than the block so only the lookup differs.
 - **`PlayerTeam.setColor(ChatFormatting)` → `setColor(Optional<TeamColor>)`** — precisely what
   ZombieMod's `Colours` seam warned about, arriving as described.
 - **`PlayerInteractEvent.EntityInteractSpecific`** folded into `EntityInteract`.
