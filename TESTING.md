@@ -325,15 +325,15 @@ the defender a planted standard — the objective only exists if there is a flag
 ⚠ The dev server is currently on `raidMinutes = 2` and `raidCooldownMinutes = 1` so a raid can be
 played through in one sitting. **Put them back to 20 and 120 before any real play.**
 
-### The new win conditions **[2P]** — rewritten 2026-09-02 evening, none of it played
+### The new win conditions **[2P]** — rewritten 2026-09-02, main line played 2026-09-03
 
-The whole point of the rewrite, and every line is unplayed:
-
-- [ ] take their standard — the raid **keeps running**, and says so. *(This is the change: the old
-      build ended the raid at the moment of theft, which deleted the walk home)*
-- [ ] with the flag in your hands, **claim one of their chunks too** — you can now do both in one
-      raid, which is what "let the raid continue so they can take that too" was asking for
-- [ ] carry it home and **plant it on your own claimed land** → raid ends, announced as won
+- [x] take their standard — the raid **keeps running**, and says so. *(This is the change: the old
+      build ended the raid at the moment of theft, which deleted the walk home)*. **Confirmed**
+- [x] with the flag in your hands, **claim one of their chunks too** — you can now do both in one
+      raid, which is what "let the raid continue so they can take that too" was asking for.
+      **Confirmed**
+- [x] carry it home and **plant it on your own claimed land** → raid ends, announced as won.
+      **Confirmed 2026-09-03**
 - [ ] ⚠ plant a trophy you took **weeks ago** (i.e. not from your current target) while a raid is
       running → **does not** end it. The latch has to be picky about whose flag it was
 - [ ] their flag stolen back off you a minute *after* you planted it does **not** un-win the raid
@@ -343,27 +343,38 @@ The whole point of the rewrite, and every line is unplayed:
 The original symptom: *"no combination of placing standard, giving it back, stealing their land,
 could complete the raid."*
 
-- [ ] raid a faction flying **no** standard, take **one chunk** of their land → the raid ends,
+- [x] raid a faction flying **no** standard, take **one chunk** of their land → the raid ends,
       announced as won *(and it costs them exactly one chunk — the per-raid claim limit is the
-      anti-bullying half)*
+      anti-bullying half)*. **Confirmed 2026-09-03** — the bug that started all this, closed
 - [ ] repeat, but **they plant a flag mid-raid** before you claim → taking land no longer ends it,
       and the flag is the objective again
-- [ ] ⚠ do the flagless test with `raidGatesOverclaim` **off** (the default) as well as on. The
-      claim count was only recorded under the gate until tonight, so this win was unreachable on
-      a default server — exactly the configuration most people run
+- [x] ⚠ do the flagless test with `raidGatesOverclaim` **off** — the default, and the one that
+      mattered: the claim count was only recorded under the gate until 2026-09-02, so this win was
+      unreachable on exactly the configuration most people run. **Confirmed 2026-09-03**, since the
+      dev server is on `false`
+- [ ] …and again with it **on**, where the same claim goes through the raid gate first
 
-### Flying several standards **[2P]** — built 2026-09-02 evening, unplayed
+### Flying several standards **[2P]** — built 2026-09-02, power rules confirmed 2026-09-03
 
-- [ ] with your own flag already up, plant a **captured** one → it flies, rather than being
-      refused. *(The refusal is what you hit tonight: "I place it, it said I already had a
-      standard")*
+**`/f fixture standards`** plants a real flag for every seeded neighbour, on their own claimed land,
+through the ordinary `designate` path. It exists because this section cannot be tested with two
+people: proving the bonus is flat needs three factions to take flags *from*, and building nine
+banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f fixture seed` first.
+
+- [x] with your own flag already up, plant a **captured** one → it flies, rather than being
+      refused. *(The refusal is what blocked everything else: "I place it, it said I already had a
+      standard")*. **Confirmed 2026-09-03**
 - [ ] `/f standard` lists **your own** plus every trophy, each with its position and whether it is
       still under open sky
-- [ ] `/f power` shows the captured bonus with **one** trophy up, and the **same** number with
-      three. Flat is deliberate — the reward is that they have to take all three
-- [ ] roof **one** trophy over → that one stops earning, the others do not, and the bonus survives
-      until the last uncovered one is gone. *(This is the "ablative armour" — the bonus falls off
-      one flag at a time)*
+- [x] `/f power` shows the captured bonus with a trophy up. **Confirmed 2026-09-03** with two
+      flags (own + one trophy)
+- [x] …and the **same** number with three. Flat is deliberate — the reward is that they have to
+      take all three. **Confirmed 2026-09-03**: *"any uncovered stolen banner gives the power
+      boost, they don't stack, and all covered stops the bonus"*
+- [x] roof the **only** trophy over → the captured bonus goes. **Confirmed 2026-09-03**
+- [x] roof **one of three** over → that one stops earning, the others do not, and the bonus
+      survives until the last uncovered one is gone. *(This is the "ablative armour" — the whole
+      point, and it cannot be seen with fewer than two trophies)*. **Confirmed 2026-09-03**
 - [ ] break your own flag while flying trophies → your own regen drops to base, the flat trophy
       bonus stays
 - [ ] a **hoarded** standard (in a chest, never planted) blocks its owner from raising a new one —
