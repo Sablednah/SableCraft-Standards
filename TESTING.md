@@ -346,8 +346,12 @@ could complete the raid."*
 - [x] raid a faction flying **no** standard, take **one chunk** of their land → the raid ends,
       announced as won *(and it costs them exactly one chunk — the per-raid claim limit is the
       anti-bullying half)*. **Confirmed 2026-09-03** — the bug that started all this, closed
-- [ ] repeat, but **they plant a flag mid-raid** before you claim → taking land no longer ends it,
-      and the flag is the objective again
+- [x] repeat, but **they plant a flag mid-raid** before you claim → taking land no longer ends it,
+      and the flag is the objective again. **Confirmed 2026-09-03** — and note *how*: the raid ran
+      on and expired as **HELD**, which looked from inside the game exactly like the planting
+      having ended it. The log settles it in one line, because each outcome has its own wording
+      and `HELD` is only reachable from the clock. **Raise `raidMinutes` while testing** — at 2
+      minutes the timer lands on top of whatever you were trying to observe
 - [x] ⚠ do the flagless test with `raidGatesOverclaim` **off** — the default, and the one that
       mattered: the claim count was only recorded under the gate until 2026-09-02, so this win was
       unreachable on exactly the configuration most people run. **Confirmed 2026-09-03**, since the
