@@ -414,8 +414,10 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] ⚠ **start a raid, stop the server, start it again: the raid is GONE.** The one that fails
       silently — a raid surviving a restart could expire with nobody online to defend it.
       **Confirmed 2026-09-03**, stopped 90s into a live raid
-- [ ] the **action-bar countdown** runs for both sides, tightens (`4m 12s` → `45s` → a bare `9`),
-      goes red under thirty, and finishes with `RAID OVER`. Added 2026-09-03
+- [x] the **action-bar countdown** runs for both sides, tightens (`4m 12s` → `45s` → a bare `9`)
+      and goes red under thirty. Added and **confirmed 2026-09-03**
+- [ ] …and finishes with `RAID OVER`, which sits on its own three-second latch because the raid
+      leaves `ACTIVE` the instant it settles. Only visible on a raid you watch all the way out
 
 ### With `raidGatesOverclaim = true`
 
