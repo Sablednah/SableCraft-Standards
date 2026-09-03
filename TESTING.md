@@ -364,8 +364,8 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] with your own flag already up, plant a **captured** one → it flies, rather than being
       refused. *(The refusal is what blocked everything else: "I place it, it said I already had a
       standard")*. **Confirmed 2026-09-03**
-- [ ] `/f standard` lists **your own** plus every trophy, each with its position and whether it is
-      still under open sky
+- [x] `/f standard` lists **your own** plus every trophy, each with its position and whether it is
+      still under open sky, and `/f power` carries the matching numbers. **Confirmed 2026-09-03**
 - [x] `/f power` shows the captured bonus with a trophy up. **Confirmed 2026-09-03** with two
       flags (own + one trophy)
 - [x] …and the **same** number with three. Flat is deliberate — the reward is that they have to
@@ -375,8 +375,10 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] roof **one of three** over → that one stops earning, the others do not, and the bonus
       survives until the last uncovered one is gone. *(This is the "ablative armour" — the whole
       point, and it cannot be seen with fewer than two trophies)*. **Confirmed 2026-09-03**
-- [ ] break your own flag while flying trophies → your own regen drops to base, the flat trophy
-      bonus stays
+- [x] break your own flag while flying trophies → your own regen drops to base, the flat trophy
+      bonus stays. **Confirmed 2026-09-03**, and **covering** it behaves the same way — worth
+      recording separately, because breaking and roofing reach the store by different routes
+      (`onBroken` against the ten-second revalidate) and only one of them was written down
 - [ ] a **hoarded** standard (in a chest, never planted) blocks its owner from raising a new one —
       it must **not**. Only a planted, uncovered one denies them
 
