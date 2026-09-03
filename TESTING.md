@@ -400,7 +400,8 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       never once been on screen
 - [x] the standard carrier keeps their **red**, not the side colour *(they are already on a team, so
       the raid glow deliberately leaves them alone)*. **Confirmed**
-- [ ] `/f raids` lists it with the time left; a bare `/f raid` does the same rather than erroring
+- [x] `/f raids` lists it with the time left. **Confirmed 2026-09-03**
+- [ ] …and a bare `/f raid` does the same rather than erroring
 - [x] ~~**taking the standard ends it**~~ — confirmed 2026-09-02 against the **old** rule, which
       has since been replaced by plant-to-win. See the section above; this line is history
 - [ ] **all attackers logging off ends it**, announced as repelled
