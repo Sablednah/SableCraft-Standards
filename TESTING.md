@@ -458,12 +458,22 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] `/f raids top` ranks by wins, **most first**. **Confirmed 2026-09-04** — and it shipped
       backwards, so the check is "read the order", not "does a board appear"
 - [x] `/f who` carries the record once a faction has been in a raid
-- [ ] a faction that has **never** raided is absent from the board, not sitting at the bottom
-- [ ] `taken` and `held` separate correctly: win one attacking and one defending, and each lands in
-      its own column *(the whole reason there are four counters rather than two)*
-- [ ] the record **survives a restart** — it is `SavedData`, and an existing world had no field
-      for it until today
-- [ ] a **disbanded** faction's record goes with it, like its bank
+- [x] a faction that has **never** raided is absent from the board, not sitting at the bottom.
+      **Confirmed 2026-09-04**
+- [x] `taken` and `held` separate correctly: win one attacking and one defending, and each lands in
+      its own column *(the whole reason there are four counters rather than two)*. **Confirmed
+      2026-09-04**
+- [x] the record **survives a restart** — it is `SavedData`, and an existing world had no field
+      for it until today. **Confirmed 2026-09-04**, and checked the honest way round: the rows were
+      read back out of `factions.dat` on disk *before* the bounce rather than trusting the running
+      server, which is the lesson the save-migration bug cost a day for
+- [ ] a **disbanded** faction keeps its place on the board, marked `(disbanded)`, wearing the name
+      it last had. Changed 2026-09-04 after watching it: the first version deleted the row, like a
+      bank, and on a small server you could then see there had been another raid with no trace of
+      who it was against. Deleting everybody *else's* record of those raids was never an option —
+      that would make disbanding the cheapest grief in the mod, the same call already made for
+      power. ⚠ Needs a **fresh** disband to test: a faction disbanded before this change has no row
+      to come back
 
 ### With `raidGatesOverclaim = true`
 
