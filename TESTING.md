@@ -401,11 +401,12 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       left `BannerBlockEntity.name` standing, so the de-tag reported success and the name returned
       the moment the block was broken. Nothing server-side would ever have said otherwise
 
-- [ ] `/f raid <them>` announces to the **whole server**, including a third player in neither
-      faction *(a raid nobody can see is a war with extra steps)*. ⚠ **Ticked and un-ticked
-      2026-09-04**: TestBuddy turned out to be a member of tbf, so he saw the raid as a
-      *participant* and proved nothing. The check needs somebody in **neither** faction, which is
-      its entire point — confirm the bystander is factionless with `/f` as them first
+- [x] `/f raid <them>` announces to the **whole server**, including a third player in neither
+      faction *(a raid nobody can see is a war with extra steps)*. **Confirmed 2026-09-04** — and
+      it took two goes: the first bystander turned out to be a member of the defending faction, so
+      he saw the raid as a *participant* and proved nothing. Redone with a genuinely factionless
+      client, who got the chat announcement and no action bar. ⚠ **Check the bystander is
+      factionless with `/f` as them before trusting this one**
 - [x] both sides **glow by side** — attackers gold, defenders aqua — and it is visible through
       walls. **Confirmed 2026-09-03**, and it took until then only because carrying a standard
       keeps you red: every earlier raid had the tester holding a flag, so the side colours had
