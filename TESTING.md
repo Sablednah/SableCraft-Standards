@@ -334,8 +334,10 @@ played through in one sitting. **Put them back to 20 and 120 before any real pla
       **Confirmed**
 - [x] carry it home and **plant it on your own claimed land** → raid ends, announced as won.
       **Confirmed 2026-09-03**
-- [ ] ⚠ plant a trophy you took **weeks ago** (i.e. not from your current target) while a raid is
-      running → **does not** end it. The latch has to be picky about whose flag it was
+- [x] ⚠ plant a trophy you took **weeks ago** (i.e. not from your current target) while a raid is
+      running → **does not** end it. The latch has to be picky about whose flag it was.
+      **Confirmed 2026-09-04** — without this a faction that had been hoarding trophies would win
+      every raid it declared, on the first tick, having planted nothing at all
 - ~~their flag stolen back off you a minute *after* you planted it does **not** un-win the raid~~
       — **struck 2026-09-04, unperformable.** Written as a guard against the plant being a live
       query rather than a latch, and there is no window to perform it in: the raid settles on the
