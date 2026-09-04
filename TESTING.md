@@ -336,7 +336,13 @@ played through in one sitting. **Put them back to 20 and 120 before any real pla
       **Confirmed 2026-09-03**
 - [ ] ⚠ plant a trophy you took **weeks ago** (i.e. not from your current target) while a raid is
       running → **does not** end it. The latch has to be picky about whose flag it was
-- [ ] their flag stolen back off you a minute *after* you planted it does **not** un-win the raid
+- ~~their flag stolen back off you a minute *after* you planted it does **not** un-win the raid~~
+      — **struck 2026-09-04, unperformable.** Written as a guard against the plant being a live
+      query rather than a latch, and there is no window to perform it in: the raid settles on the
+      next tick after planting, under a second, and `PLANTED` is only cleared when a raid *ends*.
+      Taking the flag back afterwards is an ordinary capture with no raid interaction at all —
+      which is what the owner observed doing it repeatedly to reset between tests. The latch
+      property is asserted directly by the self-test instead, where it belongs
 
 ### The flagless case **[2P]** — the bug that started all this
 
