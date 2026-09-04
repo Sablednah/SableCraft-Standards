@@ -425,8 +425,9 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       **Confirmed 2026-09-03**, stopped 90s into a live raid
 - [x] the **action-bar countdown** runs for both sides, tightens (`4m 12s` → `45s` → a bare `9`)
       and goes red under thirty. Added and **confirmed 2026-09-03**
-- [ ] …and finishes with `RAID OVER`, which sits on its own three-second latch because the raid
-      leaves `ACTIVE` the instant it settles. Only visible on a raid you watch all the way out
+- [x] …and finishes with `RAID OVER`, which sits on its own three-second latch because the raid
+      leaves `ACTIVE` the instant it settles. **Confirmed 2026-09-04** — the whole countdown, end
+      to end, on a raid watched all the way out
 
 ### With `raidGatesOverclaim = true`
 
