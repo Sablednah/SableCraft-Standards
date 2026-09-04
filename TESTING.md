@@ -401,7 +401,7 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] the standard carrier keeps their **red**, not the side colour *(they are already on a team, so
       the raid glow deliberately leaves them alone)*. **Confirmed**
 - [x] `/f raids` lists it with the time left. **Confirmed 2026-09-03**
-- [ ] …and a bare `/f raid` does the same rather than erroring
+- [x] …and a bare `/f raid` does the same rather than erroring. **Confirmed 2026-09-04**
 - [x] ~~**taking the standard ends it**~~ — confirmed 2026-09-02 against the **old** rule, which
       has since been replaced by plant-to-win. See the section above; this line is history
 - [ ] **all attackers logging off ends it**, announced as repelled
@@ -412,12 +412,14 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       ended
 - [x] declaring again immediately is refused, naming the **cooldown** and the time left.
       **Confirmed 2026-09-03**
-- [ ] …but raiding a *different* faction straight away is allowed *(the cooldown is per pair)*
+- [x] …but raiding a *different* faction straight away is allowed *(the cooldown is per pair)*.
+      **Confirmed 2026-09-04** — the half that stops a cooldown freezing a busy server
 - [ ] with the defender **offline**, declaring is refused and says how many need to be online.
       **This is the rule that replaces declining** — get it wrong and a sleeping faction can be
       farmed
-- [ ] a **peaceful** faction can neither raid nor be raided
-- [ ] declaring a raid **on yourself** is refused
+- [x] a **peaceful** faction can neither raid nor be raided. **Confirmed 2026-09-04**, both
+      directions — declaring *on* one refused, and declaring *while* one refused
+- [x] declaring a raid **on yourself** is refused. **Confirmed 2026-09-04**
 - [x] ⚠ **start a raid, stop the server, start it again: the raid is GONE.** The one that fails
       silently — a raid surviving a restart could expire with nobody online to defend it.
       **Confirmed 2026-09-03**, stopped 90s into a live raid
