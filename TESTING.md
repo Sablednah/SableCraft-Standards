@@ -441,6 +441,10 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] …and reaches **every member of both factions**, not merely whoever is standing in the fight.
       **Confirmed 2026-09-04**, by accident: a third client turned out to be a member of the
       defending faction without being involved in the fighting, and had the clock throughout
+- [x] …and a player in **neither** faction gets **no** action bar at all. **Confirmed 2026-09-04**
+      after taking that client out of the faction. The necessary negative: there is one action bar
+      per player, so a bystander drawing every running raid's clock would flicker between them —
+      which is the concern that found the two-raids-at-once bug for participants
 - [x] …and finishes with `RAID OVER`, which sits on its own three-second latch because the raid
       leaves `ACTIVE` the instant it settles. **Confirmed 2026-09-04** — the whole countdown, end
       to end, on a raid watched all the way out
