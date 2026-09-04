@@ -467,8 +467,8 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       for it until today. **Confirmed 2026-09-04**, and checked the honest way round: the rows were
       read back out of `factions.dat` on disk *before* the bounce rather than trusting the running
       server, which is the lesson the save-migration bug cost a day for
-- [ ] a **disbanded** faction keeps its place on the board, marked `(disbanded)`, wearing the name
-      it last had. Changed 2026-09-04 after watching it: the first version deleted the row, like a
+- [x] a **disbanded** faction keeps its place on the board, marked `(disbanded)`, wearing the name
+      it last had. **Confirmed 2026-09-04**. Changed 2026-09-04 after watching it: the first version deleted the row, like a
       bank, and on a small server you could then see there had been another raid with no trace of
       who it was against. Deleting everybody *else's* record of those raids was never an option —
       that would make disbanding the cheapest grief in the mod, the same call already made for
