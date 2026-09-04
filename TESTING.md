@@ -401,9 +401,11 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       left `BannerBlockEntity.name` standing, so the de-tag reported success and the name returned
       the moment the block was broken. Nothing server-side would ever have said otherwise
 
-- [x] `/f raid <them>` announces to the **whole server**, including a third player in neither
-      faction *(a raid nobody can see is a war with extra steps)*. **Confirmed 2026-09-04** with
-      three clients — Sablednah and TestThird as the two sides, TestBuddy as the bystander
+- [ ] `/f raid <them>` announces to the **whole server**, including a third player in neither
+      faction *(a raid nobody can see is a war with extra steps)*. ⚠ **Ticked and un-ticked
+      2026-09-04**: TestBuddy turned out to be a member of tbf, so he saw the raid as a
+      *participant* and proved nothing. The check needs somebody in **neither** faction, which is
+      its entire point — confirm the bystander is factionless with `/f` as them first
 - [x] both sides **glow by side** — attackers gold, defenders aqua — and it is visible through
       walls. **Confirmed 2026-09-03**, and it took until then only because carrying a standard
       keeps you red: every earlier raid had the tester holding a flag, so the side colours had
@@ -436,6 +438,9 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       **Confirmed 2026-09-03**, stopped 90s into a live raid
 - [x] the **action-bar countdown** runs for both sides, tightens (`4m 12s` → `45s` → a bare `9`)
       and goes red under thirty. Added and **confirmed 2026-09-03**
+- [x] …and reaches **every member of both factions**, not merely whoever is standing in the fight.
+      **Confirmed 2026-09-04**, by accident: a third client turned out to be a member of the
+      defending faction without being involved in the fighting, and had the clock throughout
 - [x] …and finishes with `RAID OVER`, which sits on its own three-second latch because the raid
       leaves `ACTIVE` the instant it settles. **Confirmed 2026-09-04** — the whole countdown, end
       to end, on a raid watched all the way out
