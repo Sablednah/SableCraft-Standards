@@ -404,7 +404,8 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] …and a bare `/f raid` does the same rather than erroring. **Confirmed 2026-09-04**
 - [x] ~~**taking the standard ends it**~~ — confirmed 2026-09-02 against the **old** rule, which
       has since been replaced by plant-to-win. See the section above; this line is history
-- [ ] **all attackers logging off ends it**, announced as repelled
+- [x] **all attackers logging off ends it**, announced as repelled. **Confirmed 2026-09-04** —
+      "we drove them off" has to be a real outcome or defending is just waiting
 - [x] letting the clock run out ends it as held *(set `raidMinutes = 1` for this)*. **Confirmed**
       — and crucially **without crashing**, which the first attempt did not manage
 - [x] the glow **stops** within a second or two of the raid ending, both sides. **Confirmed
