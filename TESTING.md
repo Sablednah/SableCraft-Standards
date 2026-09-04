@@ -393,10 +393,11 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       it must **not**. Only a planted, uncovered one denies them. **Confirmed 2026-09-03** — this
       is the whole answer to "denial must not be permanent", and it is structural rather than a
       timer, so getting it wrong leaves somebody permanently flagless
-- [ ] …then try to plant the **superseded** one: refused, **and stripped of its name** so it drops
-      as an ordinary banner. Added 2026-09-03 — a refused flag left standing there still calling
-      itself somebody's standard is the worst of both, since its holder has no way to learn it is
-      worthless except by carting it somewhere else and trying again
+- [x] …then try to plant the **superseded** one: refused, **and stripped of its name** so it drops
+      as an ordinary banner. **Confirmed 2026-09-04** — duplicates and spares now de-tag and come
+      back as plain banners. Note it took two goes: the first fix cleared the component map and
+      left `BannerBlockEntity.name` standing, so the de-tag reported success and the name returned
+      the moment the block was broken. Nothing server-side would ever have said otherwise
 
 - [ ] `/f raid <them>` announces to the **whole server**, including a third player in neither
       faction *(a raid nobody can see is a war with extra steps)*
