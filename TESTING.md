@@ -364,7 +364,8 @@ could complete the raid."*
       mattered: the claim count was only recorded under the gate until 2026-09-02, so this win was
       unreachable on exactly the configuration most people run. **Confirmed 2026-09-03**, since the
       dev server is on `false`
-- [ ] …and again with it **on**, where the same claim goes through the raid gate first
+- [x] …and again with it **on**, where the same claim goes through the raid gate first.
+      **Confirmed 2026-09-04**
 
 ### Flying several standards **[2P]** — built 2026-09-02, power rules confirmed 2026-09-03
 
@@ -452,11 +453,14 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 
 ### With `raidGatesOverclaim = true`
 
-- [ ] overclaiming an over-extended enemy **outside** a raid is refused, and the message names
-      `/f raid` as the thing that would fix it
-- [ ] during a declared raid against them, the same claim **works**
-- [ ] with the setting **off** (the default), overclaiming works as it always did *(this is the
-      check that an updating server's game did not change under it)*
+- [x] overclaiming an over-extended enemy **outside** a raid is refused, and the message names
+      `/f raid` as the thing that would fix it. **Confirmed 2026-09-04**
+- [x] during a declared raid against them, the same claim **works**. **Confirmed 2026-09-04**
+- [x] …and a **second** claim in the same raid is refused by `raidClaimLimit`. **Confirmed
+      2026-09-04** — the anti-bullying half, and the reason a raid on a flagless faction costs them
+      exactly one chunk rather than everything they own
+- [x] with the setting **off** (the default), overclaiming works as it always did *(this is the
+      check that an updating server's game did not change under it)*. **Confirmed 2026-09-04**
 
 ## Before a release
 
