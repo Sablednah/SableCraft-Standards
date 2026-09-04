@@ -451,6 +451,20 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       leaves `ACTIVE` the instant it settles. **Confirmed 2026-09-04** — the whole countdown, end
       to end, on a raid watched all the way out
 
+### Raid records **[2P]** — built 2026-09-04
+
+- [x] a finished raid moves **both** sides: the winner's column and the loser's. **Confirmed
+      2026-09-04**
+- [x] `/f raids top` ranks by wins, **most first**. **Confirmed 2026-09-04** — and it shipped
+      backwards, so the check is "read the order", not "does a board appear"
+- [x] `/f who` carries the record once a faction has been in a raid
+- [ ] a faction that has **never** raided is absent from the board, not sitting at the bottom
+- [ ] `taken` and `held` separate correctly: win one attacking and one defending, and each lands in
+      its own column *(the whole reason there are four counters rather than two)*
+- [ ] the record **survives a restart** — it is `SavedData`, and an existing world had no field
+      for it until today
+- [ ] a **disbanded** faction's record goes with it, like its bank
+
 ### With `raidGatesOverclaim = true`
 
 - [x] overclaiming an over-extended enemy **outside** a raid is refused, and the message names
