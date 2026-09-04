@@ -415,9 +415,9 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       **Confirmed 2026-09-03**
 - [x] …but raiding a *different* faction straight away is allowed *(the cooldown is per pair)*.
       **Confirmed 2026-09-04** — the half that stops a cooldown freezing a busy server
-- [ ] with the defender **offline**, declaring is refused and says how many need to be online.
+- [x] with the defender **offline**, declaring is refused and says how many need to be online.
       **This is the rule that replaces declining** — get it wrong and a sleeping faction can be
-      farmed
+      farmed. **Confirmed 2026-09-04**
 - [x] a **peaceful** faction can neither raid nor be raided. **Confirmed 2026-09-04**, both
       directions — declaring *on* one refused, and declaring *while* one refused
 - [x] declaring a raid **on yourself** is refused. **Confirmed 2026-09-04**
