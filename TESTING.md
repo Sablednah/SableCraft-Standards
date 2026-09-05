@@ -451,6 +451,24 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
       leaves `ACTIVE` the instant it settles. **Confirmed 2026-09-04** — the whole countdown, end
       to end, on a raid watched all the way out
 
+### The terrain map — built 2026-09-05
+
+- [x] `/f map item terrain` draws real ground with the claims washed over it. **Confirmed
+      2026-09-05**
+- [ ] the colours read correctly: yours green, allied blue, enemy red, and the ground still legible
+      through the wash
+- [ ] walk 300 blocks and take another — the new one shows the ground you just walked, because it
+      reads only loaded chunks
+- [ ] stand somewhere freshly logged in and take one immediately: land that is not loaded falls back
+      to flat claim colour rather than a hole, and nothing generates
+- [ ] ⚠ it must **never** cause chunk loading. Watch the server log and the region folder while
+      taking one at the edge of the loaded area — `getChunkNow` is the only reason this is cheap,
+      and a change to `getChunk` would look identical and quietly generate terrain
+- [ ] `/f map item terrain 16` (one block per pixel, 128 blocks) and `4` (four blocks, 512) both
+      work, and 512 starts showing unloaded fallback at the edges
+- [ ] the plain `/f map item` is unchanged — still one chunk per pixel, still complete regardless of
+      what is loaded
+
 ### Raid records **[2P]** — built 2026-09-04
 
 - [x] a finished raid moves **both** sides: the winner's column and the loser's. **Confirmed
