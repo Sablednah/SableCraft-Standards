@@ -740,4 +740,12 @@ check by grepping the sibling repos for the import, not by remembering.
   the owner picks the active handler in `neoforge-server.toml`, so this is one more handler rather
   than an arbitration layer. Also records what LuckPerms does when both are installed, and the two
   bugs the first real use found.
+- `CLIENT.md` — **designed 2026-09-05, nothing built.** The optional client half for both mods:
+  quick toggles beside the inventory and real faction panels. The rule it turns on is that a GUI may
+  only present what the server would have given a vanilla player anyway — *same answers, nicer
+  surface* — so decision 2 survives. Also: buttons run commands rather than sending payloads, which
+  is what keeps it small; the button bar is a **seam** like chat decoration, so Factions and
+  LegendQuest contribute rather than Standards knowing about them; and `Net.sendIfAble` is written
+  before anything else, because the failure mode of getting it wrong is vanilla clients being kicked
+  during login.
 - `CROSS-VERSION.md` — the plan for living on several Minecraft lines at once.
