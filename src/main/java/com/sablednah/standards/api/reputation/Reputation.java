@@ -105,6 +105,20 @@ public final class Reputation {
     }
 
     /**
+     * A word for a value — for text a player reads, and nothing else.
+     *
+     * <p>Empty when the server has configured no bands, which is a perfectly ordinary state: a
+     * caller must have something to say when there is no word, and the number always works.</p>
+     *
+     * <p><b>Never branch on the result.</b> Use it in prose — "the survivors now consider you
+     * {band}" — and use {@link ReputationEvent#crossed(int)} for logic. A quest keying off
+     * {@code "friendly"} breaks the day an owner renames it.</p>
+     */
+    public static Optional<String> band(String standing, int value) {
+        return provider().flatMap(p -> p.band(key(standing), value));
+    }
+
+    /**
      * The one piece of normalisation the facade does.
      *
      * <p>Standings are created on first use and their names come from quest files typed by hand, so

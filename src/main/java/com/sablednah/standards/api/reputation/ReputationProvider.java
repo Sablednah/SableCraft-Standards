@@ -78,6 +78,22 @@ public interface ReputationProvider {
     /** The highest {@code limit} players in one standing, best first. */
     List<Entry> top(String standing, int limit);
 
+    /**
+     * A word for a value, for <b>prose only</b> — "the survivors now consider you friendly".
+     *
+     * <p>Delegated to the provider, the same way {@code Economy.format} is, because how a store
+     * prefers to describe its own numbers is the store's business. Defaulted to empty so a provider
+     * that has no opinion about words does not have to say so.</p>
+     *
+     * <p><b>Never branch on this.</b> A caller keying off {@code "friendly"} breaks the day an
+     * owner renames it; a caller that needs a threshold should say the threshold, and
+     * {@code ReputationEvent.crossed(int)} exists for exactly that. The number is the fact and this
+     * is a label for humans.</p>
+     */
+    default java.util.Optional<String> band(String standing, int value) {
+        return java.util.Optional.empty();
+    }
+
     /** A row of {@link #top}. */
     record Entry(UUID player, int value) {}
 }

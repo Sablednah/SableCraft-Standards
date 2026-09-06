@@ -69,10 +69,29 @@ public final class StandardsReputation implements ReputationProvider {
      * "friendly" would break the day an owner renamed it; a quest that needs a threshold should say
      * the number it means.</p>
      */
+    @Override
+    public java.util.Optional<String> band(String standing, int value) {
+        // A standing with any override takes its ladder ENTIRELY from the overrides. Merging would
+        // mean an owner could add a band but never remove one, and a half-overridden ladder reads
+        // as a bug rather than as a setting.
+        String prefix = standing + "/";
+        List<String> own = StandardsConfig.REPUTATION_STANDING_BANDS.get().stream()
+                .filter(e -> e.startsWith(prefix))
+                .map(e -> e.substring(prefix.length()))
+                .toList();
+        String word = pick(own.isEmpty() ? StandardsConfig.REPUTATION_BANDS.get() : own, value);
+        return word.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(word);
+    }
+
+    /** The default ladder, for callers with no standing to hand. */
     public static String bandFor(int value) {
+        return pick(StandardsConfig.REPUTATION_BANDS.get(), value);
+    }
+
+    private static String pick(List<? extends String> ladder, int value) {
         String best = "";
         int bestThreshold = Integer.MIN_VALUE;
-        for (String entry : StandardsConfig.REPUTATION_BANDS.get()) {
+        for (String entry : ladder) {
             int colon = entry.indexOf(':');
             if (colon <= 0) {
                 continue;

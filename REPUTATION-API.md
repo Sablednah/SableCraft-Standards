@@ -109,14 +109,33 @@ It fires even when nothing moved. `getDelta() == 0` is a correct answer to "did 
 threshold"; suppressing the event would instead mean every listener needs its own idea of whether a
 no-op counts.
 
-## Bands are display only
+## Bands are for prose, never for logic
 
 `reputation.bands` maps thresholds to words — `hostile`, `wary`, `neutral`, `friendly`, `trusted` —
 so a message can say a word rather than a number.
 
-**They are deliberately absent from the API.** A consumer that branched on `"friendly"` would break
-the day an owner renamed it; a quest that needs a threshold should say the threshold it means. The
-number is the fact; the band is a label for humans.
+```java
+Reputation.band("the_hospital", 60);   // Optional[friendly]
+Reputation.band("the_hospital", -999); // Optional.empty()
+```
+
+Empty is an ordinary answer, not a failure: a server may configure no bands at all, so a caller
+needs something to say without one, and the number always works.
+
+**Never branch on it.** A consumer keying off `"friendly"` breaks the day an owner renames it; a
+quest that needs a threshold should say the threshold, and `ReputationEvent.crossed(int)` exists for
+exactly that. The number is the fact; the band is a label for humans. It was left out of the API
+entirely at first for that reason, and added on request for the case it is actually good at — *"the
+survivors now consider you friendly"* on an action bar when `crossed(n)` fires.
+
+It is a `default` method on the provider, like `Economy.format`, because how a store prefers to
+describe its own numbers is the store's business — and defaulted to empty so a provider with no
+opinion about words does not have to say so.
+
+`reputation.standingBands` overrides the ladder for one standing, as `standing/threshold:name`. A
+standing named there takes its bands **entirely** from those lines rather than merging with the
+defaults: merging would mean an owner could add a band but never remove one, and a half-overridden
+ladder reads as a bug rather than as a setting.
 
 ## Commands
 
