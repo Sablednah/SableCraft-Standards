@@ -63,7 +63,8 @@ public final class StandardsData extends SavedData {
                             Map<UUID, Double> accounts, Map<UUID, String> names,
                             Optional<Waypoint> spawn, List<LastSeen> lastSeen,
                             Map<UUID, String> nicks, Map<UUID, Long> firstSeen,
-                            Map<UUID, Long> playedMinutes, Map<String, String> powerTools) {
+                            Map<UUID, Long> playedMinutes, Map<String, String> powerTools,
+                            Map<UUID, Map<String, Integer>> reputation) {
         static final Codec<Snapshot> CODEC = RecordCodecBuilder.create(i -> i.group(
                 HomeSet.CODEC.listOf().optionalFieldOf("homes", List.of()).forGetter(Snapshot::homes),
                 NamedWarp.CODEC.listOf().optionalFieldOf("warps", List.of()).forGetter(Snapshot::warps),
@@ -83,7 +84,14 @@ public final class StandardsData extends SavedData {
                         .forGetter(Snapshot::playedMinutes),
                 Codec.unboundedMap(Codec.STRING, Codec.STRING)
                         .optionalFieldOf("powerTools", Map.of())
-                        .forGetter(Snapshot::powerTools))
+                        .forGetter(Snapshot::powerTools),
+                // Optional and empty by default, like every field added after the first release:
+                // a world saved before reputation existed loads with nobody having an opinion,
+                // rather than failing to decode and taking the homes and balances with it.
+                Codec.unboundedMap(UUIDUtil.STRING_CODEC,
+                                Codec.unboundedMap(Codec.STRING, Codec.INT))
+                        .optionalFieldOf("reputation", Map.of())
+                        .forGetter(Snapshot::reputation))
                 .apply(i, Snapshot::new));
     }
 
@@ -118,6 +126,16 @@ public final class StandardsData extends SavedData {
      * the saved file for no gain.</p>
      */
     private final Map<String, String> powerTools = new LinkedHashMap<>();
+
+    /**
+     * player → standing → value.
+     *
+     * <p>Here rather than on a player attachment for the same reason balances are: the useful
+     * questions are about somebody who is not online. {@code /rep top survivors} and an admin
+     * fixing a quest reward for a player who logged off both need an answer with nobody to attach
+     * anything to.</p>
+     */
+    private final Map<UUID, Map<String, Integer>> reputation = new LinkedHashMap<>();
     private Waypoint spawn;
 
     private StandardsData() {}
@@ -133,6 +151,7 @@ public final class StandardsData extends SavedData {
         firstSeen.putAll(snapshot.firstSeen());
         playedMinutes.putAll(snapshot.playedMinutes());
         powerTools.putAll(snapshot.powerTools());
+        snapshot.reputation().forEach((id, m) -> reputation.put(id, new LinkedHashMap<>(m)));
     }
 
     private Snapshot snapshot() {
@@ -142,7 +161,8 @@ public final class StandardsData extends SavedData {
         return new Snapshot(homeSets, List.copyOf(warps.values()),
                 Map.copyOf(accounts), Map.copyOf(names), Optional.ofNullable(spawn),
                 List.copyOf(lastSeen.values()), Map.copyOf(nicks),
-                Map.copyOf(firstSeen), Map.copyOf(playedMinutes), Map.copyOf(powerTools));
+                Map.copyOf(firstSeen), Map.copyOf(playedMinutes), Map.copyOf(powerTools),
+                Map.copyOf(reputation));
     }
 
     /** The single instance for this save. Stored on the overworld so there is one ledger. */
@@ -289,6 +309,61 @@ public final class StandardsData extends SavedData {
     }
 
     /** Every binding this player holds, as item id to command. */
+    // --- reputation ---
+
+    /** This player's standing, or zero. Zero is "no opinion recorded", not an error. */
+    public int reputation(UUID player, String standing) {
+        return reputation.getOrDefault(player, Map.of()).getOrDefault(standing, 0);
+    }
+
+    /**
+     * Put a standing at a value, and answer what it was before.
+     *
+     * <p>Returning the previous value rather than void is what lets the caller fire
+     * {@code ReputationEvent} with both ends without reading it back first — and a read-back would
+     * be a second lookup that could disagree with the write if anything else touched it between.
+     * A row of zero is removed rather than stored, so a player who has drifted back to neutral
+     * stops occupying space and stops appearing in {@code /rep} with nothing to say.</p>
+     */
+    public int setReputation(UUID player, String standing, int value) {
+        Map<String, Integer> mine = reputation.computeIfAbsent(player, k -> new LinkedHashMap<>());
+        Integer previous = value == 0 ? mine.remove(standing) : mine.put(standing, value);
+        if (mine.isEmpty()) {
+            reputation.remove(player);
+        }
+        setDirty();
+        return previous == null ? 0 : previous;
+    }
+
+    /** Every standing this player has an opinion recorded for. */
+    public Map<String, Integer> reputationOf(UUID player) {
+        return Map.copyOf(reputation.getOrDefault(player, Map.of()));
+    }
+
+    /**
+     * Every standing name anybody holds a value for.
+     *
+     * <p>Derived rather than registered, which is the whole point: a quest file naming
+     * {@code the_hospital} for the first time makes it exist, and nothing had to be declared. The
+     * cost is that a standing nobody holds a non-zero value for vanishes, which is the right
+     * behaviour — an opinion nobody holds is not a group, it is a typo.</p>
+     */
+    public java.util.List<String> standings() {
+        java.util.TreeSet<String> out = new java.util.TreeSet<>();
+        reputation.values().forEach(m -> out.addAll(m.keySet()));
+        return java.util.List.copyOf(out);
+    }
+
+    /** The best players in one standing, best first. */
+    public java.util.List<Map.Entry<UUID, Integer>> reputationTop(String standing, int limit) {
+        return reputation.entrySet().stream()
+                .filter(e -> e.getValue().containsKey(standing))
+                .map(e -> Map.entry(e.getKey(), e.getValue().get(standing)))
+                .sorted(java.util.Map.Entry.<UUID, Integer>comparingByValue().reversed())
+                .limit(Math.max(1, limit))
+                .toList();
+    }
+
     public Map<String, String> powerToolsOf(UUID player) {
         String prefix = player + "|";
         Map<String, String> out = new LinkedHashMap<>();

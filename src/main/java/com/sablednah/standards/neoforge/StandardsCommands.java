@@ -8,6 +8,7 @@ import com.sablednah.standards.Standards;
 import com.sablednah.standards.StandardsConfig;
 import com.sablednah.standards.api.economy.Economy;
 import com.sablednah.standards.neoforge.commands.EconomyCommands;
+import com.sablednah.standards.neoforge.commands.ReputationCommands;
 import com.sablednah.standards.neoforge.commands.GameMasterCommands;
 import com.sablednah.standards.neoforge.commands.AdminTeleportCommands;
 import com.sablednah.standards.neoforge.commands.AfkCommand;
@@ -345,6 +346,15 @@ public final class StandardsCommands {
             // Aliases everyone already has in their fingers. Own trees, same reasoning as /j.
             dispatcher.register(EconomyCommands.balance("bal"));
             dispatcher.register(EconomyCommands.balance("money"));
+        }
+
+        // --- reputation ---
+        // Registered whether or not OUR provider is enabled: another mod may hold reputation, and
+        // /rep should show what it says. With nobody holding it the commands answer "no reputation
+        // on this server", which is decision 7's rule applied one level down — the command exists
+        // because the concept does, and it is the provider that may be absent.
+        if (StandardsConfig.ENABLE_REPUTATION.get()) {
+            ReputationCommands.registerAll(dispatcher);
         }
 
         // --- the built-in permission handler ---

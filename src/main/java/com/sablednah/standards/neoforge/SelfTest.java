@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.mojang.brigadier.ParseResults;
 import com.sablednah.standards.Standards;
+import com.sablednah.standards.api.reputation.Reputation;
 import com.sablednah.standards.api.chat.Chat;
 import com.sablednah.standards.api.chat.NameDecorator;
 import com.sablednah.standards.api.economy.Economy;
@@ -80,6 +81,7 @@ public final class SelfTest {
         checkPermissionRules();
         checkMoneyFormatting();
         checkCommandsParse(server);
+        checkReputation(server);
         checkSafeLoc(server);
         checkTeleportRequests();
         checkDurations();
@@ -873,6 +875,93 @@ public final class SelfTest {
      * Every command must parse from the console <em>and</em> reach an executable node. A literal
      * that exists but leads nowhere is the failure mode a bare {@code parse()} misses.
      */
+    /**
+     * The reputation seam: normalisation, the clamp, bands, and that the commands can be typed.
+     *
+     * <p>Exercised through the real facade and the real provider rather than a copy of either. The
+     * facade answers with nobody registered, which is the property a consumer compiled against it
+     * relies on, and by the time the self-test runs Standards' own provider is registered — so both
+     * states are worth checking and only one of them can be checked here.</p>
+     */
+    private void checkReputation(MinecraftServer server) {
+        // Normalisation is the facade's only opinion, and it exists because standing names are
+        // typed by hand into quest files. "The_Hospital" and "the_hospital" being two groups with
+        // two opinions and no way to notice is the bug this prevents.
+        check("a standing name is lower-cased",
+                Reputation.normalise("The_Hospital").equals("the_hospital"));
+        check("...and trimmed", Reputation.normalise("  survivors  ").equals("survivors"));
+        check("a null standing does not explode", Reputation.normalise(null).isEmpty());
+
+        // Bands are display only. The boundary is the interesting part: a value exactly on a
+        // threshold must take that band, not the one below.
+        check("a band is chosen from the highest threshold at or below the value",
+                StandardsReputation.bandFor(100).equals("trusted"));
+        check("...on the boundary it takes the higher band",
+                StandardsReputation.bandFor(80).equals("trusted"));
+        check("...and just below it does not",
+                StandardsReputation.bandFor(79).equals("friendly"));
+        check("a value under every threshold has no band",
+                StandardsReputation.bandFor(-1000).isEmpty());
+
+        // The store, through the provider that is actually registered. A fixed UUID nobody owns,
+        // cleared afterwards, so a dev world does not accumulate a fictional player's opinions.
+        UUID ghost = UUID.nameUUIDFromBytes("standards:selftest:reputation".getBytes(
+                java.nio.charset.StandardCharsets.UTF_8));
+        try {
+            check("reputation is available", Reputation.isAvailable());
+            check("an unknown standing reads zero", Reputation.get(ghost, "nobody_here") == 0);
+
+            Reputation.set(ghost, "survivors", 25, "self-test");
+            check("a standing reads back", Reputation.get(ghost, "survivors") == 25);
+            check("adjusting moves it", Reputation.adjust(ghost, "survivors", 10, "self-test") == 35);
+            check("...and reads back moved", Reputation.get(ghost, "survivors") == 35);
+
+            // The clamp, and the reason adjust() returns a value rather than void: a caller must
+            // be able to tell "went up by five" from "was already at the ceiling".
+            int ceiling = com.sablednah.standards.StandardsConfig.REPUTATION_MAX.get();
+            check("a standing clamps at the ceiling",
+                    Reputation.adjust(ghost, "survivors", 100000, "self-test") == ceiling);
+            check("...and adjusting past it is a no-op",
+                    Reputation.adjust(ghost, "survivors", 5, "self-test") == ceiling);
+            int floor = com.sablednah.standards.StandardsConfig.REPUTATION_MIN.get();
+            check("a standing clamps at the floor",
+                    Reputation.adjust(ghost, "survivors", -100000, "self-test") == floor);
+
+            // Case is normalised by the facade, so these must be the same standing. This is the
+            // check that would fail if normalisation lived in the provider and one forgot.
+            Reputation.set(ghost, "The_Hospital", 7, "self-test");
+            check("a standing written mixed-case reads back lower-case",
+                    Reputation.get(ghost, "the_hospital") == 7);
+            check("standings are listed once they exist",
+                    Reputation.standings().contains("the_hospital"));
+            check("a player's standings are visible", Reputation.of(ghost).size() >= 2);
+            check("top lists them", !Reputation.top("the_hospital", 5).isEmpty());
+
+            // Zero is stored as absence, so a player drifting back to neutral stops appearing.
+            Reputation.set(ghost, "the_hospital", 0, "self-test");
+            check("a standing set to zero is forgotten",
+                    !Reputation.of(ghost).containsKey("the_hospital"));
+        } finally {
+            Reputation.set(ghost, "survivors", 0, "self-test cleanup");
+            Reputation.set(ghost, "the_hospital", 0, "self-test cleanup");
+            check("the reputation fixture is gone", Reputation.of(ghost).isEmpty());
+        }
+
+        // And that a real value can be TYPED. Standing names contain punctuation, which is the
+        // trap that has now cost this repository four features - every one of them tested the
+        // logic while nothing had ever managed to enter the input.
+        CommandSourceStack console = server.createCommandSourceStack();
+        for (String command : List.of("rep", "rep list", "rep top the_hospital",
+                "rep top st.marys", "rep set Steve the_hospital 10",
+                "rep set Steve \"the hospital\" 10", "rep add Steve survivors -5")) {
+            ParseResults<CommandSourceStack> parse =
+                    server.getCommands().getDispatcher().parse(command, console);
+            check("/" + command + " parses", parse.getExceptions().isEmpty()
+                    && !parse.getReader().canRead()
+                    && parse.getContext().getLastChild().getCommand() != null);
+        }
+    }
+
     private void checkCommandsParse(MinecraftServer server) {
         CommandSourceStack console = server.createCommandSourceStack();
         for (String command : List.of(

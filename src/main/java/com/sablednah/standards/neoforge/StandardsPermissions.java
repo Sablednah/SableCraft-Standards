@@ -178,6 +178,16 @@ public final class StandardsPermissions {
     public static final PermissionNode<Boolean> PAY = node("pay", Default.EVERYONE);
     public static final PermissionNode<Boolean> ECO_ADMIN = node("eco", Default.OPS);
 
+    // --- reputation ---
+    /** See your own standings. Everyone: it is a fact about you that quests already act on. */
+    public static final PermissionNode<Boolean> REP = node("rep", Default.EVERYONE);
+    /** See somebody else's. Ops, because standings can be a story spoiler. */
+    public static final PermissionNode<Boolean> REP_OTHERS = node("rep.others", Default.OPS);
+    /** The leaderboard for one standing. Everyone: it is a scoreboard, and hiding it helps nobody. */
+    public static final PermissionNode<Boolean> REP_TOP = node("rep.top", Default.EVERYONE);
+    /** Set or add a standing by hand. */
+    public static final PermissionNode<Boolean> REP_ADMIN = node("rep.admin", Default.OPS);
+
     // --- item tools ---
     /** Repair the held item. A cheat — an anvil and the levels you did not spend. */
     public static final PermissionNode<Boolean> REPAIR = node("repair", Default.OPS);

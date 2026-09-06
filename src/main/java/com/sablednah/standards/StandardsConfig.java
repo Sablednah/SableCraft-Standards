@@ -106,6 +106,13 @@ public final class StandardsConfig {
     public static final ModConfigSpec.IntValue CURRENCY_DECIMALS;
     public static final ModConfigSpec.BooleanValue ALLOW_NEGATIVE_BALANCE;
     public static final ModConfigSpec.BooleanValue PREFER_OWN_LEDGER;
+    public static final ModConfigSpec.BooleanValue ENABLE_REPUTATION;
+    public static final ModConfigSpec.BooleanValue PREFER_OWN_REPUTATION;
+    public static final ModConfigSpec.IntValue REPUTATION_MIN;
+    public static final ModConfigSpec.IntValue REPUTATION_MAX;
+    public static final ModConfigSpec.BooleanValue REPUTATION_LOG;
+    public static final ModConfigSpec.IntValue REPTOP_SIZE;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> REPUTATION_BANDS;
     public static final ModConfigSpec.IntValue BALTOP_SIZE;
     public static final ModConfigSpec.DoubleValue MAX_SPEED;
     public static final ModConfigSpec.IntValue AFK_AFTER_SECONDS;
@@ -561,6 +568,53 @@ public final class StandardsConfig {
         BALTOP_SIZE = BUILDER
                 .comment("How many accounts /baltop lists.")
                 .defineInRange("baltopSize", 10, 1, 100);
+        BUILDER.pop();
+
+        BUILDER.comment("Reputation — what named groups think of a player.",
+                        "Standings are created the first time something writes one; there is no",
+                        "list to maintain. A quest naming 'the_hospital' makes it exist.",
+                        "This is not membership (that is groups) and not one moral score (that is",
+                        "a mod's own karma): the point is that the hospital and the raiders can",
+                        "hold different opinions of the same player at the same time.")
+                .push("reputation");
+        ENABLE_REPUTATION = BUILDER
+                .comment("Offer Standards' own reputation store. Off means no provider at all,",
+                        "unless another mod registers one — every call then answers zero rather",
+                        "than failing, so a quest mod asking about a standing still works.")
+                .define("enable", true);
+        PREFER_OWN_REPUTATION = BUILDER
+                .comment("Exactly one store holds a standing, the same rule as the economy: two",
+                        "that disagree about whether the survivors trust you is worse than either",
+                        "alone. By default Standards yields to any dedicated reputation mod.",
+                        "Turn this on to insist on Standards' own store instead. Needs a restart.")
+                .define("preferOwn", false);
+        REPUTATION_MIN = BUILDER
+                .comment("Floor for a standing. The clamp is a property of this store, so a",
+                        "different provider may choose a different range.")
+                .defineInRange("min", -100, -1000000, 0);
+        REPUTATION_MAX = BUILDER
+                .comment("Ceiling for a standing.")
+                .defineInRange("max", 100, 0, 1000000);
+        REPUTATION_LOG = BUILDER
+                .comment("Log every change that actually moved a standing, with its reason.",
+                        "Worth having on while a quest pack is being written: a reward that fires",
+                        "twice and a reward that fires never look identical from in game.")
+                .define("log", false);
+        REPTOP_SIZE = BUILDER
+                .comment("How many players /rep top lists.")
+                .defineInRange("repTopSize", 10, 1, 100);
+        REPUTATION_BANDS = BUILDER
+                .comment("Names for ranges, so a message can say a word rather than a number.",
+                        "Each entry is 'threshold:name' and applies from that value upwards.",
+                        "Display only: the number is the fact, and nothing branches on the name.",
+                        "That is deliberate — a quest that keyed off 'friendly' would break the",
+                        "day an owner renamed it, so a quest needing a threshold states the",
+                        "threshold. Set this to an empty list to show bare numbers everywhere.")
+                .defineList("bands",
+                        java.util.List.of("-100:hostile", "-40:wary", "-10:uneasy",
+                                "10:neutral", "40:friendly", "80:trusted"),
+                        () -> "0:name",
+                        o -> o instanceof String str && str.matches("-?\\d+:.+"));
         BUILDER.pop();
 
         BUILDER.comment("Nicknames.").push("nick");
