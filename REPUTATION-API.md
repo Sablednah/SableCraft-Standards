@@ -5,6 +5,13 @@ wired it within the hour — `chronicler/neoforge/compat/StandardsReputation.jav
 against the jar. Verified by grepping that repo for the import rather than by remembering, which is
 the rule `VANISH-API.md` earned.
 
+**The persistence round-trip is proven**, 2026-09-06, and separately from the self-test: a value was
+written, the server stopped, the bytes read back out of `standards.dat` on disk, the server
+restarted, and the value read back through the facade. Both a positive standing and one sitting on
+the clamp floor survived. Worth doing by hand because the self-test writes and cleans up inside one
+run, so it exercises the map and never the codec — and *a write is not a success until something
+reads it back* is the lesson the 26.1 save migration cost a day for.
+
 **What that proves and what it does not.** Chronicler calls `isAvailable`, `get`, `adjust` and
 `band`, so the *reward* path is real. `set`, `of`, `standings` and `top` have still never been
 called by anybody but `/rep` and the self-test — the leaderboard half is exactly as unproven as it
