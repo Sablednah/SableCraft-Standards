@@ -185,7 +185,7 @@ dedicated permissions mod is a better tool and switching to one costs a single c
 
 ## For other mods
 
-Six seams, all soft dependencies — add a `compileOnly` and Standards can be absent at runtime:
+Seven seams, all soft dependencies — add a `compileOnly` and Standards can be absent at runtime:
 
 | API | For |
 |---|---|
@@ -195,6 +195,7 @@ Six seams, all soft dependencies — add a `compileOnly` and Standards can be ab
 | `api.PlayerSwitches` / `api.Stations` | driving `/fly`, `/god`, `/vanish` and the workstations from code |
 | `api.combat` | combat tagging, resolving who was really behind a hit, and whether one player may harm another at all |
 | `api.vanish` | whether a player is hidden, so a mod drawing a nameplate or a health bar on them can take it down — a floating name over nobody gives a vanish away as completely as being seen |
+| `api.reputation` | what named groups think of a player — quest rewards, story gates, and anything else that wants an opinion rather than a permission |
 
 The switches API exists because a skill granting flight should not have to build a command string
 and hope: the skill is already the authority, so it calls in directly and skips the permission check
@@ -218,6 +219,24 @@ damage is gated centrally, so a mod that only deals damage needs no code whateve
 
 **[Factions ReForged](https://www.curseforge.com/minecraft/mc-mods/factions-reforged)** is built
 entirely on these — claims, groups, chat and economy — and is the proof they work from the outside.
+
+## Reputation — what people think of you
+
+**`/rep`.** A **standing** is one named group's opinion of one player: `survivors`, `raiders`,
+`the_hospital`. It is none of the three things it gets confused with — not membership (you can be
+loathed by a faction you belong to), not a single moral score, and **not permission**.
+
+That middle distinction is the whole point. One number for your soul cannot say that the hospital
+trusts you *and* the raiders want you dead, and those are the interesting stories.
+
+Standings are **created the first time something writes one** — a quest naming `the_hospital` makes
+it exist, with no list to maintain. `/rep top <standing>` ranks people, `/rep list` shows what
+exists, and named **bands** in config let a message say *"the survivors consider you friendly"*
+rather than *"+40"*.
+
+Like the money, exactly one store holds it: two that disagree about whether the survivors trust you
+is worse than either alone. Standards yields to any dedicated reputation mod without either side
+knowing the other exists.
 
 ## Requirements
 
