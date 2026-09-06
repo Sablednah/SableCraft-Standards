@@ -47,6 +47,9 @@ public class Standards {
         modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) ->
                 event.enqueueWork(() -> {
                     StandardsEconomy.registerIfEnabled();
+                    // Same reason as the economy above: the priority is a config value, so this
+                    // cannot happen in the constructor.
+                    com.sablednah.standards.neoforge.StandardsReputation.registerIfEnabled();
                     com.sablednah.standards.neoforge.Vanish.install();
                     com.sablednah.standards.neoforge.StandardsEvents.installChatGates();
                     installCombat();

@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`api/reputation` — what named groups think of a player.** The third seam after the economy and
+  chat decoration, and it exists for the economy's reason: *two* mods wanted to grant the same fact.
+  Chronicler wants a reputation reward and an availability condition on quests; StoryTeller wants
+  `/st reward <player> rep <standing> <n>` beside xp, karma and money.
+
+  A **standing** is one named group's opinion of one player — `survivors`, `the_hospital`. It is not
+  membership (groups answers that), not a moral axis (the whole point is that the hospital and the
+  raiders can disagree about you), and not permission.
+
+  Exactly **one provider holds it**, highest priority winning outright, because a standing is a
+  single fact and two stores disagreeing is worse than either. Standards registers at
+  `BUILTIN_PRIORITY` so a dedicated mod displaces it. Standings are created on first use — a quest
+  naming `the_hospital` makes it exist, with no registry to maintain — and names are normalised in
+  the facade so `The_Hospital` cannot become a second group nobody notices.
+
+  `ReputationEvent` fires after a change lands, carrying **both** values, because almost every
+  useful reaction is about a threshold being crossed rather than the new number.
+
+  `/rep`, `/rep list`, `/rep top`, `/rep set`, `/rep add`. Named **bands** in config give messages a
+  word instead of a number, and are deliberately absent from the API: a consumer branching on
+  "friendly" would break the day an owner renamed it.
+
+  Stored in `SavedData`, like balances, because the useful questions are about somebody offline.
+
 ## 1.4.0
 
 **Tested with two clients before release**, which found six bugs the self-test structurally could

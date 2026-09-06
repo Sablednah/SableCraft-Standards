@@ -441,6 +441,18 @@ public final class Lang {
 
     // --- msg.eco.* ---
     static {
+        // --- reputation ---
+        def("msg.rep.unavailable", "&cNobody holds an opinion on this server. {term.dim}(no reputation provider)");
+        def("msg.rep.none", "&7Nobody has an opinion of &f{player}&7 yet.");
+        def("msg.rep.header", "{term.prefix} &7How people see &f{player}&7:");
+        def("msg.rep.row", "  &8• &f{standing}&7: &a{value} &8{band}");
+        def("msg.rep.list", "{term.prefix} &7Standings in play: &f{standings}");
+        def("msg.rep.no_standings", "&7No standings exist yet. {term.dim}(they are created the first time something writes one)");
+        def("msg.rep.name_needed", "&cName a standing. {term.dim}(try /rep list)");
+        def("msg.rep.top_header", "{term.prefix} &7Best regarded by &f{standing}&7:");
+        def("msg.rep.top_row", "  &7{place}. &f{player}&7 — &a{value} &8{band}");
+        def("msg.rep.top_none", "&7Nobody has a standing with &f{standing}&7.");
+        def("msg.rep.changed", "{term.prefix} &f{player}&7's standing with &f{standing}&7 is now &a{value} &8{band}");
         def("msg.eco.disabled", "&cThere is no economy on this server.");
         def("msg.eco.balance_self", "{term.prefix} &7Your {term.balance}: &a{amount}");
         def("msg.eco.balance_other", "{term.prefix} &f{player}&7's {term.balance}: &a{amount}");

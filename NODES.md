@@ -2,7 +2,7 @@
 
 **Generated from the source — do not edit by hand.** `python3 scripts/nodes.py` rebuilds it from `StandardsPermissions.java`, which is the only place a node is really declared.
 
-86 declared nodes, plus the runtime ones described at the bottom.
+90 declared nodes, plus the runtime ones described at the bottom.
 
 Standards asks NeoForge's `PermissionAPI` for every one of these, so they work with LuckPerms, with Standards' own handler (`/rank`, see [`PERMISSIONS.md`](PERMISSIONS.md)), or with nothing installed at all — in which case the **Default** column is the whole answer.
 
@@ -113,6 +113,15 @@ Standards asks NeoForge's `PermissionAPI` for every one of these, so they work w
 | `standards.baltop` | `everyone` | Use `/baltop`. |
 | `standards.eco` | `ops` | Use `/eco`. |
 | `standards.pay` | `everyone` | Use `/pay`. |
+
+## Reputation
+
+| Node | Default | What it allows |
+|---|---|---|
+| `standards.rep` | `everyone` | See your own standings. Everyone: it is a fact about you that quests already act on. |
+| `standards.rep.admin` | `ops` | Set or add a standing by hand. |
+| `standards.rep.others` | `ops` | See somebody else's. Ops, because standings can be a story spoiler. |
+| `standards.rep.top` | `everyone` | The leaderboard for one standing. Everyone: it is a scoreboard, and hiding it helps nobody. |
 
 ## Item tools
 

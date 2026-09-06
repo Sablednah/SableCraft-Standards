@@ -711,6 +711,12 @@ check by grepping the sibling repos for the import, not by remembering.
 - `COMMANDS.md` — the full EssentialsX/FTB catalogue with keep/skip recommendations. **This is the
   open decision list**; the owner is working through it.
 - `ECONOMY-API.md` — how LegendQuest and ZombieMod hook the economy.
+- `REPUTATION-API.md` — **built 2026-09-06, no consumer wired yet.** What named groups think of a
+  player, shaped like the economy: one provider wins outright, because a standing is a single fact.
+  Built because *two* mods wanted to grant it — Chronicler's quest rewards and StoryTeller's
+  `/st reward … rep`. The three distinctions it turns on: not membership (that is groups), not a
+  moral axis (the hospital and the raiders can disagree about you), not permission. Bands are
+  display only and deliberately absent from the API.
 - `CHAT-API.md` — the decorator seam, and the stated cost that a decorated line is not signed.
 - `GROUPS-API.md` — **built and in use**, by Standards' own `/group` and by Factions. Group
   membership by kind and chunk claim queries; also the decisions on FTB (Teams out, compatibility
