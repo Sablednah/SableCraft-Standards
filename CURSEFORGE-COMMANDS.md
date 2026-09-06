@@ -431,6 +431,28 @@ thing to check when a gated command has quietly disappeared for everybody: a per
 whose storage failed to start answers false to everything, so every gated command vanishes from the
 tree and players see only "Unknown or incomplete command".
 
+## Reputation
+
+### `/rep` · `/rep <player>` — seeing your own is everyone's; seeing somebody else's is `standards.rep.others`
+
+What named groups think of you. A **standing** is one group's opinion — `survivors`,
+`the_hospital` — and is not membership, not a single moral score, and not permission. The hospital
+and the raiders can hold opposite views of you at once, which is the point.
+
+### `/rep list` · `/rep top <standing>`
+
+What standings exist, and who is best regarded by one. Standings are **created the first time
+something writes one**, so a quest naming `the_hospital` makes it exist and there is no list to
+maintain.
+
+### `/rep set <player> <standing> <n>` · `/rep add <player> <standing> <n>` — `standards.rep.admin`
+
+Set or move a standing by hand. Both report where the value **landed** rather than what you asked
+for, so a clamp that ate half the change says so at the moment it happens.
+
+Named **bands** in config give a word for a range — *"the survivors consider you friendly"* — and
+can be overridden per standing, so a hospital and a raider camp can use different vocabularies.
+
 ## Permissions — `/rank`
 
 Only present when Standards' own permission handler is the active one

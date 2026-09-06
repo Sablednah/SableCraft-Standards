@@ -72,6 +72,7 @@ entirely, and there is a real economy API instead of a private ledger.
 | **Kits** | `/kit` `/kits` `/setkit` `/delkit` `/showkit` |
 | **Stations** | `/craft` `/anvil` `/grindstone` `/enderchest` (`/ec`) `/trashcan` — *denied by default, see below* |
 | **Money** | `/balance` (`/bal` `/money`) `/baltop` `/pay` `/eco give\|take\|set` |
+| **Reputation** | `/rep` `/rep list` `/rep top` `/rep set\|add` |
 | **Moderation** | `/tempban` `/mute` `/unmute` `/invsee` |
 | **Gamemaster** | `/smite` |
 | **Server** | `/gc` (`/tps` `/lag` `/mem`) · `/standards reload` `/standards economy` |

@@ -1,6 +1,6 @@
 # Reputation — what people think of you
 
-**Status: built 2026-09-06, shipping in Standards 1.5.0, and consumed the same day.** Chronicler
+**Status: built and shipped in Standards 1.5.0, 2026-09-06, and consumed the same day.** Chronicler
 wired it within the hour — `chronicler/neoforge/compat/StandardsReputation.java` — and booted
 against the jar. Verified by grepping that repo for the import rather than by remembering, which is
 the rule `VANISH-API.md` earned.
