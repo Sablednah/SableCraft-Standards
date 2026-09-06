@@ -711,7 +711,7 @@ check by grepping the sibling repos for the import, not by remembering.
 - `COMMANDS.md` — the full EssentialsX/FTB catalogue with keep/skip recommendations. **This is the
   open decision list**; the owner is working through it.
 - `ECONOMY-API.md` — how LegendQuest and ZombieMod hook the economy.
-- `REPUTATION-API.md` — **built 2026-09-06, no consumer wired yet.** What named groups think of a
+- `REPUTATION-API.md` — **built 2026-09-06 and consumed the same day by Chronicler.** What named groups think of a
   player, shaped like the economy: one provider wins outright, because a standing is a single fact.
   Built because *two* mods wanted to grant it — Chronicler's quest rewards and StoryTeller's
   `/st reward … rep`. The three distinctions it turns on: not membership (that is groups), not a
