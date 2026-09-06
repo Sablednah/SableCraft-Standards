@@ -1,8 +1,17 @@
 # Reputation — what people think of you
 
-**Status: built 2026-09-06, shipping in Standards 1.5.0. No consumer wired yet** — Chronicler and
-LegendQuest-StoryTeller are the two that asked for it, and neither has been built against it at time
-of writing. The seam is not proven until one of them has.
+**Status: built 2026-09-06, shipping in Standards 1.5.0, and consumed the same day.** Chronicler
+wired it within the hour — `chronicler/neoforge/compat/StandardsReputation.java` — and booted
+against the jar. Verified by grepping that repo for the import rather than by remembering, which is
+the rule `VANISH-API.md` earned.
+
+**What that proves and what it does not.** Chronicler calls `isAvailable`, `get`, `adjust` and
+`band`, so the *reward* path is real. `set`, `of`, `standings` and `top` have still never been
+called by anybody but `/rep` and the self-test — the leaderboard half is exactly as unproven as it
+was, and the first mod to use it should expect to find something.
+
+The contract was legible enough to wire without a second round of questions, which is the only real
+evidence a seam's design survived contact with somebody who did not write it.
 
 The third seam after the economy and chat decoration, and it exists for the same reason the economy
 does: **two mods wanted to grant the same fact.** Chronicler wants a reputation reward and an
