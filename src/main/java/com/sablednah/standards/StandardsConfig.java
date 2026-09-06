@@ -113,6 +113,7 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue REPUTATION_LOG;
     public static final ModConfigSpec.IntValue REPTOP_SIZE;
     public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> REPUTATION_BANDS;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> REPUTATION_STANDING_BANDS;
     public static final ModConfigSpec.IntValue BALTOP_SIZE;
     public static final ModConfigSpec.DoubleValue MAX_SPEED;
     public static final ModConfigSpec.IntValue AFK_AFTER_SECONDS;
@@ -615,6 +616,16 @@ public final class StandardsConfig {
                                 "10:neutral", "40:friendly", "80:trusted"),
                         () -> "0:name",
                         o -> o instanceof String str && str.matches("-?\\d+:.+"));
+        REPUTATION_STANDING_BANDS = BUILDER
+                .comment("Per-standing overrides for the words above, as 'standing/threshold:name'.",
+                        "A standing named here takes its bands ENTIRELY from these lines rather",
+                        "than merging with the defaults — merging would mean an owner could not",
+                        "remove a band, only add one, and half-overridden ladders read as bugs.",
+                        "Empty by default, which means every standing uses the same words.",
+                        "  Example: the_hospital/-100:blacklisted, the_hospital/50:on the rota")
+                .defineList("standingBands", java.util.List.of(),
+                        () -> "standing/0:name",
+                        o -> o instanceof String str && str.matches("[^/]+/-?\\d+:.+"));
         BUILDER.pop();
 
         BUILDER.comment("Nicknames.").push("nick");

@@ -903,6 +903,18 @@ public final class SelfTest {
         check("a value under every threshold has no band",
                 StandardsReputation.bandFor(-1000).isEmpty());
 
+        // Through the facade, which is the route a consumer takes. Empty rather than a blank
+        // string, because a caller must be able to tell "no word configured" from "the word is
+        // empty" and choose to print the number instead.
+        check("the facade offers a band for prose",
+                Reputation.band("survivors", 100).orElse("").equals("trusted"));
+        check("...and empty below every threshold",
+                Reputation.band("survivors", -1000).isEmpty());
+        // The standing argument is real, not decorative: with no override configured every
+        // standing shares the ladder, which is the state this asserts.
+        check("standings share the ladder unless overridden",
+                Reputation.band("the_hospital", 100).equals(Reputation.band("raiders", 100)));
+
         // The store, through the provider that is actually registered. A fixed UUID nobody owns,
         // cleared afterwards, so a dev world does not accumulate a fictional player's opinions.
         UUID ghost = UUID.nameUUIDFromBytes("standards:selftest:reputation".getBytes(

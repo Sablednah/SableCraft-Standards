@@ -114,7 +114,7 @@ public final class ReputationCommands {
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(e -> Feedback.chat(viewer, Lang.fmt("msg.rep.row",
                         "standing", e.getKey(), "value", e.getValue(),
-                        "band", band(e.getValue()))));
+                        "band", band(e.getKey(), e.getValue()))));
         return mine.size();
     }
 
@@ -151,7 +151,7 @@ public final class ReputationCommands {
             Feedback.chat(player, Lang.fmt("msg.rep.top_row",
                     "place", place,
                     "player", names.nameOf(row.player()).orElse(row.player().toString()),
-                    "value", row.value(), "band", band(row.value())));
+                    "value", row.value(), "band", band(standing, row.value())));
         }
         return rows.size();
     }
@@ -180,7 +180,7 @@ public final class ReputationCommands {
             // reward is exactly the kind of thing an admin needs told at the moment it happens.
             Feedback.chat(admin, Lang.fmt("msg.rep.changed",
                     "player", target.getName().getString(),
-                    "standing", standing, "value", landed, "band", band(landed)));
+                    "standing", standing, "value", landed, "band", band(standing, landed)));
             touched++;
         }
         return touched;
@@ -193,8 +193,8 @@ public final class ReputationCommands {
      * deliberate: a consumer that branched on the band would break the moment an owner renamed one,
      * and a quest that needs a threshold should say the threshold it means.</p>
      */
-    private static String band(int value) {
-        return com.sablednah.standards.neoforge.StandardsReputation.bandFor(value);
+    private static String band(String standing, int value) {
+        return Reputation.band(standing, value).orElse("");
     }
 
     private ReputationCommands() {}
