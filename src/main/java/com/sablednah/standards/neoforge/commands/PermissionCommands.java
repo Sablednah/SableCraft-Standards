@@ -623,11 +623,17 @@ public final class PermissionCommands {
             ServerPlayer one = server.getPlayerList().getPlayer(player);
             if (one != null) {
                 server.getCommands().sendCommands(one);
+                // The button set goes stale on exactly the same events and for exactly the same
+                // reason. Sent from here rather than from its own hook so the two cannot drift:
+                // a permission edit that resent one and not the other would leave a client whose
+                // command tree and whose buttons disagreed.
+                com.sablednah.standards.neoforge.Capabilities.send(one);
             }
             return;
         }
         for (ServerPlayer online : server.getPlayerList().getPlayers()) {
             server.getCommands().sendCommands(online);
+            com.sablednah.standards.neoforge.Capabilities.send(online);
         }
     }
 

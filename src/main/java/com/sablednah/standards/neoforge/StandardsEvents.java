@@ -90,6 +90,8 @@ public final class StandardsEvents {
         }
         applySwitches(player);
         Vanish.onLogin(player);
+        // Guarded inside: a vanilla client never negotiated the channel and must not be sent to.
+        Capabilities.send(player);
         remindOfPersistedSwitches(player);
         if (StandardsConfig.ENABLE_MAIL.get()) {
             com.sablednah.standards.neoforge.commands.MailCommands.announceOnLogin(player);
