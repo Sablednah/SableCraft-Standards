@@ -85,6 +85,13 @@ public final class Lang {
         def("msg.toggle.fly", "Flight");
         def("msg.toggle.god", "God mode");
         def("msg.toggle.vanish", "Vanish");
+        def("msg.actions.header", "{term.prefix} &7What you can do:");
+        def("msg.actions.home", "Home");
+        def("msg.actions.spawn", "Spawn");
+        def("msg.actions.back", "Back");
+        def("msg.actions.button_on", "&a[{name}{hint}]");
+        def("msg.actions.button_off", "&7[&f{name}{hint}&7]");
+        def("msg.actions.none", "&7Nothing to offer you here. {term.dim}(no actions you have permission for)");
         def("msg.vanish.still_held", "&e...but something else is still hiding you: &f{holders}&e. {term.dim}(you are not visible yet — whatever placed that hold has to drop it)");
         // Persisted switches are invisible by definition — say so on login, or
         // staff spend a week wondering why the server feels quiet.
