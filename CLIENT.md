@@ -128,9 +128,15 @@ sent only when a screen is open, and never pushed. A panel nobody is looking at 
 
 ---
 
-## 6. The button bar is a seam
+## 6. The seam registers *actions*, not buttons
 
 Standards owns the bar. It does not know what is on it.
+
+**An action, not a button**, because StoryTeller wants the same things on **keybinds** as well —
+possession in and out, drift in and out, and a *next player* step. A Storyteller hops between those
+constantly during a scene, and reaching for a mouse each time is the sort of friction that makes a
+tool go unused. A button and a keybind are two triggers for one action, so the seam registers the
+action once and both triggers find it.
 
 This is the same shape as `api/chat` and `api/groups`, and for the same reason: Factions is a
 separate mod and a separate release, LegendQuest will want a party button, and none of them should
@@ -150,9 +156,42 @@ Ordering follows the rule already established for chat decorators, because a sec
 second thing to remember: **priority is closeness to the anchor.** Standards' own switches sit
 nearest the inventory, other mods' buttons stack outward from there.
 
-Additive, like chat decoration and unlike the economy — several mods may contribute buttons without
+Additive, like chat decoration and unlike the economy — several mods may contribute actions without
 contradiction. `SelfTest` should assert the ordering from both ends, as it does for chat affixes,
 because getting it backwards looks fine until a second mod registers.
+
+### Keybinds: each mod owns its own, and that is forced
+
+**A `KeyMapping` must be registered at client startup**, in `RegisterKeyMappingsEvent`, before
+anything knows which server it is talking to or what that player may do. So an action registered at
+runtime *cannot* conjure a keybind for itself, and the tempting design — "register an action, get a
+bindable key free" — is not available.
+
+The alternative, pre-registering a pool of *"Standards action 1…8"* keys for users to assign in a
+screen, is worse than it sounds: the controls list fills with placeholders that mean nothing until
+bound, and a modpack shipping defaults cannot name what it bound.
+
+So: **each mod registers its own `KeyMapping`s the ordinary way**, and Standards' contribution is
+that pressing one goes through the same action:
+
+```java
+// StoryTeller's client, in its own key handler
+if (POSSESS_KEY.consumeClick()) {
+    ClientActions.run(Identifier.of("storyteller", "possess"));
+}
+```
+
+`ClientActions.run` does what the button does — checks the capability set, sends the command, and
+says something useful if the player may not. Without it every mod reimplements that check and they
+drift; with it a keybind and a button cannot disagree about whether an action is available.
+
+`consumeClick()` rather than `isDown()`, so holding the key fires once. A keybind that repeats is a
+command sent sixty times a second, and the first thing anybody would notice is the server rate
+limiting them off it.
+
+**Keybinds are unbound by default.** A mod claiming keys on install is how conflicts start, and
+Standards' own switches are not worth a key to most players — the ones that are (possession, drift)
+belong to a mod whose users have explicitly installed it for that.
 
 ---
 
@@ -177,6 +216,23 @@ Four things that will each cost an evening if not planned for:
 ---
 
 ## 8. What to actually build
+
+### StoryTeller's shape, which is the one driving this
+
+Worth stating because it is the demanding case and the seam should fit it:
+
+| Action | Trigger | Why a keybind |
+|---|---|---|
+| possess / release | toggle | entered and left constantly through a scene |
+| drift in / out | toggle | the survey view, paired with possession |
+| next player | repeat | stepping through a cast; a button would mean a mouse trip per player |
+
+Two toggles and a stepper. Toggles want the button to show **state** — lit when possessing — which
+is the same thing `Toggle`'s tri-state buys the switch commands, and the reason a button beats a
+chat command for anything you are in or out of.
+
+The stepper is the one that argues hardest for keybinds: *next, next, next* through a cast is a
+rhythm, and a rhythm through a GUI is not one.
 
 ### Standards — the quick toggles
 
@@ -260,11 +316,14 @@ What needs real clients, and belongs in `TESTING.md` before any of it is written
 1. `Net.sendIfAble` and the payload registration, with the vanilla-client join test **first**. It is
    the only part that can break existing players, so nothing else should exist until it is proven.
 2. The capability payload, riding `PermissionCommands.refresh`.
-3. The button seam and its self-test, with **one** button — Fly — to prove the whole path.
+3. The action seam and its self-test, with **one** action — Fly — proving the whole path: a button
+   that draws, a `ClientActions.run` that fires, and a capability set that hides it when it should.
 4. The rest of the Standards toggles, then the TPA-pending button.
-5. Factions' buttons, registered through the seam from the other repo. That is the real test of
+5. **A keybind, on that same one action**, before there are many — the cheapest moment to find out
+   whether `ClientActions.run` is the right shape is while exactly one thing calls it.
+6. Factions' buttons, registered through the seam from the other repo. That is the real test of
    whether the seam is legible to somebody who did not write it — the same evidence
    `VANISH-API.md` counts, where LegendQuest wired both halves without being asked twice.
-6. The faction panels, roster first.
-7. The live map last. It is the most impressive and the least necessary, and it is the piece most
+7. The faction panels, roster first.
+8. The live map last. It is the most impressive and the least necessary, and it is the piece most
    likely to be rewritten by a port.
