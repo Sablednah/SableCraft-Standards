@@ -49,8 +49,10 @@ whole mod follows from taking those two complaints seriously.**
   further, and **`/back list`** shows what is actually on it — with the distance and *the command
   that made each stop*. Other mods' teleports are labelled too, without those mods doing anything.
 - **`/vanish` genuinely hides you** — unpaired from other players' entity trackers, off the tab list,
-  ignored by mob AI. Not a packet trick. Item pickup is suppressed by default, because an arrow
-  vanishing with nobody standing there gives you away as surely as being seen.
+  and **ignored by mob AI in both directions**: nothing new can target you, and anything already
+  hunting you forgets you as you disappear. Not a packet trick. Item pickup is suppressed by
+  default, because an arrow vanishing with nobody standing there gives you away as surely as being
+  seen.
 - **`/pay` takes a reason** — `/pay Steve 500 half of what we dug` — carried into the mailbox if
   they are offline, so a payment made on Tuesday still explains itself on Friday.
 - **Portable workbenches are denied to everyone by default, operators included.** That is the
@@ -194,7 +196,7 @@ Seven seams, all soft dependencies — add a `compileOnly` and Standards can be 
 | `api.groups` | group membership by kind, "who owns this chunk", whether PvP is allowed there, and whether **mobs** may break blocks there. Standards' own permission ranks publish here too, as `standards:role` |
 | `api.PlayerSwitches` / `api.Stations` | driving `/fly`, `/god`, `/vanish` and the workstations from code |
 | `api.combat` | combat tagging, resolving who was really behind a hit, and whether one player may harm another at all |
-| `api.vanish` | whether a player is hidden, so a mod drawing a nameplate or a health bar on them can take it down — a floating name over nobody gives a vanish away as completely as being seen |
+| `api.vanish` | whether a player is hidden — and putting them there under a named hold, so a storyteller mod possessing a body cannot reveal somebody who had vanished themselves first |
 | `api.reputation` | what named groups think of a player — quest rewards, story gates, and anything else that wants an opinion rather than a permission |
 
 The switches API exists because a skill granting flight should not have to build a command string
