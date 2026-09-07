@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.mojang.brigadier.ParseResults;
 import com.sablednah.standards.Standards;
 import com.sablednah.standards.api.reputation.Reputation;
+import com.sablednah.standards.network.CapabilitiesPayload;
 import com.sablednah.standards.api.chat.Chat;
 import com.sablednah.standards.api.chat.NameDecorator;
 import com.sablednah.standards.api.economy.Economy;
@@ -82,6 +83,7 @@ public final class SelfTest {
         checkMoneyFormatting();
         checkCommandsParse(server);
         checkReputation(server);
+        checkCapabilityPayload();
         checkSafeLoc(server);
         checkTeleportRequests();
         checkDurations();
@@ -916,6 +918,42 @@ public final class SelfTest {
      * Every command must parse from the console <em>and</em> reach an executable node. A literal
      * that exists but leads nowhere is the failure mode a bare {@code parse()} misses.
      */
+    /**
+     * The capability payload's wire format, both directions.
+     *
+     * <p>Round-tripping is the whole check. A payload that encodes and never decodes is the client
+     * mod silently drawing nothing, which looks exactly like a server that has not sent it — and
+     * this is the first payload either mod has ever had, so nothing else would notice.</p>
+     *
+     * <p>Deliberately not asserting <em>which</em> actions a player gets: that depends on config
+     * and permissions and belongs to a running server, and a test that hard-coded the list would
+     * have to be edited every time a button is added, which is how a test stops being read.</p>
+     */
+    private void checkCapabilityPayload() {
+        var buf = new net.minecraft.network.RegistryFriendlyByteBuf(
+                io.netty.buffer.Unpooled.buffer(), net.minecraft.core.RegistryAccess.EMPTY);
+        CapabilitiesPayload sent = new CapabilitiesPayload(
+                java.util.Set.of("fly", "god", "home"),
+                java.util.Map.of("home", "3"));
+        CapabilitiesPayload.CODEC.encode(buf, sent);
+        CapabilitiesPayload back = CapabilitiesPayload.CODEC.decode(buf);
+        check("the capability payload round-trips its actions",
+                back.actions().equals(sent.actions()));
+        check("...and its hints", back.hints().equals(sent.hints()));
+        check("...and reads the buffer dry", !buf.isReadable());
+
+        // Empty is the ordinary case for a player with nothing granted, and an encoder that only
+        // works with content is a crash on the first restricted player who logs in.
+        var empty = new net.minecraft.network.RegistryFriendlyByteBuf(
+                io.netty.buffer.Unpooled.buffer(), net.minecraft.core.RegistryAccess.EMPTY);
+        CapabilitiesPayload none = new CapabilitiesPayload(java.util.Set.of(), java.util.Map.of());
+        CapabilitiesPayload.CODEC.encode(empty, none);
+        CapabilitiesPayload backEmpty = CapabilitiesPayload.CODEC.decode(empty);
+        check("an empty capability set round-trips", backEmpty.actions().isEmpty()
+                && backEmpty.hints().isEmpty());
+        check("...and reads the buffer dry", !empty.isReadable());
+    }
+
     /**
      * The reputation seam: normalisation, the clamp, bands, and that the commands can be typed.
      *

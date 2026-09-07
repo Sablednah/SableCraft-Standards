@@ -68,6 +68,19 @@ LegendQuest found this the hard way. ZombieMod re-found it. This will be the thi
 is not written first, and the symptom will be *vanilla players cannot join*, which is the worst
 possible failure for a mod whose whole pitch is that vanilla players are first-class.
 
+⚠ **And `optional()` returns a clone, not a mutation.** The obvious three-line version registers a
+**required** channel:
+
+```java
+var r = event.registrar(VERSION);
+r.optional();          // clone made, and thrown away
+r.playToClient(...);   // registered on the ORIGINAL — not optional
+```
+
+That compiles, reads correctly, and kicks every vanilla player at login. It is the same failure as
+forgetting `sendIfAble`, arriving through a different door, and it is why the registration is one
+chained expression that must never be split.
+
 `network/StandardsNetwork` stops being empty here. The comment saying it is deliberately empty
 should be replaced with one saying what replaced it and why, rather than deleted.
 
