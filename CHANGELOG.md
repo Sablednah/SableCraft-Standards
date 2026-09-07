@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`api/vanish` can now set the state, not just read it** — `Vanish.hold(player, key, held)`.
+  Requested by LegendQuest's StoryTeller, whose possession feature was using spectator mode and
+  finding it the wrong tool: a spectator flies, noclips and has input semantics of its own that
+  fight the feature, where a vanished player has a real grounded body that a possessed creature can
+  actually follow.
+
+  **Named holds rather than a boolean.** More than one thing can want somebody hidden at once, and
+  the loser of a plain boolean is whoever releases second — a storyteller who had already typed
+  `/vanish` before a scene would be revealed when the scene ended, undoing their own choice. Each
+  caller holds under its own key and releases only its own; the player is hidden while any hold
+  stands. `/vanish` is a holder too, and `/vanish off` during somebody else's hold now says it did
+  not reveal you rather than reporting "off" while you are still invisible.
+
+- **Mobs no longer target a vanished player.** A gap found by StoryTeller asking what vanish
+  guaranteed before claiming it, rather than by a test. Everything else was in place — hidden,
+  unpushable, still solid, still falling — and a zombie chasing an invisible man gave the game away
+  as completely as being seen. A `LivingChangeTargetEvent` listener rather than a third mixin.
+  `vanishTargeted` restores the old behaviour.
+
 ## 1.5.0 — 2026-09-06
 
 ### Added

@@ -273,7 +273,7 @@ public final class SelfTest {
             check("nobody is vanished to start with", !VanishGate.anyVanished());
             check("an unvanished player is not hidden", !VanishGate.hidden(subject, viewer));
 
-            VanishGate.setVanished(subject, true);
+            VanishGate.hold(subject, "selftest", true);
             check("a vanished player reads as vanished", VanishGate.isVanished(subject));
             check("anyVanished notices", VanishGate.anyVanished());
             check("a vanished player is hidden from an ordinary viewer",
@@ -286,13 +286,54 @@ public final class SelfTest {
             check("an unvanished bystander is still not hidden",
                     !VanishGate.hidden(viewer, subject));
 
-            VanishGate.setVanished(subject, false);
+            VanishGate.hold(subject, "selftest", false);
             check("unvanishing clears the hide", !VanishGate.hidden(subject, viewer));
             check("and empties the set", !VanishGate.anyVanished());
+
+        // The hold model, which is the whole point of keying them. A plain boolean loses whoever
+        // releases second: a storyteller possessed by a scene who had ALREADY vanished themselves
+        // would be revealed when the scene ended, undoing a choice they made.
+        UUID held = UUID.nameUUIDFromBytes("standards:selftest:holds".getBytes(
+                java.nio.charset.StandardCharsets.UTF_8));
+        try {
+            check("nobody holds an unvanished player", VanishGate.holders(held).isEmpty());
+            check("the first hold changes the state",
+                    VanishGate.hold(held, "standards:command", true));
+            check("...and they are vanished", VanishGate.isVanished(held));
+            // A second holder must NOT report a change: nothing on the wire moved.
+            check("a second hold does not change the state",
+                    !VanishGate.hold(held, "storyteller:possess", true));
+            check("both holders are listed", VanishGate.holders(held).size() == 2);
+
+            // The property the whole design exists for.
+            check("releasing one hold leaves them vanished",
+                    !VanishGate.hold(held, "storyteller:possess", false));
+            check("...still hidden", VanishGate.isVanished(held));
+            check("...and only the other holder remains",
+                    VanishGate.holders(held).equals(java.util.Set.of("standards:command")));
+
+            check("releasing the last hold reveals them",
+                    VanishGate.hold(held, "standards:command", false));
+            check("...and they are visible", !VanishGate.isVanished(held));
+            // Releasing a hold nobody placed is a no-op rather than an error - a mod releasing
+            // twice, or releasing after a logout cleared it, must not reveal somebody.
+            check("releasing an absent hold changes nothing",
+                    !VanishGate.hold(held, "nobody:here", false));
+
+            // clear() is the logout path: every hold, whoever placed it.
+            VanishGate.hold(held, "a", true);
+            VanishGate.hold(held, "b", true);
+            VanishGate.clear(held);
+            check("clearing drops every hold", !VanishGate.isVanished(held)
+                    && VanishGate.holders(held).isEmpty());
+        } finally {
+            VanishGate.clear(held);
+            check("the hold fixture is gone", !VanishGate.isVanished(held));
+        }
         } finally {
             // Leave nothing behind: this runs on a live server, and a stubbed predicate or a
             // lingering id would quietly break the real feature for the rest of the run.
-            VanishGate.setVanished(subject, false);
+            VanishGate.hold(subject, "selftest", false);
             Vanish.install();
         }
     }

@@ -3,6 +3,8 @@
 Whether a player is hidden, for mods that draw things attached to players.
 
 **Status: built 2026-08-29, and consumed since 2026-08-30.** `api/vanish/` — `Vanish`,
+
+**Settable since 2026-09-07**, on request from LegendQuest's StoryTeller — see *Holds* below.
 `VanishEvent` — under the self-test, and LegendQuest's `VanishSupport` now takes its nameplate down:
 `PlayerVisibility.setCheck(Vanish::isVanished, Vanish::anyVanished)` plus a `VanishEvent` listener.
 
@@ -95,3 +97,62 @@ That is this codebase's recurring failure: **the chat decorator path returned em
 because no decorator existed**, and looked exactly this healthy. Until LegendQuest removes a
 nameplate through this seam, treat it as unproven — and when it does, watch the mid-session vanish
 specifically, because that is the case the query alone silently gets wrong.
+
+## Holds — setting it, not just reading it
+
+`api/vanish` was read-only until StoryTeller needed to *put* somebody into the state: possession
+drops a storyteller into a creature's scene, and spectator turned out to be the wrong tool for it —
+a spectator flies, noclips, and has its own input semantics that fight the feature. A vanished
+player has a real grounded body, which is the whole point.
+
+```java
+Vanish.hold(player, "storyteller:possess", true);   // hide
+Vanish.hold(player, "storyteller:possess", false);  // release YOUR hold
+Vanish.holders(player);                             // who is hiding them
+```
+
+**Holds rather than a boolean, and this is the load-bearing part.** More than one thing can want
+somebody hidden at once, and the loser of a plain boolean is whoever releases second:
+
+> A storyteller types `/vanish`, then possesses a creature for a scene. The scene ends. A boolean
+> setter reveals them — undoing a choice they made before the scene started.
+
+Reading the state first and restoring conditionally is the obvious fix and it races the moment a
+second mod does the same thing. So each caller holds under its own key and releases only its own,
+and the player is hidden while **any** hold stands. Additive, like the chat decorators, and for the
+same reason — several contributors can want this without contradicting each other.
+
+`/vanish` is itself a holder, under `standards:command`. So `/vanish off` during somebody else's
+scene releases only the command's hold and **says so**, rather than reporting "off" while the player
+is still invisible — which is the worst of both, since they then walk out in front of somebody
+believing they can be seen.
+
+Only the command hold survives a logout. A hold another mod placed belongs to whatever that mod was
+doing at the time; a scene that ended while somebody was offline should not still be hiding them.
+
+**No permission check.** The caller is the authority — a mod gating possession behind its own node
+should not also need the *target* to be allowed to `/vanish` themselves, which is a different
+question about a different person. Same reasoning as `api.PlayerSwitches`.
+
+`VanishEvent` fires when the state actually changes, and not when a second holder joins or leaves
+without moving anything on the wire.
+
+## What vanish actually guarantees
+
+Asked by StoryTeller before it claimed any of it, which is the right question and found a gap:
+
+| | |
+|---|---|
+| hidden from other players | **yes** — `ServerPlayerVanishMixin` on `broadcastToPlayer` |
+| not pushable | **yes** — `LivingEntityVanishMixin` on `isPushable` |
+| does not hoover up items | **yes**, unless `vanishPickup` |
+| **not targeted by mobs** | **yes, since 2026-09-07** — it was *not* covered before the question |
+| still solid against blocks | **yes** — vanish never touches collision with the world |
+| still subject to gravity | **yes** — and this is why possession uses vanish rather than spectator |
+
+The targeting fix is a `LivingChangeTargetEvent` listener rather than a third mixin: `CLAUDE.md`
+treats every mixin as a version-fragile surface needing justification, and NeoForge fires this event
+precisely so nobody has to inject into targeting goals. `vanishTargeted` turns it off.
+
+It clears the target only. It does not stop a mob mid-swing and cannot un-anger something that was
+already hunting them — vanishing is walking away from a fight, not undoing it.

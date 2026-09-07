@@ -406,6 +406,34 @@ public final class StandardsEvents {
     }
 
     /**
+     * Mobs lose interest in a vanished player.
+     *
+     * <p>The gap a consumer found rather than a test: a storyteller mod asked whether vanish
+     * covered mob targeting before claiming it did, and it did not. Everything else was in place —
+     * hidden from players, not pushable, still solid and still subject to gravity — and a zombie
+     * chasing an invisible man across the build was the one thing left that gave the game away.</p>
+     *
+     * <p>An event rather than a mixin, which matters: {@code CLAUDE.md} treats every mixin as a
+     * version-fragile surface to be justified, and NeoForge fires this one precisely so nobody has
+     * to inject into targeting goals.</p>
+     *
+     * <p>It only clears the target. It does not stop a mob already swinging, and it cannot un-anger
+     * something that was hunting them before they vanished — that is the {@code /vanish} equivalent
+     * of walking away from a fight, and pretending otherwise would be a claim this cannot keep.</p>
+     */
+    @SubscribeEvent
+    static void onVanishedTargeted(
+            net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent event) {
+        if (StandardsConfig.VANISH_TARGETED.get()) {
+            return; // the owner wants mobs to keep hunting them
+        }
+        if (event.getNewAboutToBeSetTarget() instanceof ServerPlayer target
+                && Vanish.isVanished(target)) {
+            event.setCanceled(true);
+        }
+    }
+
+    /**
      * A vanished player walks past items rather than hoovering them up.
      *
      * <p>Reported from a live test: an arrow passed through a vanished player, stuck in the wall
