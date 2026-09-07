@@ -348,6 +348,9 @@ public final class StandardsCommands {
             dispatcher.register(EconomyCommands.balance("money"));
         }
 
+        // --- the action bar, for clients that have no bar ---
+        dispatcher.register(com.sablednah.standards.neoforge.commands.ActionCommands.actions());
+
         // --- reputation ---
         // Registered whether or not OUR provider is enabled: another mod may hold reputation, and
         // /rep should show what it says. With nobody holding it the commands answer "no reputation

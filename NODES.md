@@ -2,7 +2,7 @@
 
 **Generated from the source — do not edit by hand.** `python3 scripts/nodes.py` rebuilds it from `StandardsPermissions.java`, which is the only place a node is really declared.
 
-90 declared nodes, plus the runtime ones described at the bottom.
+91 declared nodes, plus the runtime ones described at the bottom.
 
 Standards asks NeoForge's `PermissionAPI` for every one of these, so they work with LuckPerms, with Standards' own handler (`/rank`, see [`PERMISSIONS.md`](PERMISSIONS.md)), or with nothing installed at all — in which case the **Default** column is the whole answer.
 
@@ -108,6 +108,7 @@ Standards asks NeoForge's `PermissionAPI` for every one of these, so they work w
 
 | Node | Default | What it allows |
 |---|---|---|
+| `standards.actions` | `everyone` | List your available actions as clickable chat buttons. Everyone: it only shows what you have. |
 | `standards.balance` | `everyone` | Use `/balance`. |
 | `standards.balance.others` | `ops` | Use `/balance` on another player. |
 | `standards.baltop` | `everyone` | Use `/baltop`. |

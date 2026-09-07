@@ -4,6 +4,27 @@
 
 ### Added
 
+- **`api/actions` — the seam other mods put buttons on**, and `/actions`, which is that bar for a
+  client that has no bar.
+
+  An **action**, not a button, because a button and a keybind are two triggers for one thing.
+  Registered once in common setup: the server reads the availability predicate, the client reads the
+  icon. Additive like the chat decorators — several mods contribute without contradicting — and
+  ordered by the same rule, priority as closeness to the anchor.
+
+  **An action runs a command.** There is deliberately no serverbound payload anywhere in the seam,
+  so permissions, cooldowns, warmups, config switches and logging all already work with no second
+  code path to drift. It follows that an action must be something a vanilla player could type.
+
+  **`/actions` makes it work on a vanilla client.** Chat click events are plain vanilla components,
+  so a row of `[Fly] [God] [Home]` in chat is a working set of buttons with no mod at all — lit when
+  a switch is on, dim when off. Asked for by a gamemaster mod whose rule is that only the server and
+  the operator need anything installed, and the honest answer turned out to be yes.
+
+  Actions carry **state**, not just availability: the bar says what you *are*, not only what you may
+  do. That is worth more than another button in a tool where half the bugs are the game and the
+  operator disagreeing about whether you are hidden.
+
 - **The optional client channel carries its first payload** — a clientbound *what may I do* set, so
   a modded client can draw buttons for the commands a player actually has. Server-side only so far;
   the buttons themselves come next. A vanilla client never receives it and loses nothing.

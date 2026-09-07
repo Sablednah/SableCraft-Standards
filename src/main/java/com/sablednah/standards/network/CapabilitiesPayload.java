@@ -34,9 +34,14 @@ import com.sablednah.standards.Standards;
  * one, the client is making decisions again.</p>
  *
  * @param actions ids the player may use, matching what the seam registered
+ * @param active  the subset that is <b>on right now</b> — flying, vanished, possessing. A state a
+ *                gamemaster can see is worth more than another button they can press: half the bugs
+ *                in a tool like that are the game and the operator disagreeing about what is
+ *                happening
  * @param hints   optional display text per action; an action need not appear here
  */
-public record CapabilitiesPayload(Set<String> actions, Map<String, String> hints)
+public record CapabilitiesPayload(Set<String> actions, Set<String> active,
+        Map<String, String> hints)
         implements CustomPacketPayload {
 
     public static final Type<CapabilitiesPayload> TYPE =
@@ -63,6 +68,14 @@ public record CapabilitiesPayload(Set<String> actions, Map<String, String> hints
             }
             buf.writeUtf(action, 64);
         }
+        buf.writeVarInt(Math.min(payload.active().size(), MAX_ENTRIES));
+        written = 0;
+        for (String action : payload.active()) {
+            if (written++ >= MAX_ENTRIES) {
+                break;
+            }
+            buf.writeUtf(action, 64);
+        }
         buf.writeVarInt(Math.min(payload.hints().size(), MAX_ENTRIES));
         written = 0;
         for (Map.Entry<String, String> hint : payload.hints().entrySet()) {
@@ -80,12 +93,18 @@ public record CapabilitiesPayload(Set<String> actions, Map<String, String> hints
         for (int i = 0; i < count; i++) {
             actions.add(buf.readUtf(64));
         }
+        int activeCount = Math.min(buf.readVarInt(), MAX_ENTRIES);
+        Set<String> active = new LinkedHashSet<>();
+        for (int i = 0; i < activeCount; i++) {
+            active.add(buf.readUtf(64));
+        }
         int hintCount = Math.min(buf.readVarInt(), MAX_ENTRIES);
         Map<String, String> hints = new LinkedHashMap<>();
         for (int i = 0; i < hintCount; i++) {
             hints.put(buf.readUtf(64), buf.readUtf(64));
         }
-        return new CapabilitiesPayload(Set.copyOf(actions), Map.copyOf(hints));
+        return new CapabilitiesPayload(Set.copyOf(actions), Set.copyOf(active),
+                Map.copyOf(hints));
     }
 
     @Override
