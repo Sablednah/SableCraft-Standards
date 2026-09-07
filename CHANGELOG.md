@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The optional client channel carries its first payload** — a clientbound *what may I do* set, so
+  a modded client can draw buttons for the commands a player actually has. Server-side only so far;
+  the buttons themselves come next. A vanilla client never receives it and loses nothing.
+
+  Guarded twice, because this is the failure that kicks vanilla players at login and it has bitten
+  two sibling mods already: every send goes through `Net.sendIfAble`, and the registration is a
+  single chained expression because `optional()` returns a **clone** — assigning the registrar and
+  calling `optional()` on it separately silently registers a *required* channel.
+
+  It says what to draw, never what is allowed. The server re-checks on the command, so a stale set
+  gets you a button that fails, which is what typing the command would have got you.
+
 ## 1.6.0 — 2026-09-07
 
 ### Added
