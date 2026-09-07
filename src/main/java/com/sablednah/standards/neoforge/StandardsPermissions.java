@@ -178,6 +178,9 @@ public final class StandardsPermissions {
     public static final PermissionNode<Boolean> PAY = node("pay", Default.EVERYONE);
     public static final PermissionNode<Boolean> ECO_ADMIN = node("eco", Default.OPS);
 
+    /** List your available actions as clickable chat buttons. Everyone: it only shows what you have. */
+    public static final PermissionNode<Boolean> ACTIONS = node("actions", Default.EVERYONE);
+
     // --- reputation ---
     /** See your own standings. Everyone: it is a fact about you that quests already act on. */
     public static final PermissionNode<Boolean> REP = node("rep", Default.EVERYONE);

@@ -62,7 +62,10 @@ public final class SelfTest {
         new SelfTest().run(event.getServer());
     }
 
+    private MinecraftServer lastServer;
+
     private void run(MinecraftServer server) {
+        lastServer = server;
         Standards.LOGGER.info("=== Standards self-test ===");
 
         checkToggleLogic();
@@ -84,6 +87,7 @@ public final class SelfTest {
         checkCommandsParse(server);
         checkReputation(server);
         checkCapabilityPayload();
+        checkActionSeam();
         checkSafeLoc(server);
         checkTeleportRequests();
         checkDurations();
@@ -919,6 +923,51 @@ public final class SelfTest {
      * that exists but leads nowhere is the failure mode a bare {@code parse()} misses.
      */
     /**
+     * The action seam: ordering, and that it refuses a duplicate rather than silently replacing.
+     *
+     * <p>Ordering is asserted from <b>both</b> ends, the same way the chat affixes are, because
+     * getting it backwards looks completely fine until a second mod registers — and by then the
+     * first mod's author is debugging somebody else's button.</p>
+     */
+    private void checkActionSeam() {
+        var all = com.sablednah.standards.api.actions.Actions.all();
+        check("Standards registered its own actions through the public seam", !all.isEmpty());
+        // Highest priority first: closeness to the anchor, the chat decorators' rule rather than a
+        // second rule to remember.
+        boolean descending = true;
+        for (int i = 1; i < all.size(); i++) {
+            if (all.get(i - 1).priority() < all.get(i).priority()) {
+                descending = false;
+            }
+        }
+        check("actions are ordered by priority, highest first", descending);
+        check("...so the highest is at the front", all.getFirst().priority()
+                >= all.getLast().priority());
+
+        // Every registered action must name a command that actually parses. A button whose command
+        // does not parse renders a red error for everybody who clicks it, and that is exactly the
+        // shape of the word() trap this pair has now paid for four times.
+        com.mojang.brigadier.CommandDispatcher<net.minecraft.commands.CommandSourceStack> d =
+                lastServer.getCommands().getDispatcher();
+        net.minecraft.commands.CommandSourceStack src = lastServer.createCommandSourceStack();
+        for (var action : all) {
+            var parse = d.parse(action.command(), src);
+            check("action '" + action.id() + "' names a command that parses",
+                    parse.getExceptions().isEmpty() && !parse.getReader().canRead());
+        }
+
+        // A duplicate id is a mistake somewhere. Refused rather than replaced, because silently
+        // letting the later registration win makes it a mistake nobody can see.
+        int before = all.size();
+        com.sablednah.standards.api.actions.Actions.register(
+                new com.sablednah.standards.api.actions.Action("fly", 1,
+                        net.minecraft.resources.Identifier.withDefaultNamespace("stone"),
+                        "msg.toggle.fly", "fly", p -> true));
+        check("a duplicate action id is refused",
+                com.sablednah.standards.api.actions.Actions.all().size() == before);
+    }
+
+    /**
      * The capability payload's wire format, both directions.
      *
      * <p>Round-tripping is the whole check. A payload that encodes and never decodes is the client
@@ -934,11 +983,16 @@ public final class SelfTest {
                 io.netty.buffer.Unpooled.buffer(), net.minecraft.core.RegistryAccess.EMPTY);
         CapabilitiesPayload sent = new CapabilitiesPayload(
                 java.util.Set.of("fly", "god", "home"),
+                java.util.Set.of("fly"),
                 java.util.Map.of("home", "3"));
         CapabilitiesPayload.CODEC.encode(buf, sent);
         CapabilitiesPayload back = CapabilitiesPayload.CODEC.decode(buf);
         check("the capability payload round-trips its actions",
                 back.actions().equals(sent.actions()));
+        // The state half. A button drawn lit when it is not - or dim when it is - is worse than
+        // no button: it is a gamemaster tool telling you the opposite of what is happening.
+        check("...and which of them are active", back.active().equals(sent.active()));
+        check("...without confusing the two", !back.active().equals(back.actions()));
         check("...and its hints", back.hints().equals(sent.hints()));
         check("...and reads the buffer dry", !buf.isReadable());
 
@@ -946,11 +1000,12 @@ public final class SelfTest {
         // works with content is a crash on the first restricted player who logs in.
         var empty = new net.minecraft.network.RegistryFriendlyByteBuf(
                 io.netty.buffer.Unpooled.buffer(), net.minecraft.core.RegistryAccess.EMPTY);
-        CapabilitiesPayload none = new CapabilitiesPayload(java.util.Set.of(), java.util.Map.of());
+        CapabilitiesPayload none = new CapabilitiesPayload(
+                java.util.Set.of(), java.util.Set.of(), java.util.Map.of());
         CapabilitiesPayload.CODEC.encode(empty, none);
         CapabilitiesPayload backEmpty = CapabilitiesPayload.CODEC.decode(empty);
         check("an empty capability set round-trips", backEmpty.actions().isEmpty()
-                && backEmpty.hints().isEmpty());
+                && backEmpty.active().isEmpty() && backEmpty.hints().isEmpty());
         check("...and reads the buffer dry", !empty.isReadable());
     }
 

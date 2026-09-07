@@ -50,6 +50,9 @@ public class Standards {
                     // Same reason as the economy above: the priority is a config value, so this
                     // cannot happen in the constructor.
                     com.sablednah.standards.neoforge.StandardsReputation.registerIfEnabled();
+                    // After config is loaded, because which actions exist depends on which
+                    // commands the config left registered.
+                    com.sablednah.standards.neoforge.StandardsActions.registerAll();
                     com.sablednah.standards.neoforge.Vanish.install();
                     com.sablednah.standards.neoforge.StandardsEvents.installChatGates();
                     installCombat();
