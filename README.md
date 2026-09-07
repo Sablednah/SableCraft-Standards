@@ -89,7 +89,8 @@ feature.
   why they did not. Prompts carry clickable `[Accept]` / `[Deny]` buttons, which work on vanilla
   clients.
 - **`/vanish` genuinely hides you** — unpaired from other players' entity trackers, off the tab
-  list, and ignored by mob AI.
+  list, and ignored by mob AI in both directions: nothing new targets you, and anything already
+  hunting you forgets you as you vanish.
 - **Portable stations are denied to everyone, including operators, by default.** That is the design:
   a workbench you can open anywhere is an ability to be granted, not a utility to assume. A builder
   rank gets `standards.craft`; a blacksmith class gets `standards.anvil` from a LegendQuest skill.
@@ -272,7 +273,7 @@ Standards is built to be a meeting point rather than a silo. Six seams, all soft
 | `api.PlayerSwitches` / `api.Stations` | driving `/fly`, `/god`, `/vanish` and the workstations from code | — |
 | `api.groups.Groups` / `api.groups.Claims` | group membership by kind, and chunk claim queries — driven by [Factions ReForged](https://github.com/Sablednah/Factions-ReForged), and by Standards' own permission ranks as `standards:role` | [`GROUPS-API.md`](GROUPS-API.md) |
 | `api.combat.Combat` | combat tagging, so nothing lets a player walk out of a fight — and resolving who was really behind a hit, through arrows and pets | [`COMBAT-API.md`](COMBAT-API.md) |
-| `api.vanish.Vanish` | whether a player is hidden, so a mod drawing a nameplate or health bar on them can take it down — a floating name over nobody gives a vanish away | [`VANISH-API.md`](VANISH-API.md) |
+| `api.vanish.Vanish` | whether a player is hidden — and, since 1.6.0, **putting** them there under a named hold, so a storyteller mod can possess a body without revealing somebody who had vanished themselves | [`VANISH-API.md`](VANISH-API.md) |
 
 The last one exists because a LegendQuest skill granting flight should not have to build a command
 string and hope: the skill is already the authority, so it calls in directly and skips the

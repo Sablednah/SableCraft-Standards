@@ -4,7 +4,7 @@ Whether a player is hidden, for mods that draw things attached to players.
 
 **Status: built 2026-08-29, and consumed since 2026-08-30.** `api/vanish/` — `Vanish`,
 
-**Settable since 2026-09-07**, on request from LegendQuest's StoryTeller — see *Holds* below.
+**Settable since 1.6.0, 2026-09-07**, on request from LegendQuest's StoryTeller — see *Holds* below.
 `VanishEvent` — under the self-test, and LegendQuest's `VanishSupport` now takes its nameplate down:
 `PlayerVisibility.setCheck(Vanish::isVanished, Vanish::anyVanished)` plus a `VanishEvent` listener.
 

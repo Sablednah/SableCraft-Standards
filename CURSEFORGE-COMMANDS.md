@@ -130,8 +130,15 @@ flags underneath you.
 
 ### `/vanish` · `/v [player] [on|off|toggle]`
 
-Genuinely hidden — unpaired from other players' entity trackers, off the tab list, ignored by mob
-AI. Not a packet trick.
+Genuinely hidden — unpaired from other players' entity trackers, off the tab list, and ignored by
+mob AI. Not a packet trick.
+
+**Mob AI, in both directions.** Nothing can acquire you as a target while you are hidden, and
+anything already hunting you when you vanish forgets you. Both are needed: refusing new targets does
+nothing about the zombie already chasing you, and clearing that zombie's target does nothing about
+it simply re-acquiring you a tick later. What it will not undo is a blow already in flight or a
+creeper already lit — vanishing is walking away from a fight, not rewinding it. `vanishTargeted`
+turns the whole thing off for a server that wants hidden staff to stay huntable.
 
 The world's *reactions* to you are not suppressed: a chest you open still animates, deliberately,
 because suppressing that means suppressing the sound and the particles and every second-order effect
