@@ -66,17 +66,25 @@ public final class Vanish {
         return VanishGate.isVanished(player.getUUID());
     }
 
-    /** Restore the in-memory set from a returning player's saved state. */
+    /**
+     * Restore the in-memory holds from a returning player's saved state.
+     *
+     * <p>Only the <b>command</b> hold persists, and deliberately: a hold another mod placed belongs
+     * to whatever that mod was doing at the time, and a scene that ended while somebody was offline
+     * should not still be hiding them a week later. A mod that wants its hold back re-places it.</p>
+     */
     static void onLogin(ServerPlayer player) {
         if (StandardsAttachments.of(player).vanished()) {
-            VanishGate.setVanished(player.getUUID(), true);
+            VanishGate.hold(player.getUUID(), COMMAND_KEY, true);
             hideFromEveryone(player);
         }
     }
 
     static void onLogout(ServerPlayer player) {
-        // The saved flag is what persists; the live set is rebuilt on login.
-        VanishGate.setVanished(player.getUUID(), false);
+        // Every hold, not just ours. The live map is rebuilt on login from the saved flag, and a
+        // foreign hold left behind would hide a player nobody is holding any more — the same
+        // reasoning that makes /f bypass and the teleport warmups die with the session.
+        VanishGate.clear(player.getUUID());
     }
 
     /**
@@ -87,12 +95,56 @@ public final class Vanish {
      * packets immediately — a ghost that lingers for two ticks is exactly the kind of detail that
      * makes a vanish feel unreliable, and it costs one packet per viewer to avoid.</p>
      */
+    /** The hold {@code /vanish} itself places. Named so another mod cannot release it by accident. */
+    public static final String COMMAND_KEY = "standards:command";
+
+    /**
+     * Hide or reveal a player under a named hold.
+     *
+     * <p>Several things may want somebody hidden at once — the player's own {@code /vanish}, and a
+     * storyteller mod running a scene. Each holds under its own key and releases only its own, so
+     * a scene ending cannot reveal somebody who had vanished themselves first. The player is hidden
+     * while <b>any</b> hold stands.</p>
+     *
+     * @return true if the visible/hidden state actually changed, so a caller can tell a real change
+     *         from a no-op and say something honest about it
+     */
+    public static boolean hold(ServerPlayer player, String key, boolean held) {
+        boolean changed = VanishGate.hold(player.getUUID(), key, held);
+        if (!changed) {
+            // Somebody else still holds them, or already did. Nothing to send and nothing to
+            // announce: the state on the wire is already right.
+            return false;
+        }
+        apply(player, VanishGate.isVanished(player.getUUID()));
+        return true;
+    }
+
+    /** Who is hiding this player. Empty means nobody. */
+    public static java.util.Set<String> holders(ServerPlayer player) {
+        return VanishGate.holders(player.getUUID());
+    }
+
+    /**
+     * What {@code /vanish} drives. Releases only the command's own hold.
+     *
+     * <p>So a player who types {@code /vanish off} while a storyteller mod is running a scene
+     * through them stays hidden — and is <b>told so</b>. The switch would otherwise report "off"
+     * while they were still invisible, which is the worst of both: they walk out in front of
+     * somebody believing they can be seen.</p>
+     */
     public static void set(ServerPlayer player, boolean vanished) {
+        hold(player, COMMAND_KEY, vanished);
+        if (!vanished && VanishGate.isVanished(player.getUUID())) {
+            Feedback.chat(player, Lang.fmt("msg.vanish.still_held",
+                    "holders", String.join(", ", holders(player))));
+        }
+    }
+
+    private static void apply(ServerPlayer player, boolean vanished) {
         if (vanished) {
-            VanishGate.setVanished(player.getUUID(), true);
             hideFromEveryone(player);
         } else {
-            VanishGate.setVanished(player.getUUID(), false);
             // Nothing to send: the next tracking pass re-pairs them and vanilla sends the proper
             // spawn packets itself. Faking that by hand would mean reimplementing sendPairingData.
             showToEveryone(player);

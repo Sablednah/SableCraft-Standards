@@ -1,5 +1,6 @@
 package com.sablednah.standards.api.vanish;
 
+import java.util.Set;
 import java.util.UUID;
 
 import com.sablednah.standards.core.VanishGate;
@@ -90,6 +91,40 @@ public final class Vanish {
      * <p>For hot paths. On the overwhelming majority of servers this is one field read and lets a
      * per-entity or per-tick check bail out before doing any real work.</p>
      */
+
+    /**
+     * Hide or reveal a player under a <b>named hold</b>.
+     *
+     * <p>Use your own key — {@code "storyteller:possess"}, {@code "mymod:cutscene"} — and release
+     * the same one. The player stays hidden while <b>any</b> hold stands, so:</p>
+     *
+     * <ul>
+     * <li>a storyteller who had already typed {@code /vanish} before you possessed them is
+     *     <em>still</em> hidden when your scene ends, because their own hold was never yours to
+     *     drop. Reading the state first and conditionally restoring it — the obvious alternative —
+     *     races the moment a second mod does the same;</li>
+     * <li>two mods hiding the same player cannot cancel each other out.</li>
+     * </ul>
+     *
+     * <p>No permission check. The caller is the authority — a storyteller mod gating possession
+     * behind its own node should not also need the target to be allowed to {@code /vanish}
+     * themselves, which is a different question about a different person. Same reasoning as
+     * {@code api.PlayerSwitches}.</p>
+     *
+     * <p>Fires {@link VanishEvent} when the state actually changes, and not when it does not.</p>
+     *
+     * @return true if the player's visible/hidden state changed, false if somebody else was
+     *         already holding them and nothing on the wire moved
+     */
+    public static boolean hold(ServerPlayer player, String key, boolean held) {
+        return com.sablednah.standards.neoforge.Vanish.hold(player, key, held);
+    }
+
+    /** Who is currently hiding this player. Empty means nobody. */
+    public static Set<String> holders(ServerPlayer player) {
+        return com.sablednah.standards.neoforge.Vanish.holders(player);
+    }
+
     public static boolean anyVanished() {
         return VanishGate.anyVanished();
     }

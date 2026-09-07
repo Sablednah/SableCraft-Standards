@@ -1,5 +1,6 @@
 package com.sablednah.standards.core;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,8 +26,19 @@ import java.util.function.BiPredicate;
  */
 public final class VanishGate {
 
-    /** Concurrent because the entity tracker reads this off the server thread's hot path. */
-    private static final Set<UUID> VANISHED = ConcurrentHashMap.newKeySet();
+    /**
+     * Who is hiding a player, keyed by the player.
+     *
+     * <p><b>Holders rather than a boolean</b>, because more than one thing can want somebody
+     * hidden at once and the loser of a plain boolean is whoever releases second. A storyteller who
+     * had already typed {@code /vanish} and is then possessed by a scene must still be hidden when
+     * the scene ends — the scene put a hold on, the scene takes its own hold off, and the one they
+     * put on themselves is untouched. Additive, like the chat decorators, and for the same reason:
+     * several contributors can want this without contradicting each other.</p>
+     *
+     * <p>Concurrent because the entity tracker reads this off the server thread's hot path.</p>
+     */
+    private static final Map<UUID, Set<String>> HOLDS = new ConcurrentHashMap<>();
 
     /**
      * Whether a viewer may see through a vanish. Registered by the mod once it is loaded; until
@@ -38,16 +50,41 @@ public final class VanishGate {
         seeThrough = check;
     }
 
-    public static void setVanished(UUID player, boolean vanished) {
-        if (vanished) {
-            VANISHED.add(player);
+    /**
+     * Add or drop one holder's claim on hiding this player.
+     *
+     * @return true if the player's visible/hidden state actually changed
+     */
+    public static boolean hold(UUID player, String key, boolean held) {
+        boolean was = isVanished(player);
+        if (held) {
+            HOLDS.computeIfAbsent(player, k -> ConcurrentHashMap.newKeySet()).add(key);
         } else {
-            VANISHED.remove(player);
+            Set<String> keys = HOLDS.get(player);
+            if (keys != null) {
+                keys.remove(key);
+                // Removed rather than left empty, so isEmpty() stays the cheap answer to
+                // "is anybody vanished at all" — which the tracker asks for every pair, every pass.
+                if (keys.isEmpty()) {
+                    HOLDS.remove(player);
+                }
+            }
         }
+        return was != isVanished(player);
+    }
+
+    /** Every holder currently hiding this player, for diagnostics and for telling them why. */
+    public static Set<String> holders(UUID player) {
+        return Set.copyOf(HOLDS.getOrDefault(player, Set.of()));
+    }
+
+    /** Drop every hold, whoever placed it. Logout, and nothing else should want this. */
+    public static void clear(UUID player) {
+        HOLDS.remove(player);
     }
 
     public static boolean isVanished(UUID player) {
-        return !VANISHED.isEmpty() && VANISHED.contains(player);
+        return !HOLDS.isEmpty() && HOLDS.containsKey(player);
     }
 
     /**
@@ -56,7 +93,7 @@ public final class VanishGate {
      * read on the overwhelming majority of servers.
      */
     public static boolean anyVanished() {
-        return !VANISHED.isEmpty();
+        return !HOLDS.isEmpty();
     }
 
     /**
@@ -66,9 +103,9 @@ public final class VanishGate {
      * on a server where nobody is vanished this costs one field read.</p>
      */
     public static boolean hidden(UUID subject, UUID viewer) {
-        if (VANISHED.isEmpty()) return false;
+        if (HOLDS.isEmpty()) return false;
         if (subject.equals(viewer)) return false;
-        if (!VANISHED.contains(subject)) return false;
+        if (!HOLDS.containsKey(subject)) return false;
         return !seeThrough.test(subject, viewer);
     }
 
