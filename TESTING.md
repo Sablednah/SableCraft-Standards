@@ -504,6 +504,32 @@ banners by hand is an evening. Needs `factions.debug.fixtures = true` and a `/f 
 - [x] with the setting **off** (the default), overclaiming works as it always did *(this is the
       check that an updating server's game did not change under it)*. **Confirmed 2026-09-04**
 
+## The optional client **[vanilla client needed]**
+
+⚠ **The one that must never break.** A vanilla client being kicked at login is the worst possible
+failure for a mod whose whole pitch is that vanilla clients are first-class — and it is the failure
+LegendQuest hit and ZombieMod re-hit, so it is assumed present until proven otherwise.
+
+**Setup that matters more than the test.** Empty `run/mods` first. LuckPerms, CityWorld,
+LegendQuest and ZombieMod each refuse a vanilla client on their own, so leaving any of them in gets
+you a "bad network protocol" that has nothing to do with Standards — a false negative that reads
+exactly like a real one. Then a **plain** 1.21.11 client from the vanilla launcher: no NeoForge, no
+mods.
+
+- [x] a vanilla client **joins** `localhost:25569` and stays joined. **Confirmed 2026-09-07** with
+      Standards 1.6.0 and Factions 1.4.0 loaded and nothing else
+- [x] …and is not kicked a moment later with *"Invalid player data"*, which is the specific
+      signature of a clientbound payload sent to somebody who never negotiated the channel.
+      **Confirmed** — the capability payload IS sent on join, so `Net.sendIfAble` is the only reason
+      this passes
+- [x] `/fly`, `/fly on`, `/home`, `/sethome`, `/spawn`, `/rep` all work from that client.
+      **Confirmed 2026-09-07** — decision 2 end to end
+- [x] `/f map item terrain` hands them a real filled map, which a vanilla client renders natively.
+      **Confirmed**
+- [ ] repeat after the first **buttons** exist, when the payload is not merely sent but acted on
+- [ ] a modded client and a vanilla client on the same server at once, so the send is exercised in
+      both directions in one pass
+
 ## Before a release
 
 - [x] SnakeYAML is bundled jar-in-jar and declared in the metadata — the classic works-in-dev,
