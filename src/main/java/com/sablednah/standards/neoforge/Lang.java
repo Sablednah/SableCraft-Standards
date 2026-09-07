@@ -85,6 +85,7 @@ public final class Lang {
         def("msg.toggle.fly", "Flight");
         def("msg.toggle.god", "God mode");
         def("msg.toggle.vanish", "Vanish");
+        def("msg.vanish.still_held", "&e...but something else is still hiding you: &f{holders}&e. {term.dim}(you are not visible yet — whatever placed that hold has to drop it)");
         // Persisted switches are invisible by definition — say so on login, or
         // staff spend a week wondering why the server feels quiet.
         def("msg.toggle.still_on", "{term.prefix} &eYou are {what}&7. {term.dim}({commands})");

@@ -38,6 +38,7 @@ public final class StandardsConfig {
     public static final ModConfigSpec.BooleanValue ENABLE_SMITE;
     public static final ModConfigSpec.BooleanValue VANISH_INVULNERABLE;
     public static final ModConfigSpec.BooleanValue VANISH_PICKUP;
+    public static final ModConfigSpec.BooleanValue VANISH_TARGETED;
     public static final ModConfigSpec.ConfigValue<String> STATION_ACCESS;
     public static final ModConfigSpec.ConfigValue<String> BACK_ON_DEATH_ACCESS;
     public static final ModConfigSpec.BooleanValue ENABLE_GROUPS;
@@ -168,6 +169,15 @@ public final class StandardsConfig {
                         "collect the loot. Turn it on if vanish is meant to be a free camera that",
                         "can still tidy up.")
                 .define("vanishPickup", false);
+        VANISH_TARGETED = BUILDER
+                .comment("Let mobs go on targeting a vanished player. Off means they lose interest,",
+                        "which is almost certainly what you want: a hidden staff member being",
+                        "chased across a build by a zombie gives them away as completely as being",
+                        "seen, and a storyteller running a scene from inside a vanished body cannot",
+                        "narrate it while something is eating them.",
+                        "Named for the behaviour rather than its negation, so 'off' means the same",
+                        "thing whichever end you read it from.")
+                .define("vanishTargeted", false);
         STATION_ACCESS = BUILDER
                 .comment("Who may use the portable workstations — /craft, /anvil, /grindstone,",
                         "/enderchest, /trashcan — when no permissions mod is installed.",
