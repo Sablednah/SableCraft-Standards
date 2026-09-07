@@ -4,6 +4,19 @@
 
 ### Added
 
+- **The drawn bar, keybinds, and `ClientActions.run`.** A column of buttons down the left of the
+  inventory — left because the right belongs to JEI in nearly every modpack — drawn from whatever
+  the server said this player may do, lit when a switch is on, with a hint under the icon.
+
+  Keybinds for the same actions, **unbound by default**, because a mod claiming keys on install is
+  how conflicts start. Each mod registers its own the ordinary way — a `KeyMapping` must exist at
+  client startup, before anything knows which server it is talking to, so the seam cannot conjure
+  one — and calls `ClientActions.run(id)`, which is where the availability check lives so a key and
+  a button cannot disagree about whether an action is on offer.
+
+  All of it behind a `Dist.CLIENT` entrypoint, so a dedicated server never loads a rendering class.
+  With the whole client half absent, every command still works.
+
 - **`api/actions` — the seam other mods put buttons on**, and `/actions`, which is that bar for a
   client that has no bar.
 

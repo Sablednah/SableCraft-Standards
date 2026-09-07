@@ -48,11 +48,12 @@ public final class StandardsNetwork {
                 // serverbound payload would mean a second path that has to be taught the same
                 // rules and would drift from them.
                 .playToClient(CapabilitiesPayload.TYPE, CapabilitiesPayload.CODEC,
-                        (payload, context) -> {
-                            // Handled on the client. Registered here with a no-op so a dedicated
-                            // server never touches a client class: referencing one from this
-                            // method would load it during registration, on a jar that has none.
-                        });
+                        // Safe to name from here: ClientCapabilities holds sets and nothing else,
+                        // and touches no rendering class. The one that DOES — ClientActions, which
+                        // reaches for Minecraft.getInstance() — is never referenced from common
+                        // code, only from the client entrypoint.
+                        (payload, context) ->
+                                com.sablednah.standards.client.ClientCapabilities.accept(payload));
     }
 
     private StandardsNetwork() {}

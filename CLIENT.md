@@ -1,6 +1,12 @@
 # The optional client
 
-**Status: designed 2026-09-05, nothing built.** A client half for Standards and Factions: quick
+**Status: the seam and the bar are built, 2026-09-07. Adopted the same night by LegendQuest's
+StoryTeller, which registered five actions against it.** What is built: the optional channel and its
+capability payload, `api/actions`, `/actions` (the bar for a client with no bar), the drawn bar on
+the inventory screen, `ClientActions.run` and keybinds. What is not: the faction panels, the live
+map, and any visual confirmation that the drawn bar looks right — see §9.
+
+**Status: designed 2026-09-05.** A client half for Standards and Factions: quick
 toggles beside the inventory, and real GUIs for faction management. Optional in the strict sense —
 a vanilla client loses nothing but convenience.
 
