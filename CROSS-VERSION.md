@@ -101,6 +101,19 @@ every self-test.
 - **`PlayerTeam.setColor(ChatFormatting)` → `setColor(Optional<TeamColor>)`** — precisely what
   ZombieMod's `Colours` seam warned about, arriving as described.
 - **`PlayerInteractEvent.EntityInteractSpecific`** folded into `EntityInteract`.
+- ⚠ **GUI rendering was reworked, and this is the first divergence that is genuinely about
+  drawing** rather than an accessor rename. `GuiGraphics` → **`GuiGraphicsExtractor`**,
+  `renderItem(stack, x, y)` → `item(...)`, `drawString(font, s, x, y, col, shadow)` →
+  `text(...)`, and a screen's `render(...)` → `extractRenderState(...)`. `fill(...)` survives.
+
+  Met on the very first client-side feature, exactly as `CLIENT.md` predicted when it said GUI code
+  would be the majority of every future port's work. Worth reading that prediction as confirmed:
+  the divergence set for *server* code across two Minecraft lines has been a handful of accessor
+  renames, and one screen cost more than all of them together.
+
+  The practical consequence for anything drawn: **expect the render method to diverge per branch and
+  keep it in one small class**, so the port is one file rather than a hunt. `ActionBar` is deliberately
+  the only class that touches a rendering type.
 
 ### ⚠ The one that was not a compile error
 
