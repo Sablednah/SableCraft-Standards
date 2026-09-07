@@ -162,6 +162,7 @@ Asked by StoryTeller before it claimed any of it, which is the right question an
 | not pushable | **yes** — `LivingEntityVanishMixin` on `isPushable` |
 | does not hoover up items | **yes**, unless `vanishPickup` |
 | **not targeted by mobs** | **yes, since 2026-09-07** — it was *not* covered before the question |
+| existing hunters lose you | **yes** — targets pointing at you are cleared as you vanish |
 | still solid against blocks | **yes** — vanish never touches collision with the world |
 | still subject to gravity | **yes** — and this is why possession uses vanish rather than spectator |
 
@@ -169,5 +170,15 @@ The targeting fix is a `LivingChangeTargetEvent` listener rather than a third mi
 treats every mixin as a version-fragile surface needing justification, and NeoForge fires this event
 precisely so nobody has to inject into targeting goals. `vanishTargeted` turns it off.
 
-It clears the target only. It does not stop a mob mid-swing and cannot un-anger something that was
-already hunting them — vanishing is walking away from a fight, not undoing it.
+**Both halves are needed and neither is enough alone.** Every acquisition path runs through
+`Mob.setTarget`, which fires the event — so *new* targeting is refused outright. But a mob that
+already had you when you vanished never calls `setTarget` again, so nothing fires and it keeps
+coming. Vanishing therefore also **clears the target of anything within 64 blocks that was hunting
+you**, once, at the moment you disappear.
+
+Clearing rather than trying to reset anger, because an angered enderman or piglin will simply try to
+re-acquire — and re-acquisition goes back through `setTarget` and is refused. Together they close
+it; either alone leaves a hole.
+
+What it cannot undo is a blow already in flight or a creeper already lit. Vanishing is walking away
+from a fight, not rewinding it.
