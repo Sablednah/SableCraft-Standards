@@ -527,6 +527,26 @@ mods.
 - [x] `/f map item terrain` hands them a real filled map, which a vanilla client renders natively.
       **Confirmed**
 - [ ] repeat after the first **buttons** exist, when the payload is not merely sent but acted on
+
+### The action bar **[needs a dev client]** — built 2026-09-07, never seen
+
+⚠ **None of this has been looked at.** It compiles on all three Minecraft lines and the server half
+is self-tested, but there is no display on the machine it was written on, so the drawing itself is
+entirely unverified. Treat every line below as suspect rather than as a formality.
+
+- [ ] the bar appears down the **left** of the inventory, and does not overlap the frame
+- [ ] icons render: feather, totem, glass, bed, compass, ender pearl
+- [ ] an **active** switch is visibly lit — turn `/fly` on with the inventory open and shut
+- [ ] the **home** hint shows a number, and is absent at zero homes
+- [ ] ⚠ **open the recipe book.** The inventory shifts right by half the book's width; the bar must
+      follow rather than sit under it. The reposition happens on screen init *and* every frame, so a
+      failure here means neither fired
+- [ ] GUI scale 1 through 4, and a window narrow enough that there is no room to the left — it must
+      degrade rather than draw off-screen
+- [ ] with **JEI or REI installed**, nothing fights for the same space
+- [ ] a keybind bound in the controls screen fires the same action as its button
+- [ ] a key bound for an action the player lacks does **nothing**, silently
+- [ ] `/actions` on a **vanilla** client prints a clickable row, and clicking one runs it
 - [ ] a modded client and a vanilla client on the same server at once, so the send is exercised in
       both directions in one pass
 
