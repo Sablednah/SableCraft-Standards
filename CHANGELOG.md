@@ -23,6 +23,12 @@
   as completely as being seen. A `LivingChangeTargetEvent` listener rather than a third mixin.
   `vanishTargeted` restores the old behaviour.
 
+  **Both halves, because neither is enough alone.** Every acquisition path runs through
+  `Mob.setTarget`, so refusing the event stops anything *new* — but a mob that already had you never
+  calls it again and keeps coming. So vanishing also clears the target of anything hunting you
+  within 64 blocks, once, as you disappear. Clearing rather than un-angering: an angered mob simply
+  tries to re-acquire, and re-acquisition is refused.
+
 ## 1.5.0 — 2026-09-06
 
 ### Added

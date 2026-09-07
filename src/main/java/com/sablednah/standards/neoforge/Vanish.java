@@ -144,6 +144,7 @@ public final class Vanish {
     private static void apply(ServerPlayer player, boolean vanished) {
         if (vanished) {
             hideFromEveryone(player);
+            forgetTargets(player);
         } else {
             // Nothing to send: the next tracking pass re-pairs them and vanilla sends the proper
             // spawn packets itself. Faking that by hand would mean reimplementing sendPairingData.
@@ -157,6 +158,32 @@ public final class Vanish {
         // there. See api/vanish for why that division is the right one.
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
                 new com.sablednah.standards.api.vanish.VanishEvent(player, vanished));
+    }
+
+    /**
+     * Make anything currently hunting this player forget them.
+     *
+     * <p>Blocking new targets is the easy half and {@code StandardsEvents.onVanishedTargeted} does
+     * it: every acquisition path runs through {@code Mob.setTarget}, which fires
+     * {@code LivingChangeTargetEvent}. But a mob that already had you when you vanished never calls
+     * {@code setTarget} again, so nothing fires and it keeps coming — the one hole left, and the
+     * one a storyteller would meet the instant they vanished to run a scene while something was
+     * chasing them.</p>
+     *
+     * <p>Clearing the target rather than trying to reset anger: an angered enderman or piglin will
+     * try to re-acquire, and re-acquisition goes through {@code setTarget} and is refused. So the
+     * two halves together close it, where either alone leaves a gap.</p>
+     *
+     * <p>64 blocks, comfortably past any vanilla follow range, and only on the rare act of
+     * vanishing rather than per tick. What it cannot undo is a blow already in flight or a creeper
+     * already lit — vanishing is walking away from a fight, not rewinding it.</p>
+     */
+    private static void forgetTargets(ServerPlayer player) {
+        net.minecraft.world.phys.AABB around = player.getBoundingBox().inflate(64.0D);
+        for (net.minecraft.world.entity.Mob mob : player.level().getEntitiesOfClass(
+                net.minecraft.world.entity.Mob.class, around, m -> m.getTarget() == player)) {
+            mob.setTarget(null);
+        }
     }
 
     private static void hideFromEveryone(ServerPlayer player) {
