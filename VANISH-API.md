@@ -98,6 +98,21 @@ because no decorator existed**, and looked exactly this healthy. Until LegendQue
 nameplate through this seam, treat it as unproven — and when it does, watch the mid-session vanish
 specifically, because that is the case the query alone silently gets wrong.
 
+## Two doors, and why both exist
+
+`Vanish.hold` lives on **`api/vanish`**, and `PlayerSwitches.setVanished` on **`api/PlayerSwitches`**.
+The second came first and could already set the state; the consumer who needed it never found it.
+
+Their reason, worth writing down because it generalises: *"I went to `api/vanish` because that's
+where `isVanished` lived and it's named after the capability."* Which is exactly right. A seam named
+for a capability is where somebody looks for **all** of that capability, and splitting read from
+write across two packages means the half you did not name gets missed — not misunderstood, missed
+entirely, by somebody who then reports the feature as absent.
+
+So both doors work, and the rule for anything added later: **if a capability has a seam named after
+it, the whole capability goes there.** `PlayerSwitches` remains the place to drive several switches
+at once without caring which is which; it is not a hiding place for the only setter.
+
 ## Holds — setting it, not just reading it
 
 `api/vanish` was read-only until StoryTeller needed to *put* somebody into the state: possession
