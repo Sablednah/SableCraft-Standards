@@ -67,7 +67,21 @@ public final class StandardsEvents {
         TeleportRequests.tick(event.getServer());
         Afk.tick(event.getServer());
         com.sablednah.standards.neoforge.permissions.Promotions.tick(event.getServer());
+        // Twice a second, and only sends where the answer moved. See Capabilities.tick for why
+        // this is polled rather than notified from every command that could change an answer.
+        //
+        // Not driven by the inventory opening, which was the obvious idea and is not available:
+        // a player's own inventory is a client-side screen with no server round trip, so there is
+        // no event to hang a refresh on. PlayerContainerEvent.Open fires for chests, not for this.
+        // A serverbound "resend me" payload would work and would be the first serverbound payload
+        // in the seam; at half a second it is not worth the surface, and the on/off state is read
+        // live every frame so a toggle lights up without the button list changing at all.
+        if (++capabilityTicks % 10 == 0) {
+            Capabilities.tick(event.getServer());
+        }
     }
+
+    private static int capabilityTicks;
 
     // --- lifecycle ---
 

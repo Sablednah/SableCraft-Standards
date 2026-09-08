@@ -368,13 +368,16 @@ public final class ActionBar {
         var font = net.minecraft.client.Minecraft.getInstance().font;
         for (Kid kid : CHILDREN) {
             graphics.fill(kid.x(), kid.y(), kid.x() + kid.width(), kid.y() + CHILD_HEIGHT,
-                    0xE0101010);
+                    0xF0101010);
             graphics.fill(kid.x(), kid.y(), kid.x() + kid.width(), kid.y() + 1, 0xFF6A6A6A);
             graphics.fill(kid.x(), kid.y() + CHILD_HEIGHT - 1, kid.x() + kid.width(),
                     kid.y() + CHILD_HEIGHT, 0xFF6A6A6A);
+            // 0xFFFFFFFF, not 0xFFFFFF. drawString takes ARGB, so a bare RGB has an alpha of ZERO
+            // and renders as nothing — or as whatever the blend leaves, which reads as "dark and
+            // unreadable" rather than as absent. Watched in game and reported exactly that way.
             graphics.drawString(font, kid.label(),
                     kid.x() + (kid.width() - font.width(kid.label())) / 2, kid.y() + 3,
-                    0xFFFFFF, false);
+                    0xFFFFFFFF, false);
         }
     }
 

@@ -87,6 +87,26 @@ public record Action(
     }
 
     /**
+     * A state with a hint, and nothing underneath.
+     *
+     * <p>⚠ <b>This overload exists because removing it broke a shipped consumer.</b> {@code children}
+     * was added to the canonical constructor, which silently made the eight-argument form — the
+     * canonical one until that moment — stop existing. StoryTeller was compiled against it, the
+     * version number did not change, and the already-shipped jar went on calling a constructor that
+     * had gone. It degraded quietly only because that mod wrapped the call in a {@code LinkageError}
+     * guard.
+     *
+     * <p>So: <b>a record's canonical constructor is public API, and adding a component is a breaking
+     * change.</b> Every previously-canonical shape keeps an explicit overload here, permanently, and
+     * anything new goes on the end with one of these beside it.</p>
+     */
+    public Action(String id, int priority, Identifier icon, String tooltipKey, String command,
+            Predicate<ServerPlayer> available, Predicate<ServerPlayer> active,
+            Function<ServerPlayer, String> hint) {
+        this(id, priority, icon, tooltipKey, command, available, active, hint, null);
+    }
+
+    /**
      * A <b>category</b>: does nothing itself, and exists to hold others.
      *
      * <p>Left-clicking it runs nothing, so the bar draws it differently — a button that silently

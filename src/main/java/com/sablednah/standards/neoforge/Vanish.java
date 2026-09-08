@@ -81,6 +81,7 @@ public final class Vanish {
     }
 
     static void onLogout(ServerPlayer player) {
+        Capabilities.forget(player);
         // Every hold, not just ours. The live map is rebuilt on login from the saved flag, and a
         // foreign hold left behind would hide a player nobody is holding any more — the same
         // reasoning that makes /f bypass and the teleport warmups die with the session.

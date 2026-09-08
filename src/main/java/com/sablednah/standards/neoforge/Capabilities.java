@@ -27,6 +27,47 @@ import com.sablednah.standards.network.CapabilitiesPayload;
  */
 public final class Capabilities {
 
+    /**
+     * The last set actually sent to each player, so a resend that would change nothing is skipped.
+     *
+     * <p>Keyed by UUID and cleared on logout. Without this the tick below would send an identical
+     * payload to every listening player every second — which works and is waste, and waste in a
+     * per-tick path is how a convenience becomes something an owner turns off.</p>
+     */
+    private static final Map<java.util.UUID, CapabilitiesPayload> LAST =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Recompute for everyone, and send only where the answer moved.
+     *
+     * <p><b>Polled rather than notified, and that is deliberate.</b> The alternative is for every
+     * feature that could change an answer to remember to resend — {@code /fly}, {@code /god},
+     * {@code /vanish}, {@code /sethome}, {@code /delhome}, {@code /setwarp}, plus whatever a
+     * consumer mod's own actions depend on, which Standards cannot know about at all. That is a
+     * rule every future contributor has to be told, and the failure is silent: a button that shows
+     * yesterday's answer.</p>
+     *
+     * <p>Watched on the first play: fly and god drew lit, toggling them changed nothing, and only a
+     * relog fixed it. Homes behaved the same — {@code /sethome} added no button until a reconnect.
+     * A poll makes both correct without anybody having to know they exist.</p>
+     *
+     * <p>Once a second, over online players who are listening, comparing a record. The predicates
+     * are the same ones the commands already run.</p>
+     */
+    public static void tick(MinecraftServer server) {
+        if (server == null) {
+            return;
+        }
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            send(player);
+        }
+    }
+
+    /** Forget a player on logout, so the cache cannot outlive the connection it describes. */
+    public static void forget(ServerPlayer player) {
+        LAST.remove(player.getUUID());
+    }
+
     /** Work out what this player may do, and hand it over — if they are listening at all. */
     public static void send(ServerPlayer player) {
         Set<String> actions = new LinkedHashSet<>();
@@ -54,11 +95,16 @@ public final class Capabilities {
                 }
             }
         }
+        CapabilitiesPayload payload = new CapabilitiesPayload(
+                Set.copyOf(actions), Set.copyOf(active), Map.copyOf(hints), Map.copyOf(children));
+        // Records compare by value, so this is the whole change detection.
+        if (payload.equals(LAST.get(player.getUUID()))) {
+            return;
+        }
+        LAST.put(player.getUUID(), payload);
         // sendIfAble, always. optional() makes the handshake tolerant; it does not make this send
         // droppable, and a bare sendToPlayer here would kick every vanilla player who joined.
-        Net.sendIfAble(player, new CapabilitiesPayload(
-                Set.copyOf(actions), Set.copyOf(active), Map.copyOf(hints),
-                Map.copyOf(children)));
+        Net.sendIfAble(player, payload);
     }
 
     /**
