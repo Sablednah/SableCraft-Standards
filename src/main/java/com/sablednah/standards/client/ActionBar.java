@@ -378,7 +378,7 @@ public final class ActionBar {
             // 0xFFFFFFFF, not 0xFFFFFF. drawString takes ARGB, so a bare RGB has an alpha of ZERO
             // and renders as nothing — or as whatever the blend leaves, which reads as "dark and
             // unreadable" rather than as absent. Watched in game and reported exactly that way.
-            graphics.drawString(font, kid.label(),
+            graphics.text(font, kid.label(),
                     kid.x() + (kid.width() - font.width(kid.label())) / 2, kid.y() + 3,
                     0xFFFFFFFF, false);
         }
