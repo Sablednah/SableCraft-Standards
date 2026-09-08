@@ -36,6 +36,18 @@ public final class ClientActions {
             // message every time they brushed it would be worse than the missing feature.
             return false;
         }
+        // A registered screen wins, but only as a nicer surface for the same answer: the command
+        // below is what a vanilla client sends and it must give the same information. If the mod
+        // that owns the screen is absent, or older than its own screen, this falls through and
+        // everybody still gets the chat version.
+        var screen = Actions.screen(action.id());
+        if (screen.isPresent()) {
+            Object made = screen.get().get();
+            if (made instanceof net.minecraft.client.gui.screens.Screen s) {
+                mc.setScreen(s);
+                return true;
+            }
+        }
         // Sent as if typed. The server path is then identical to typing it, which is what makes
         // permissions, cooldowns, warmups and config switches all apply without a second code path.
         mc.getConnection().sendCommand(action.command());
