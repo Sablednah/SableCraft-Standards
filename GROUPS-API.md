@@ -282,6 +282,11 @@ A minimap is inherently client-side, and it converts *"vanilla clients can join 
 promise into a footnote. The server owns claims; the client owns cartography. Players bring their
 own Xaero's or JourneyMap.
 
+> **Still true, and now it has a sequel — see `MAP-API.md`.** JourneyMap publishes an API, so the
+> map a player already brought can be decorated with claims without us writing a renderer. That
+> does not soften this decision; it depends on it. Everything below still ships and is still the
+> feature, and the overlay is a nicer surface for people who happen to have one.
+
 Everything claims actually need renders on an unmodded client:
 
 - **The classic Factions text map.** `/f map` as an ASCII grid in chat. It is how everyone
