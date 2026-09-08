@@ -44,7 +44,8 @@ public final class ClientActions {
         if (screen.isPresent()) {
             Object made = screen.get().get();
             if (made instanceof net.minecraft.client.gui.screens.Screen s) {
-                mc.setScreen(s);
+                // 26.2: setScreen became setScreenAndShow.
+                mc.setScreenAndShow(s);
                 return true;
             }
         }

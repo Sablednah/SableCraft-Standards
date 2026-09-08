@@ -236,7 +236,8 @@ public final class ActionBar {
     private static void toggle(String id) {
         expanded = id.equals(expanded) ? null : id;
         CHILDREN.clear();
-        var screen = net.minecraft.client.Minecraft.getInstance().screen;
+        // 26.2: Minecraft.screen moved to Minecraft.gui.screen(). See CROSS-VERSION.md.
+        var screen = net.minecraft.client.Minecraft.getInstance().gui.screen();
         if (screen instanceof InventoryScreen inventory) {
             position(inventory);
         }
