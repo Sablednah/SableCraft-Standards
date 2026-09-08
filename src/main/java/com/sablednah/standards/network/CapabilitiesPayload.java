@@ -1,7 +1,9 @@
 package com.sablednah.standards.network;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,10 +40,13 @@ import com.sablednah.standards.Standards;
  *                gamemaster can see is worth more than another button they can press: half the bugs
  *                in a tool like that are the game and the operator disagreeing about what is
  *                happening
- * @param hints   optional display text per action; an action need not appear here
+ * @param hints    optional display text per action; an action need not appear here
+ * @param children what right-clicking an action offers — your homes, your warps. Computed
+ *                 server-side and sent, so the client draws what it is told rather than deriving
+ *                 commands, which is the same rule the action list itself follows
  */
 public record CapabilitiesPayload(Set<String> actions, Set<String> active,
-        Map<String, String> hints)
+        Map<String, String> hints, Map<String, List<Child>> children)
         implements CustomPacketPayload {
 
     public static final Type<CapabilitiesPayload> TYPE =
@@ -85,6 +90,20 @@ public record CapabilitiesPayload(Set<String> actions, Set<String> active,
             buf.writeUtf(hint.getKey(), 64);
             buf.writeUtf(hint.getValue(), 64);
         }
+        buf.writeVarInt(Math.min(payload.children().size(), MAX_ENTRIES));
+        written = 0;
+        for (Map.Entry<String, List<Child>> group : payload.children().entrySet()) {
+            if (written++ >= MAX_ENTRIES) {
+                break;
+            }
+            buf.writeUtf(group.getKey(), 64);
+            int count = Math.min(group.getValue().size(), MAX_ENTRIES);
+            buf.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                buf.writeUtf(group.getValue().get(i).label(), 64);
+                buf.writeUtf(group.getValue().get(i).command(), 256);
+            }
+        }
     }
 
     private static CapabilitiesPayload decode(RegistryFriendlyByteBuf buf) {
@@ -103,9 +122,23 @@ public record CapabilitiesPayload(Set<String> actions, Set<String> active,
         for (int i = 0; i < hintCount; i++) {
             hints.put(buf.readUtf(64), buf.readUtf(64));
         }
+        int groupCount = Math.min(buf.readVarInt(), MAX_ENTRIES);
+        Map<String, List<Child>> children = new LinkedHashMap<>();
+        for (int i = 0; i < groupCount; i++) {
+            String parent = buf.readUtf(64);
+            int kidCount = Math.min(buf.readVarInt(), MAX_ENTRIES);
+            List<Child> kids = new ArrayList<>();
+            for (int k = 0; k < kidCount; k++) {
+                kids.add(new Child(buf.readUtf(64), buf.readUtf(256)));
+            }
+            children.put(parent, List.copyOf(kids));
+        }
         return new CapabilitiesPayload(Set.copyOf(actions), Set.copyOf(active),
-                Map.copyOf(hints));
+                Map.copyOf(hints), Map.copyOf(children));
     }
+
+    /** A right-click entry: a label and the command it runs. */
+    public record Child(String label, String command) {}
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

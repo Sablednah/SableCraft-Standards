@@ -4,6 +4,27 @@
 
 ### Added
 
+- **Right-click a button for a row of children**, and **categories** — a button that holds others
+  and does nothing itself.
+
+  `/home` left-clicks home and right-clicks to a button per home. Warps are a category: there is no
+  sensible default warp, so the whole button is the list. An action declares its children as a
+  server-side function, so the client draws what it is told rather than deriving commands — the same
+  rule the action list itself follows.
+
+  **Right rather than left for the expansion**, because left must keep running the command: a
+  `/home` button that stopped going home the day it gained a list of homes would be a regression
+  dressed as a feature. A button with children wears a corner mark and says so in its tooltip,
+  since nobody guesses at right-click on a button that already does something.
+
+  One expansion open at a time — several would be a tree drawn sideways, and the bar's value is
+  being readable at a glance.
+
+- **A bare `/home` with exactly one home goes there, whatever it is called**, and when it cannot
+  guess it offers the list as **clickable buttons**. Found by a player who owned homes named one,
+  two and three, watched `/home` refuse all of them, and set a fourth called "home" to work around
+  it. Server-side, so it helps people typing rather than only people clicking.
+
 - **The drawn bar, keybinds, and `ClientActions.run`.** A column of buttons down the left of the
   inventory — left because the right belongs to JEI in nearly every modpack — drawn from whatever
   the server said this player may do, lit when a switch is on, with a hint under the icon.
