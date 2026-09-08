@@ -424,6 +424,8 @@ public final class Lang {
         def("msg.home.moved", "{term.prefix} &7{term.home} &f{name}&7 moved here {term.dim}({place}).");
         def("msg.home.deleted", "{term.prefix} &7{term.home} &f{name}&7 deleted.");
         def("msg.home.unknown", "&cYou have no {term.home} called &f{name}&c. &7Try: {list}");
+        def("msg.home.pick", "&7No home called &f{name}&7. {term.dim}(click one)");
+        def("msg.home.go_to", "&7Go to &f{name}");
         def("msg.home.none", "&7You have no {term.homes} yet — &f/sethome&7 sets one.");
         def("msg.home.list", "{term.prefix} &7Your {term.homes} {term.dim}({count}/{limit})&7: {list}");
         def("msg.home.limit", "&cYou may only have &f{limit}&c {term.homes}. Delete one first, "
