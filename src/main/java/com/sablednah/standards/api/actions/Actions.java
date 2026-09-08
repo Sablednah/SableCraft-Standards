@@ -66,5 +66,31 @@ public final class Actions {
         return REGISTERED.stream().filter(a -> a.id().equals(id)).findFirst();
     }
 
+    /**
+     * Client screens an action can open, by id. Registered from client setup only.
+     *
+     * <p>A {@link java.util.function.Supplier} of {@code Object} rather than of {@code Screen},
+     * because this class is loaded on a dedicated server and must not name a rendering type. The
+     * client casts; nothing else ever looks.</p>
+     */
+    private static final java.util.Map<String, java.util.function.Supplier<Object>> SCREENS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Offer a screen an action may open <b>on a modded client</b>.
+     *
+     * <p>The action still carries a command, and that command must still work — the screen is the
+     * nicer surface for the same answer, never a second capability. A client without the mod, or
+     * without this screen registered, sends the command and gets the chat version.</p>
+     */
+    public static void registerScreen(String id, java.util.function.Supplier<Object> factory) {
+        SCREENS.put(id, factory);
+    }
+
+    /** The screen for this action, if one was registered. */
+    public static java.util.Optional<java.util.function.Supplier<Object>> screen(String id) {
+        return java.util.Optional.ofNullable(SCREENS.get(id));
+    }
+
     private Actions() {}
 }
