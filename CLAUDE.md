@@ -754,4 +754,11 @@ check by grepping the sibling repos for the import, not by remembering.
   LegendQuest contribute rather than Standards knowing about them; and `Net.sendIfAble` is written
   before anything else, because the failure mode of getting it wrong is vanilla clients being kicked
   during login.
+- `MAP-API.md` — **researched 2026-09-08, nothing built.** Putting claims, homes, warps and quest
+  markers on JourneyMap rather than growing a cartography mod. Does **not** reverse "do not build a
+  minimap" — it depends on it. The finding that shapes it: JourneyMap has a **server-side** overlay
+  API, so the passive half (claims drawn on everyone's map) needs no client code of ours at all, and
+  a client plugin is needed only for click-to-claim and the right-click relations menu. Each mod
+  owns its own plugin; there is deliberately no Standards seam, because there is no shared fact for
+  one to own.
 - `CROSS-VERSION.md` — the plan for living on several Minecraft lines at once.
