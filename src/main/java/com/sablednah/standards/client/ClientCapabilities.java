@@ -21,11 +21,14 @@ public final class ClientCapabilities {
     private static volatile Set<String> actions = Set.of();
     private static volatile Set<String> active = Set.of();
     private static volatile Map<String, String> hints = Map.of();
+    private static volatile Map<String, java.util.List<CapabilitiesPayload.Child>> children =
+            Map.of();
 
     public static void accept(CapabilitiesPayload payload) {
         actions = payload.actions();
         active = payload.active();
         hints = payload.hints();
+        children = payload.children();
     }
 
     /** On disconnect. See the class note: a stale set is worse than no set. */
@@ -33,6 +36,7 @@ public final class ClientCapabilities {
         actions = Set.of();
         active = Set.of();
         hints = Map.of();
+        children = Map.of();
     }
 
     public static boolean has(String id) {
@@ -46,6 +50,11 @@ public final class ClientCapabilities {
 
     public static String hint(String id) {
         return hints.getOrDefault(id, "");
+    }
+
+    /** What right-clicking this action offers. Empty means nothing underneath. */
+    public static java.util.List<CapabilitiesPayload.Child> children(String id) {
+        return children.getOrDefault(id, java.util.List.of());
     }
 
     public static Set<String> all() {

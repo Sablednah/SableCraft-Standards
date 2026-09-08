@@ -49,6 +49,10 @@ import net.minecraft.server.level.ServerPlayer;
  *                   action that is an act rather than a state ({@code /home}, {@code /back})
  * @param hint       optional short text under the icon — {@code "3"} homes, {@code "a cow"}.
  *                   Opaque on purpose: the moment the client parses a hint it is deciding things
+ * @param children   what right-clicking this one offers: your homes, your warps, the commands you
+ *                   grouped under a category. Evaluated server-side like everything else, so the
+ *                   client draws what it is told rather than deriving commands itself. Null for an
+ *                   action with nothing underneath
  */
 public record Action(
         String id,
@@ -58,17 +62,44 @@ public record Action(
         String command,
         Predicate<ServerPlayer> available,
         Predicate<ServerPlayer> active,
-        Function<ServerPlayer, String> hint) {
+        Function<ServerPlayer, String> hint,
+        Function<ServerPlayer, java.util.List<Child>> children) {
 
-    /** An act rather than a state: no lit/dim, no hint. */
+    /**
+     * One entry in a right-click row.
+     *
+     * <p>A label and a command, and nothing else. Deliberately not an {@link Action}: a child is
+     * data about <em>this player right now</em> — the homes they happen to have — where an action
+     * is a registration. Making children actions would mean registering one per home per player.</p>
+     */
+    public record Child(String label, String command) {}
+
+    /** An act rather than a state: no lit/dim, no hint, nothing underneath. */
     public Action(String id, int priority, Identifier icon, String tooltipKey, String command,
             Predicate<ServerPlayer> available) {
-        this(id, priority, icon, tooltipKey, command, available, null, null);
+        this(id, priority, icon, tooltipKey, command, available, null, null, null);
     }
 
     /** A state: drawn lit while {@code active} says so. */
     public Action(String id, int priority, Identifier icon, String tooltipKey, String command,
             Predicate<ServerPlayer> available, Predicate<ServerPlayer> active) {
-        this(id, priority, icon, tooltipKey, command, available, active, null);
+        this(id, priority, icon, tooltipKey, command, available, active, null, null);
+    }
+
+    /**
+     * A <b>category</b>: does nothing itself, and exists to hold others.
+     *
+     * <p>Left-clicking it runs nothing, so the bar draws it differently — a button that silently
+     * ignores a click is worse than no button. Right-clicking opens what is underneath.</p>
+     */
+    public static Action category(String id, int priority, Identifier icon, String tooltipKey,
+            Predicate<ServerPlayer> available,
+            Function<ServerPlayer, java.util.List<Child>> children) {
+        return new Action(id, priority, icon, tooltipKey, "", available, null, null, children);
+    }
+
+    /** Whether this is a category — no command of its own, only things underneath. */
+    public boolean isCategory() {
+        return command() == null || command().isBlank();
     }
 }

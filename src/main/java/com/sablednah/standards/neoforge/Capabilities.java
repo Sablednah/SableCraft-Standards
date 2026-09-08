@@ -32,6 +32,7 @@ public final class Capabilities {
         Set<String> actions = new LinkedHashSet<>();
         Set<String> active = new LinkedHashSet<>();
         Map<String, String> hints = new LinkedHashMap<>();
+        Map<String, java.util.List<CapabilitiesPayload.Child>> children = new LinkedHashMap<>();
         for (Action action : Actions.all()) {
             if (!safelyAvailable(action, player)) {
                 continue;
@@ -39,6 +40,12 @@ public final class Capabilities {
             actions.add(action.id());
             if (action.active() != null && safely(action, player, action.active(), "state")) {
                 active.add(action.id());
+            }
+            if (action.children() != null) {
+                var kids = safeChildren(action, player);
+                if (!kids.isEmpty()) {
+                    children.put(action.id(), kids);
+                }
             }
             if (action.hint() != null) {
                 String hint = safeHint(action, player);
@@ -50,7 +57,8 @@ public final class Capabilities {
         // sendIfAble, always. optional() makes the handshake tolerant; it does not make this send
         // droppable, and a bare sendToPlayer here would kick every vanilla player who joined.
         Net.sendIfAble(player, new CapabilitiesPayload(
-                Set.copyOf(actions), Set.copyOf(active), Map.copyOf(hints)));
+                Set.copyOf(actions), Set.copyOf(active), Map.copyOf(hints),
+                Map.copyOf(children)));
     }
 
     /**
@@ -74,6 +82,21 @@ public final class Capabilities {
                     "Standards: action '{}' threw deciding {}; treating it as false",
                     action.id(), what, e);
             return false;
+        }
+    }
+
+    private static java.util.List<CapabilitiesPayload.Child> safeChildren(
+            Action action, ServerPlayer player) {
+        try {
+            var kids = action.children().apply(player);
+            return kids == null ? java.util.List.of() : kids.stream()
+                    .map(c -> new CapabilitiesPayload.Child(c.label(), c.command()))
+                    .toList();
+        } catch (RuntimeException e) {
+            com.sablednah.standards.Standards.LOGGER.error(
+                    "Standards: action '{}' threw listing its children; sending none",
+                    action.id(), e);
+            return java.util.List.of();
         }
     }
 

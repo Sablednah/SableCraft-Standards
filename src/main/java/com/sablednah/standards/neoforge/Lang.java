@@ -87,6 +87,7 @@ public final class Lang {
         def("msg.toggle.vanish", "Vanish");
         def("msg.actions.header", "{term.prefix} &7What you can do:");
         def("msg.actions.home", "Home");
+        def("msg.actions.warp", "Warps");
         def("msg.actions.spawn", "Spawn");
         def("msg.actions.back", "Back");
         def("msg.actions.button_on", "&a[{name}{hint}]");

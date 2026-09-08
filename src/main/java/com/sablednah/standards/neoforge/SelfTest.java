@@ -984,7 +984,10 @@ public final class SelfTest {
         CapabilitiesPayload sent = new CapabilitiesPayload(
                 java.util.Set.of("fly", "god", "home"),
                 java.util.Set.of("fly"),
-                java.util.Map.of("home", "3"));
+                java.util.Map.of("home", "3"),
+                java.util.Map.of("home", java.util.List.of(
+                        new CapabilitiesPayload.Child("base", "home base"),
+                        new CapabilitiesPayload.Child("mine", "home mine"))));
         CapabilitiesPayload.CODEC.encode(buf, sent);
         CapabilitiesPayload back = CapabilitiesPayload.CODEC.decode(buf);
         check("the capability payload round-trips its actions",
@@ -994,6 +997,11 @@ public final class SelfTest {
         check("...and which of them are active", back.active().equals(sent.active()));
         check("...without confusing the two", !back.active().equals(back.actions()));
         check("...and its hints", back.hints().equals(sent.hints()));
+        // The right-click rows. A child carries its own command rather than the client deriving
+        // one, so this round-trip is the whole contract for them.
+        check("...and its children", back.children().equals(sent.children()));
+        check("...with the commands intact",
+                back.children().get("home").get(1).command().equals("home mine"));
         check("...and reads the buffer dry", !buf.isReadable());
 
         // Empty is the ordinary case for a player with nothing granted, and an encoder that only
@@ -1001,11 +1009,12 @@ public final class SelfTest {
         var empty = new net.minecraft.network.RegistryFriendlyByteBuf(
                 io.netty.buffer.Unpooled.buffer(), net.minecraft.core.RegistryAccess.EMPTY);
         CapabilitiesPayload none = new CapabilitiesPayload(
-                java.util.Set.of(), java.util.Set.of(), java.util.Map.of());
+                java.util.Set.of(), java.util.Set.of(), java.util.Map.of(), java.util.Map.of());
         CapabilitiesPayload.CODEC.encode(empty, none);
         CapabilitiesPayload backEmpty = CapabilitiesPayload.CODEC.decode(empty);
         check("an empty capability set round-trips", backEmpty.actions().isEmpty()
-                && backEmpty.active().isEmpty() && backEmpty.hints().isEmpty());
+                && backEmpty.active().isEmpty() && backEmpty.hints().isEmpty()
+                && backEmpty.children().isEmpty());
         check("...and reads the buffer dry", !empty.isReadable());
     }
 

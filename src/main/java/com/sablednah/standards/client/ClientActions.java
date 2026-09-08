@@ -42,6 +42,20 @@ public final class ClientActions {
         return true;
     }
 
+    /**
+     * Send a command the server offered us — a child of an action, not an action itself.
+     *
+     * <p>No capability check, and that is not a hole: the command came from the server in the first
+     * place, in the capability payload, in answer to "what may this player do". Re-checking a list
+     * we were handed would be checking our own arithmetic.</p>
+     */
+    public static void runCommand(String command) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getConnection() != null && command != null && !command.isBlank()) {
+            mc.getConnection().sendCommand(command);
+        }
+    }
+
     /** Whether an action would fire — for greying out a key's own hint, or a button. */
     public static boolean available(String id) {
         return ClientCapabilities.has(id) && Actions.find(id).isPresent();
