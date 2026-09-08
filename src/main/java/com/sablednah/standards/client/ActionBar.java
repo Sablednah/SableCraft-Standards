@@ -18,20 +18,29 @@ import com.sablednah.standards.api.actions.Action;
 import com.sablednah.standards.api.actions.Actions;
 
 /**
- * A column of buttons beside the inventory, for whatever the server said this player may do.
+ * A row of buttons under the inventory, for whatever the server said this player may do.
  *
- * <h2>Left, not right</h2>
+ * <h2>Under, not beside — and that is the second answer</h2>
  *
- * <p>The right-hand column belongs to JEI or REI in nearly every modpack, and fighting them is a
- * fight we would lose weekly. Left is also where FTB's mods put theirs, so it is where a player
- * already looks.</p>
+ * <p>The first version put a column down the left, which is where FTB's mods put theirs. Watched in
+ * a real modpack, that was wrong: the left edge is crowded. The recipe book opens there, LegendQuest
+ * puts its character sheet and skill panel there, Baubles and its like open there. Following the
+ * inventory to stay flush against it meant landing <em>on top of</em> whatever else had opened.</p>
  *
- * <h2>The recipe book moves the inventory</h2>
+ * <p>Under the inventory is nobody's territory. It moves with the screen for free, it cannot be
+ * covered by a side panel, and it has room to grow sideways where a column has to grow into the
+ * screen edge.</p>
  *
- * <p>Opening it shifts the whole panel right by half its width, so the bar is positioned relative
- * to the screen's <em>current</em> left edge every time the screen initialises rather than once.
- * Vanilla re-inits the screen when the book opens, so that is enough — and it is why the position
- * is computed in the render pass rather than baked into the button at construction.</p>
+ * <h2>A row per mod</h2>
+ *
+ * <p>Actions are grouped by the namespace of their id — Standards' own are bare, everybody else's
+ * are {@code "storyteller:possess"} — and each mod gets its own row. Mixing them would put a
+ * storyteller's possession button between {@code /home} and {@code /back} on the strength of a
+ * priority number, which reads as arbitrary because it is. Grouped, the bar says <em>these five are
+ * one tool</em> without anybody being told.</p>
+ *
+ * <p>A row that will not fit wraps rather than running off the screen, so a mod contributing twenty
+ * actions costs vertical space rather than correctness.</p>
  */
 public final class ActionBar {
 
@@ -55,10 +64,14 @@ public final class ActionBar {
         if (!ClientCapabilities.any()) {
             return;
         }
-        for (Action action : Actions.all()) {
-            if (!ClientCapabilities.has(action.id())) {
-                continue;
-            }
+        // Grouped by mod so the rows mean something, Standards first because every server has it.
+        List<Action> ordered = new ArrayList<>(Actions.all().stream()
+                .filter(a -> ClientCapabilities.has(a.id())).toList());
+        ordered.sort(java.util.Comparator
+                .comparing((Action a) -> modOf(a.id()).equals("standards") ? 0 : 1)
+                .thenComparing(a -> modOf(a.id()))
+                .thenComparing(java.util.Comparator.comparingInt(Action::priority).reversed()));
+        for (Action action : ordered) {
             Button button = Button.builder(Component.empty(),
                             b -> ClientActions.run(action.id()))
                     .bounds(0, 0, SIZE, SIZE)
@@ -89,13 +102,73 @@ public final class ActionBar {
         return Component.literal(text.toString());
     }
 
-    /** Stack them down the left edge, from the screen's current position. */
+    /**
+     * Lay them out under the inventory: one row per mod, wrapping when a row will not fit.
+     *
+     * <p>Ordered so Standards' own row comes first — it is the one every server has — and other
+     * mods follow in the order their highest-priority action would have come. Within a row the
+     * priority order the seam already guarantees is kept.</p>
+     */
     private static void position(InventoryScreen screen) {
-        int left = ((AbstractContainerScreen<?>) screen).getGuiLeft() - SIZE - OFFSET;
-        int top = ((AbstractContainerScreen<?>) screen).getGuiTop();
-        for (int i = 0; i < DRAWN.size(); i++) {
-            DRAWN.get(i).button().setPosition(left, top + i * (SIZE + GAP));
+        AbstractContainerScreen<?> container = screen;
+        int left = container.getGuiLeft();
+        int top = container.getGuiTop() + container.getYSize() + GAP * 2;
+        int perRow = Math.max(1, container.getXSize() / (SIZE + GAP));
+
+        // How many rows this will take, worked out before placing anything, so the whole block
+        // can be lifted if it would run off the bottom. A second mod's row appearing half off the
+        // screen is exactly the failure a column had at the left edge, rotated ninety degrees.
+        int rowsNeeded = rowsFor(perRow);
+        int blockHeight = rowsNeeded * (SIZE + GAP);
+        if (top + blockHeight > screen.height) {
+            top = Math.max(0, screen.height - blockHeight);
         }
+
+        String currentMod = null;
+        int column = 0;
+        int row = 0;
+        for (Entry entry : DRAWN) {
+            String mod = modOf(entry.action().id());
+            // A new mod starts a new row, so a glance groups them without a label.
+            if (currentMod != null && !mod.equals(currentMod)) {
+                row++;
+                column = 0;
+            }
+            currentMod = mod;
+            if (column >= perRow) {
+                row++;
+                column = 0;
+            }
+            entry.button().setPosition(left + column * (SIZE + GAP), top + row * (SIZE + GAP));
+            column++;
+        }
+    }
+
+    /** How many rows the current set needs, at this width. */
+    private static int rowsFor(int perRow) {
+        String currentMod = null;
+        int column = 0;
+        int rows = 1;
+        for (Entry entry : DRAWN) {
+            String mod = modOf(entry.action().id());
+            if (currentMod != null && !mod.equals(currentMod)) {
+                rows++;
+                column = 0;
+            }
+            currentMod = mod;
+            if (column >= perRow) {
+                rows++;
+                column = 0;
+            }
+            column++;
+        }
+        return rows;
+    }
+
+    /** The mod an action belongs to. Standards' own ids are bare, which is the owner's one liberty. */
+    private static String modOf(String id) {
+        int colon = id.indexOf(':');
+        return colon < 0 ? "standards" : id.substring(0, colon);
     }
 
     /**
@@ -117,19 +190,35 @@ public final class ActionBar {
             if (icon.isEmpty()) {
                 continue;
             }
-            graphics.renderItem(icon, entry.button().getX() + 2, entry.button().getY() + 2);
-            // Active is drawn as a tint over the icon rather than a different icon, so a mod
-            // supplying one icon gets the on/off distinction for free.
+            int x = entry.button().getX();
+            int y = entry.button().getY();
+
+            // The "on" state is drawn UNDER the icon as a filled panel and a border, not as a wash
+            // over it. The first version tinted the icon at 25% alpha and it was invisible against
+            // a coloured item — watched in game, reported as "either not working or so subtle it is
+            // invisible", which is the same thing from the player's side.
             if (ClientCapabilities.isActive(entry.action().id())) {
-                graphics.fill(entry.button().getX() + 1, entry.button().getY() + 1,
-                        entry.button().getX() + SIZE - 1, entry.button().getY() + SIZE - 1,
-                        0x4000FF00);
+                graphics.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, 0xFF1E5E1E);
+                // A border too: a filled panel alone is ambiguous against a dark inventory
+                // background, and an outline reads as "this one is different" at any scale.
+                graphics.fill(x, y, x + SIZE, y + 1, 0xFF55FF55);
+                graphics.fill(x, y + SIZE - 1, x + SIZE, y + SIZE, 0xFF55FF55);
+                graphics.fill(x, y, x + 1, y + SIZE, 0xFF55FF55);
+                graphics.fill(x + SIZE - 1, y, x + SIZE, y + SIZE, 0xFF55FF55);
             }
+            graphics.renderItem(icon, x + 2, y + 2);
+
+            // renderItemDecorations, NOT drawString. This is the stack-count overlay, and it is
+            // the only text that reliably lands above an item: an item renders at a raised Z, so
+            // flat text drawn afterwards is still behind it. That is why the first version showed
+            // no number even with four homes to report — and the same Z problem made the "on"
+            // tint invisible, which is why the panel above is drawn BEFORE the item rather than
+            // over it. One root cause, two symptoms, and neither looked like a Z-order bug.
             String hint = ClientCapabilities.hint(entry.action().id());
             if (!hint.isEmpty()) {
-                graphics.drawString(net.minecraft.client.Minecraft.getInstance().font, hint,
-                        entry.button().getX() + SIZE - 8, entry.button().getY() + SIZE - 9,
-                        0xFFFFFF, true);
+                graphics.renderItemDecorations(
+                        net.minecraft.client.Minecraft.getInstance().font, icon, x + 2, y + 2,
+                        hint);
             }
         }
     }

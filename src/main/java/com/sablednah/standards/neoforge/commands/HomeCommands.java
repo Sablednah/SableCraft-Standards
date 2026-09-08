@@ -107,11 +107,39 @@ public final class HomeCommands {
         StandardsData data = StandardsData.get(player.level().getServer());
         Optional<Waypoint> destination = data.home(player.getUUID(), name);
 
+        // A bare /home with no home called "home", but exactly one home to go to, goes there.
+        //
+        // Found by a player who owned homes named one, two and three, watched /home refuse them
+        // all, and set a FOURTH home called "home" to work around it. That is the mod making
+        // somebody think about its naming convention instead of going home — and the reasoning
+        // applies to typing it, not just to the button that runs it, so the fix is here rather
+        // than in the client.
+        //
+        // Only when there is exactly one. With several and none named "home" we genuinely cannot
+        // guess, and the list below is the right answer.
+        if (destination.isEmpty() && DEFAULT.equals(name)) {
+            Map<String, Waypoint> mine = data.homesOf(player.getUUID());
+            if (mine.size() == 1) {
+                name = mine.keySet().iterator().next();
+                destination = Optional.of(mine.values().iterator().next());
+            }
+        }
+
         if (destination.isEmpty()) {
             Map<String, Waypoint> mine = data.homesOf(player.getUUID());
-            Feedback.chat(player, mine.isEmpty()
-                    ? Lang.get("msg.home.none")
-                    : Lang.fmt("msg.home.unknown", "name", name, "list", String.join(", ", mine.keySet())));
+            if (mine.isEmpty()) {
+                Feedback.chat(player, Lang.get("msg.home.none"));
+                return 0;
+            }
+            // The list is CLICKABLE. Chat click events are plain vanilla components, so this works
+            // on an unmodified client — and it turns "you have one, two, three" from an error
+            // message into the thing you wanted, which is a way to get to one of them.
+            net.minecraft.network.chat.Component[] buttons = mine.keySet().stream()
+                    .map(home -> Feedback.button("&f[" + home + "]", "/home " + home,
+                            Lang.fmt("msg.home.go_to", "name", home)))
+                    .toArray(net.minecraft.network.chat.Component[]::new);
+            Feedback.chatWithButtons(player,
+                    Lang.fmt("msg.home.pick", "name", name), buttons);
             return 0;
         }
         Teleports.Attempt attempt = Teleports.request(player, destination.get(), true,
