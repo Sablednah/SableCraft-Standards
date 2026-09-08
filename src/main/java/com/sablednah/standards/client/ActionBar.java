@@ -48,14 +48,37 @@ public final class ActionBar {
     private static final int GAP = 2;
     /** Left of the inventory, with room for the icon. Nudged out so it does not touch the frame. */
     private static final int OFFSET = 4;
+    private static final int CHILD_HEIGHT = 14;
 
     private static final List<Entry> DRAWN = new ArrayList<>();
+    /**
+     * The open expansion's entries, drawn and hit-tested by us.
+     *
+     * <p>Not vanilla {@link Button} widgets: a screen's listener list is not ours to add to, and
+     * the click handling is already here for the right-click anyway. Three fields and a bounds
+     * test beats borrowing a widget we would have to fight.</p>
+     */
+    private static final List<Kid> CHILDREN = new ArrayList<>();
+
+    private record Kid(String label, String command, int x, int y, int width) {}
+
+    /**
+     * Which action's children are showing, if any.
+     *
+     * <p><b>One at a time.</b> Several open rows would be a tree drawn sideways, and the bar's
+     * whole value is being readable at a glance.</p>
+     */
+    private static String expanded;
 
     private record Entry(Action action, Button button) {}
 
     @SubscribeEvent
     static void onScreenInit(ScreenEvent.Init.Post event) {
         DRAWN.clear();
+        CHILDREN.clear();
+        // Closed on every screen open. An expansion is a transient answer to "which home", not a
+        // setting, and finding one still open next time would be a small mystery.
+        expanded = null;
         if (!(event.getScreen() instanceof InventoryScreen screen)) {
             return;
         }
@@ -73,7 +96,15 @@ public final class ActionBar {
                 .thenComparing(java.util.Comparator.comparingInt(Action::priority).reversed()));
         for (Action action : ordered) {
             Button button = Button.builder(Component.empty(),
-                            b -> ClientActions.run(action.id()))
+                            // A category has no command, so a left click opens it rather than
+                            // doing nothing — a button that ignores a click is worse than none.
+                            b -> {
+                                if (action.isCategory()) {
+                                    toggle(action.id());
+                                } else {
+                                    ClientActions.run(action.id());
+                                }
+                            })
                     .bounds(0, 0, SIZE, SIZE)
                     .tooltip(Tooltip.create(tooltip(action)))
                     .build();
@@ -91,6 +122,7 @@ public final class ActionBar {
      */
     private static Component tooltip(Action action) {
         String name = ClientLang.get(action.tooltipKey());
+        boolean hasChildren = !ClientCapabilities.children(action.id()).isEmpty();
         String hint = ClientCapabilities.hint(action.id());
         StringBuilder text = new StringBuilder(name);
         if (!hint.isEmpty()) {
@@ -98,6 +130,11 @@ public final class ActionBar {
         }
         if (ClientCapabilities.isActive(action.id())) {
             text.append(" — on");
+        }
+        // Said in the tooltip, because a corner mark tells you there IS something and not how to
+        // reach it — and nobody guesses at right-click on a button that already does something.
+        if (hasChildren) {
+            text.append(action.isCategory() ? "\nClick to list" : "\nRight-click to list");
         }
         return Component.literal(text.toString());
     }
@@ -142,6 +179,93 @@ public final class ActionBar {
             entry.button().setPosition(left + column * (SIZE + GAP), top + row * (SIZE + GAP));
             column++;
         }
+        layoutChildren(screen, left, top + (row + 1) * (SIZE + GAP), container.getXSize());
+    }
+
+    /**
+     * Right-click a button to open what is underneath it.
+     *
+     * <p>Right rather than left, because left must go on running the command: a {@code /home}
+     * button that stopped going home the day it gained a list of homes would be a regression
+     * dressed as a feature. So left is the thing you meant, right is the thing you might have
+     * meant instead.</p>
+     *
+     * <p>Handled here rather than by subclassing {@link Button}, because vanilla's widget refuses
+     * anything but the left mouse button and overriding that is a version-fragile surface for no
+     * gain — the bounds test is three lines and cannot break on a Minecraft update.</p>
+     */
+    @SubscribeEvent
+    static void onClick(ScreenEvent.MouseButtonPressed.Pre event) {
+        if (DRAWN.isEmpty()) {
+            return;
+        }
+        // A left click on an open child runs it. Checked before the right-click work below, so a
+        // child cannot be shadowed by whatever button happens to sit behind it.
+        if (event.getButton() == 0) {
+            for (Kid kid : CHILDREN) {
+                if (event.getMouseX() >= kid.x() && event.getMouseX() < kid.x() + kid.width()
+                        && event.getMouseY() >= kid.y()
+                        && event.getMouseY() < kid.y() + CHILD_HEIGHT) {
+                    ClientActions.runCommand(kid.command());
+                    toggle(expanded);
+                    event.setCanceled(true);
+                    return;
+                }
+            }
+            return;
+        }
+        if (event.getButton() != 1) {
+            return;
+        }
+        for (Entry entry : DRAWN) {
+            if (within(entry.button(), event.getMouseX(), event.getMouseY())
+                    && !ClientCapabilities.children(entry.action().id()).isEmpty()) {
+                toggle(entry.action().id());
+                event.setCanceled(true);
+                return;
+            }
+        }
+    }
+
+    private static boolean within(Button button, double mouseX, double mouseY) {
+        return mouseX >= button.getX() && mouseX < button.getX() + button.getWidth()
+                && mouseY >= button.getY() && mouseY < button.getY() + button.getHeight();
+    }
+
+    /** Open this action's children, or close them if they are already open. */
+    private static void toggle(String id) {
+        expanded = id.equals(expanded) ? null : id;
+        CHILDREN.clear();
+        var screen = net.minecraft.client.Minecraft.getInstance().screen;
+        if (screen instanceof InventoryScreen inventory) {
+            position(inventory);
+        }
+    }
+
+    /**
+     * Lay the open expansion out under the bar.
+     *
+     * <p>Sized to their labels rather than to a grid: a home called {@code base} and one called
+     * {@code the-far-mine} want different widths, and equal boxes would either truncate the second
+     * or waste space on the first.</p>
+     */
+    private static void layoutChildren(InventoryScreen screen, int left, int belowY, int maxWidth) {
+        CHILDREN.clear();
+        if (expanded == null) {
+            return;
+        }
+        var font = net.minecraft.client.Minecraft.getInstance().font;
+        int x = left;
+        int y = belowY;
+        for (var child : ClientCapabilities.children(expanded)) {
+            int width = Math.max(20, font.width(child.label()) + 8);
+            if (x > left && x + width > left + maxWidth) {
+                x = left;
+                y += CHILD_HEIGHT + 1;
+            }
+            CHILDREN.add(new Kid(child.label(), child.command(), x, y, width));
+            x += width + 2;
+        }
     }
 
     /** How many rows the current set needs, at this width. */
@@ -184,10 +308,11 @@ public final class ActionBar {
             return;
         }
         position(screen);
-        // 26.x reworked GUI rendering: GuiGraphics became GuiGraphicsExtractor, renderItem
-        // became item, and drawString became text. Recorded in CROSS-VERSION.md — the first
-        // divergence in this pair that is genuinely about drawing rather than an accessor rename.
+        // 26.x reworked GUI rendering: GuiGraphics became GuiGraphicsExtractor, renderItem became
+        // item, renderItemDecorations became itemDecorations, and drawString became text. Recorded
+        // in CROSS-VERSION.md — the first divergence here that is genuinely about drawing.
         GuiGraphicsExtractor graphics = event.getGuiGraphics();
+        renderChildren(graphics);
         for (Entry entry : DRAWN) {
             ItemStack icon = iconFor(entry.action());
             if (icon.isEmpty()) {
@@ -195,6 +320,10 @@ public final class ActionBar {
             }
             int x = entry.button().getX();
             int y = entry.button().getY();
+
+            // A category, or anything with children, says so: a small corner mark. Without it a
+            // right-click menu is a secret, and a category's left click looks like a dead button.
+            boolean hasChildren = !ClientCapabilities.children(entry.action().id()).isEmpty();
 
             // The "on" state is drawn UNDER the icon as a filled panel and a border, not as a wash
             // over it. The first version tinted the icon at 25% alpha and it was invisible against
@@ -217,12 +346,38 @@ public final class ActionBar {
             // no number even with four homes to report — and the same Z problem made the "on"
             // tint invisible, which is why the panel above is drawn BEFORE the item rather than
             // over it. One root cause, two symptoms, and neither looked like a Z-order bug.
+            if (hasChildren) {
+                // Bottom-left corner, away from the stack-count position a hint uses.
+                int markY = y + SIZE - 4;
+                graphics.fill(x + 2, markY, x + 7, markY + 2,
+                        expanded != null && expanded.equals(entry.action().id())
+                                ? 0xFF55FF55 : 0xFFAAAAAA);
+            }
+
             String hint = ClientCapabilities.hint(entry.action().id());
             if (!hint.isEmpty()) {
                 graphics.itemDecorations(
                         net.minecraft.client.Minecraft.getInstance().font, icon, x + 2, y + 2,
                         hint);
             }
+        }
+    }
+
+    /** Draw the open expansion: a dark box per entry with its label. */
+    private static void renderChildren(GuiGraphicsExtractor graphics) {
+        if (CHILDREN.isEmpty()) {
+            return;
+        }
+        var font = net.minecraft.client.Minecraft.getInstance().font;
+        for (Kid kid : CHILDREN) {
+            graphics.fill(kid.x(), kid.y(), kid.x() + kid.width(), kid.y() + CHILD_HEIGHT,
+                    0xE0101010);
+            graphics.fill(kid.x(), kid.y(), kid.x() + kid.width(), kid.y() + 1, 0xFF6A6A6A);
+            graphics.fill(kid.x(), kid.y() + CHILD_HEIGHT - 1, kid.x() + kid.width(),
+                    kid.y() + CHILD_HEIGHT, 0xFF6A6A6A);
+            graphics.drawString(font, kid.label(),
+                    kid.x() + (kid.width() - font.width(kid.label())) / 2, kid.y() + 3,
+                    0xFFFFFF, false);
         }
     }
 

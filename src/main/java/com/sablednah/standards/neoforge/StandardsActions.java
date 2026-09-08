@@ -53,6 +53,8 @@ public final class StandardsActions {
         if (StandardsConfig.ENABLE_HOMES.get()) {
             // An act rather than a state, so no lit/dim — but a hint, because "how many homes do I
             // have" is a real question and the number is free to compute.
+            // Left-click goes home; right-click offers one button per home. The hint is the
+            // count, so the button answers "how many have I got" without being clicked at all.
             Actions.register(new Action("home", 90,
                     Identifier.withDefaultNamespace("red_bed"), "msg.actions.home", "home",
                     p -> StandardsPermissions.has(p, StandardsPermissions.HOME),
@@ -61,7 +63,23 @@ public final class StandardsActions {
                         int held = StandardsData.get(p.level().getServer())
                                 .homesOf(p.getUUID()).size();
                         return held == 0 ? "" : String.valueOf(held);
-                    }));
+                    },
+                    p -> StandardsData.get(p.level().getServer()).homesOf(p.getUUID())
+                            .keySet().stream()
+                            .map(name -> new Action.Child(name, "home " + name))
+                            .toList()));
+        }
+        if (StandardsConfig.ENABLE_WARPS.get()) {
+            // A category: there is no sensible "default warp", so left-clicking runs nothing and
+            // the whole button is the list underneath. Exactly the grouping case a placeholder
+            // button was wanted for, arriving from a real need rather than as a demonstration.
+            Actions.register(Action.category("warp", 87,
+                    Identifier.withDefaultNamespace("lodestone"), "msg.actions.warp",
+                    p -> StandardsPermissions.has(p, StandardsPermissions.WARP)
+                            && !StandardsData.get(p.level().getServer()).warpNames().isEmpty(),
+                    p -> StandardsData.get(p.level().getServer()).warpNames().stream()
+                            .map(name -> new Action.Child(name, "warp " + name))
+                            .toList()));
         }
         if (StandardsConfig.ENABLE_SPAWN.get()) {
             Actions.register(new Action("spawn", 89,
