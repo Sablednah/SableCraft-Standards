@@ -29,9 +29,8 @@ public final class PanelHost {
     private static final int GAP = 4;
     /** Kept off the window edge, so a pane never looks like it has fallen off. */
     private static final int MARGIN = 4;
-
-    private static final int BG = 0xF0100010;
-    private static final int EDGE = 0xFF3A2A5A;
+    /** Top and bottom margin for a tall pane. Two, because that is LegendQuest's rule. */
+    private static final int V_MARGIN = 2;
 
     /** Where the open pane was drawn last frame, for routing the mouse. */
     private static int x;
@@ -242,7 +241,18 @@ public final class PanelHost {
         }
 
         if (occluded(container)) {
+            // ⚠ CLOSED, not stood down. The first version kept the pane open and stopped drawing
+            // it, so it would come back when the other mod let go. That nicety cost the teardown
+            // callback its only useful property: onClose fired for some ways of ceasing to show and
+            // not others, which is a contract every consumer has to second-guess. LegendQuest asked
+            // whether it was unconditional precisely so it could delete its own recipe-book
+            // detection, and "almost" was not an answer worth keeping the nicety for.
+            //
+            // It also matters less than it did. The recipe book — the common case — now closes the
+            // pane outright, and this path is only for mods outside the seam, which is transitional
+            // by definition.
             shiftedTo = Integer.MIN_VALUE;
+            Panels.close();
             return;
         }
 
@@ -266,8 +276,17 @@ public final class PanelHost {
         // Clamped rather than allowed off the left edge, which is what LegendQuest does too — on a
         // window barely over 379px the shift does not buy a full panel's width.
         x = Math.max(MARGIN, container.getGuiLeft() - width - GAP);
-        height = Math.min(screen.height - MARGIN * 2, container.getYSize());
-        y = container.getGuiTop();
+        // ⚠ Asked EVERY FRAME and never cached — see InventoryPanel#preferredHeight. A panel's
+        // height may depend on what it is showing this instant, so a host that remembered would
+        // draw the wrong size the moment a tab or a picker changed, and slide it up against a
+        // stale number.
+        int wantHeight = safeHeight(showing.panel());
+        height = Math.min(wantHeight > 0 ? wantHeight : container.getYSize(),
+                screen.height - V_MARGIN * 2);
+        // LegendQuest's rule verbatim: anchor at the inventory's top, slide up only as far as
+        // needed, never above the top margin, always leaving one at the bottom.
+        y = Math.max(V_MARGIN,
+                Math.min(container.getGuiTop(), screen.height - height - V_MARGIN));
         drawn = true;
     }
 
@@ -282,11 +301,14 @@ public final class PanelHost {
             return;
         }
         GuiGraphics graphics = event.getGuiGraphics();
-        graphics.fill(x, y, x + width, y + height, BG);
-        graphics.fill(x, y, x + width, y + 1, EDGE);
-        graphics.fill(x, y + height - 1, x + width, y + height, EDGE);
-        graphics.fill(x, y, x + 1, y + height, EDGE);
-        graphics.fill(x + width - 1, y, x + width, y + height, EDGE);
+        // The palette is the panel's; Standards holds no mod's colours and paints with what it is
+        // handed. A panel that says nothing gets the shared furniture.
+        PanelTheme theme = safeTheme(showing.panel());
+        graphics.fill(x, y, x + width, y + height, theme.background());
+        graphics.fill(x, y, x + width, y + 1, theme.border());
+        graphics.fill(x, y + height - 1, x + width, y + height, theme.border());
+        graphics.fill(x, y, x + 1, y + height, theme.border());
+        graphics.fill(x + width - 1, y, x + width, y + height, theme.border());
 
         // Guarded, because the pane belongs to another mod: one that throws should cost that mod
         // its pane rather than taking the inventory screen down with it.
@@ -297,6 +319,19 @@ public final class PanelHost {
             Standards.LOGGER.warn("Standards: panel '{}' failed while drawing ({}); closing it",
                     showing.id(), e.toString());
             Panels.close();
+            return;
+        }
+
+        // Last, and outside everything: a tooltip drawn where it was asked for would be painted
+        // over by whatever the pane drew next, and one clipped to the pane would be truncated —
+        // they are positioned in screen coordinates and are meant to hang over the inventory.
+        // Nothing here scissors, and InventoryPanel#renderOverlay says so as a guarantee.
+        try {
+            showing.panel().renderOverlay(graphics, Minecraft.getInstance().font,
+                    event.getMouseX(), event.getMouseY());
+        } catch (RuntimeException | LinkageError e) {
+            Standards.LOGGER.warn("Standards: panel '{}' failed drawing its overlay ({})",
+                    showing.id(), e.toString());
         }
     }
 
@@ -467,6 +502,24 @@ public final class PanelHost {
             return panel.available();
         } catch (RuntimeException | LinkageError e) {
             return false;
+        }
+    }
+
+    private static int safeHeight(InventoryPanel panel) {
+        try {
+            return Math.max(0, panel.preferredHeight());
+        } catch (RuntimeException | LinkageError e) {
+            return 0;
+        }
+    }
+
+    /** A foreign theme that throws costs its own mod its colours, and nothing else. */
+    private static PanelTheme safeTheme(InventoryPanel panel) {
+        try {
+            PanelTheme theme = panel.theme();
+            return theme == null ? PanelTheme.STANDARD : theme;
+        } catch (RuntimeException | LinkageError e) {
+            return PanelTheme.STANDARD;
         }
     }
 

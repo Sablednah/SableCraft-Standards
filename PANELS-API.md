@@ -49,13 +49,56 @@ public interface InventoryPanel {
     int preferredWidth();
     void render(GuiGraphics g, Font font, int x, int y, int w, int h, int mouseX, int mouseY);
 
-    default boolean mouseClicked(double mouseX, double mouseY, int button) { return false; }
+    default int preferredHeight()  { return 0; }              // 0 = match the inventory
+    default PanelTheme theme()     { return PanelTheme.STANDARD; }
+    default void renderOverlay(GuiGraphics g, Font font, int mouseX, int mouseY) {}
+
+    default boolean mouseClicked (double mouseX, double mouseY, int button) { return false; }
+    default boolean mouseDragged (double mouseX, double mouseY, int button,
+                                  double dragX, double dragY)               { return false; }
+    default void    mouseReleased(double mouseX, double mouseY, int button) {}
     default boolean mouseScrolled(double mouseX, double mouseY, double delta) { return false; }
-    default void onOpen() {}
+
+    default void onOpen()  {}
     default void onClose() {}
     default boolean available() { return true; }
 }
 ```
+
+### The four guarantees a consumer should not have to discover
+
+1. **The host writes vanilla's `leftPos`** — through an access transformer, not an offset. So
+   `screen.getGuiLeft()` keeps telling the truth while a pane is open, and anything positioned from
+   it stays correct: your own buttons, vanilla's recipe button, any other mod reading it. There is
+   no separate "effective geometry" accessor because there is nothing for one to say.
+2. **`preferredHeight()` is asked every frame and never cached**, immediately before positioning.
+   A pane taller than the room is anchored at the inventory's top and slid up only as far as needed:
+   `max(2, min(guiTop, screenHeight - height - 2))`.
+3. **Nothing is ever scissored.** Not `render`, not `renderOverlay`. Panes may overflow their
+   rectangle, and tooltips and drag ghosts depend on it. Do not add a scissor later.
+4. **`onClose()` is unconditional.** Every way a pane stops being the open one calls it — closed by
+   the player, another pane opened, the recipe book opened, another mod took the space,
+   `available()` answered false. The single exception is the inventory screen closing, because a
+   pane deliberately survives that; reset transient state in `onOpen()`, which is documented as
+   "every call means start again".
+
+### Theming, and why there is no opt-out
+
+`PanelTheme(background, border)` is the two colours the host paints your frame with. Say nothing and
+you get `PanelTheme.STANDARD`.
+
+LegendQuest asked for an opt-out instead — let a panel paint its own frame — arguing that two
+themeable colours leave "a gold-framed panel whose interior is still gold", and that enough colours
+to fix that means Standards maintaining LegendQuest's palette.
+
+The second half is right and this avoids it: **the palette lives in the panel.** Standards holds no
+mod's colours; it is handed two and paints with them. The first half dissolves on inspection — a
+host only ever paints the *frame*. Every colour inside the pane is drawn by the panel and always
+was, so "the interior is still gold" is LegendQuest painting its own interior gold, which is what it
+wants. There is nothing left for an opt-out to opt out of.
+
+Same look, less API: no boolean, no two ways to draw a frame, and no panel that can forget to draw
+one.
 
 You are handed a rectangle and the mouse. You do not choose it, you cannot move it, and **it changes
 between frames** — the window resizes, the recipe book shifts the inventory, the player changes GUI
@@ -203,6 +246,16 @@ So the release waits on it.
 
 ### What adoption buys
 
+- **⚠ LegendQuest stops being one vanilla field rename away from taking the inventory screen out
+  from under every player on the server.** This is the argument, and it took LegendQuest's own
+  review to put it in the right order. `CharacterPanel` reads `AbstractContainerScreen.leftPos` and
+  `AbstractRecipeBookScreen.recipeBookComponent` reflectively **from a static block**, and throws
+  `IllegalStateException("LegendQuest: inventory screen internals moved")` when either goes. A
+  static initialiser fires the first time anything touches the class — which is the first time a
+  player opens their inventory. So the failure is not a degraded panel, it is every inventory on the
+  server, at once, and 26.x has renamed a great deal this month. Standards carries one access
+  transformer so that no consumer has to carry anything, and **an access transformer breaks the
+  build instead of the game**.
 - **Mutual exclusion that actually works.** ⚠ This is now a real defect rather than a nicety. Since
   Standards adopted vanilla's shift formula — which is also LQ's — an inventory sitting at that value
   is indistinguishable from one we shifted. So the faction pane stands down correctly when LQ's opens
@@ -220,13 +273,20 @@ So the release waits on it.
 Named here so the LQ session does not have to rediscover them. Neither has been built, deliberately:
 the shape they should take is LQ's to say, since LQ is the one that needs them.
 
-1. **Height is fixed; LQ's is content-driven.** The host hands out
+**Both were built on 2026-09-09, to the shapes LegendQuest asked for, along with two more it found
+and two guarantees it asked to have stated. The list below is kept as the record of what a review by
+somebody who did not design the seam actually turned up — which is the whole argument for doing it
+that way.**
+
+1. **Height is fixed; LQ's is content-driven.** — *built: `preferredHeight()`, asked every frame.* The host hands out
    `min(screen.height - 8, inventory height)` anchored at `getGuiTop()`. `CharacterPanel.panelHeight()`
    grows with the tab — the skills list, both race and class pickers open — and `panelY` slides the
    pane *up* when it would run off the bottom: `max(2, min(getGuiTop(), height - panelHeight() - 2))`.
    `InventoryPanel` almost certainly needs a `preferredHeight()` beside `preferredWidth()`, and the
    host needs LQ's slide-up rule.
-2. **The frame is Standards' and it is the wrong colour.** The host paints the background and border
+2. **The frame is Standards' and it is the wrong colour.** — *built as theming rather than the
+   opt-out LQ proposed; see above for why the objection does not survive the distinction between
+   frame and interior.* The host paints the background and border
    so that four mods' panes look like one set of furniture. LQ's is gold on near-black
    (`0xFFDAA520` on `0xE8101018`) and that is LQ's identity, not decoration. Either the frame becomes
    themeable per panel, or a panel can opt out and paint its own. **Do not just let LQ lose its
@@ -237,6 +297,26 @@ the one place LQ needs typed text — renaming a party — opens the chat box pr
 Factions' panel got the idea. So the seam's mouse-only surface is not a gap for either of them.
 Dragging *is* needed for the skills loadout and is already there: `mouseDragged` / `mouseReleased`,
 routed without a bounds check so a drag survives leaving the pane.
+
+### What the review found that this document had not
+
+Recorded because it is the evidence that a consumer review is worth waiting for:
+
+3. **Tooltips need a pass after everything, unclipped.** `CharacterPanel.render` ends with
+   `drawPendingTooltip(g, font); // last, so nothing paints over it`. A host that painted its frame
+   after `render()` would bury it, and one that scissored the pane rect would truncate it — LQ's
+   tooltips are positioned in screen coordinates and deliberately leave the pane, flipping sides at
+   `guiWidth()` and clamping 2px from every edge. Built as `renderOverlay(...)`, and **"the host
+   never scissors" is now a written guarantee** rather than an accident.
+4. **Do the host's shifts leave `getGuiLeft()` truthful?** LQ's three tab buttons chase it every
+   frame. The answer is yes — the host writes vanilla's `leftPos` through the access transformer
+   rather than drawing at an offset — so this is a non-gap, and there is no `paneRect()` accessor
+   because there would be nothing for one to say. Worth stating anyway: unstated, it is a question
+   every future consumer has to ask.
+5. **Is `onClose()` unconditional?** It was not. Occlusion by a non-registrant stood a pane down and
+   left it open, so the callback fired for some ways of ceasing to show and not others. Asking the
+   question was enough to make that indefensible — a conditional teardown callback is one every
+   consumer must second-guess, and the nicety it bought was never requested. Occlusion now closes.
 
 ### What to report back
 
