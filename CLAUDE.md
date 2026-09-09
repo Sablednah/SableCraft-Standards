@@ -775,14 +775,20 @@ check by grepping the sibling repos for the import, not by remembering.
   the owner picks the active handler in `neoforge-server.toml`, so this is one more handler rather
   than an arbitration layer. Also records what LuckPerms does when both are installed, and the two
   bugs the first real use found.
-- `CLIENT.md` — **designed 2026-09-05, nothing built.** The optional client half for both mods:
-  quick toggles beside the inventory and real faction panels. The rule it turns on is that a GUI may
-  only present what the server would have given a vanilla player anyway — *same answers, nicer
-  surface* — so decision 2 survives. Also: buttons run commands rather than sending payloads, which
-  is what keeps it small; the button bar is a **seam** like chat decoration, so Factions and
-  LegendQuest contribute rather than Standards knowing about them; and `Net.sendIfAble` is written
-  before anything else, because the failure mode of getting it wrong is vanilla clients being kicked
-  during login.
+- `CLIENT.md` — **built and driven by hand, 2026-09-07 to 2026-09-09**, and consumed by StoryTeller
+  and Factions. The optional client half for both mods: quick toggles beside the inventory and real
+  faction panels. The rule it turns on is that a GUI may only present what the server would have
+  given a vanilla player anyway — *same answers, nicer surface* — so decision 2 survives. Also:
+  buttons run commands rather than sending payloads, which is what keeps it small; the button bar is
+  a **seam** like chat decoration, so Factions and LegendQuest contribute rather than Standards
+  knowing about them; and `Net.sendIfAble` is written before anything else, because the failure mode
+  of getting it wrong is vanilla clients being kicked during login.
+
+  Two seams for what a button does on a modded client, and the ordering matters:
+  `Actions.registerScreen` makes a screen and shows it, `Actions.registerHandler` runs anything.
+  The handler is checked **first**, because it is the general case — Factions' panel is a pane the
+  button *toggles*, and "make one and show it" cannot express a second press putting it away.
+  Both are sugar over the command, which must go on working for a client that has neither.
 - `MAP-API.md` — **researched 2026-09-08, nothing built.** Putting claims, homes, warps and quest
   markers on JourneyMap rather than growing a cartography mod. Does **not** reverse "do not build a
   minimap" — it depends on it. The finding that shapes it: JourneyMap has a **server-side** overlay
