@@ -22,13 +22,20 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 public final class Net {
 
-    public static void sendIfAble(ServerPlayer player, CustomPacketPayload payload) {
+    public static boolean sendIfAble(ServerPlayer player, CustomPacketPayload payload) {
         // The null check is not paranoia: fake players (other mods' automation, headless probes)
         // sit in the player list with no real connection, and an NPE here has the same blast
         // radius as the original bug from a different direction.
+        //
+        // Returns whether it actually went, so a caller with a text fallback can drive it off what
+        // HAPPENED rather than off a second, separately-fallible prediction. Asking listening() and
+        // then sending is two checks that can disagree, and when the screen fails to open there is
+        // then no way to tell which of them was wrong.
         if (player.connection != null && player.connection.hasChannel(payload.type())) {
             PacketDistributor.sendToPlayer(player, payload);
+            return true;
         }
+        return false;
     }
 
     /** Does this player have the mod installed? Decides whether a richer prompt is possible. */
