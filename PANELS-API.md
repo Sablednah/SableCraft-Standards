@@ -34,6 +34,57 @@ somebody has to decide, and the decision has to be visible to mods that cannot s
 
 ## 2. The shape
 
+### ⚠ Where it lives, and why it is not under `api/`
+
+```java
+import com.sablednah.standards.client.panels.InventoryPanel;
+import com.sablednah.standards.client.panels.PanelTheme;
+import com.sablednah.standards.client.panels.Panels;
+```
+
+**`com.sablednah.standards.client.panels`, not `com.sablednah.standards.api.panels`** — and every
+other seam in this mod being under `api/` makes that look like an accident, so: it is not.
+
+`api/` is compiled into every consumer *and loaded on a dedicated server*. The economy, groups,
+claims, chat, combat, vanish and reputation seams all live there because a server needs them.
+This one names `GuiGraphics` and `Font`, which do not exist on a dedicated server — so putting it
+under `api/` would mean either loading rendering types on a server, or doing what
+`Actions.registerScreen` had to do and typing a screen factory as `Supplier<Object>` for the
+caller to cast. That hack is tolerable for one method and intolerable for a whole interface: every
+consumer would cast every argument on every call.
+
+So the rule is: **`api/` is the cross-side contract, `client/` is the client-side one.** Both are
+published surfaces with the same stability promise; only one is loadable on a server. A client-only
+seam with honest types is worth more than a server-loadable seam with `Object` in it.
+
+(Reported by LegendQuest, which had to `javap` the jar to find the package because this document
+named none. A doc a consumer cannot compile from is a doc that is wrong.)
+
+### ⚠ Snapshot the jar for the duration of a test session
+
+If you compile against `../SableCraft-Standards/build/libs`, you are reading a directory that is
+being written while you read it, and the failure does not look like a race:
+
+```
+error: cannot access Area
+  bad class file: .../standards-1.6.0+mc1.21.11.jar(.../Panels$Area.class)
+  unable to access file: java.util.zip.ZipException: invalid loc 84610 for entry reading
+```
+
+That reads as a corrupt jar or a visibility problem on a class that plainly exists, and it sends you
+hunting in the wrong place. It means Standards was mid-rebuild. Copy the jar somewhere of your own
+for the length of a test run; it costs nothing and removes a whole category of wrong hypothesis.
+(Reported by LegendQuest, which recognised it only because its own `CLAUDE.md` records the same
+signature from a different cause — copying a jar into a running instance.)
+
+⚠ **And version-match the jar rather than globbing it.** `standards-*.jar` in that directory matches
+**every version for every Minecraft line at once**, and hands them all to `javac`. That is harmless
+right up until an API exists on one line and not another — `PanelTheme` did exactly that tonight —
+and then a consumer compiles against a version nobody intended. Name the version, and log which jar
+was chosen.
+
+### The seam itself
+
 A mod says **what** it wants to draw. Standards says **where**, and **only one pane is ever open**.
 
 ```java
@@ -347,6 +398,27 @@ Getting this wrong costs nothing when the answer turns out to be yes and costs a
 stated contract when it does not.
 
 The work belongs in an LQ session; nothing here should edit that repo.
+
+## 4a. What a panel still needs its own hooks for
+
+The host owns **your rectangle**, and that is the whole of what it can own. Some things a pane needs
+are defined by space it does not occupy, and those stay yours. Reported by LegendQuest on the first
+migration, and worth writing down because the next consumer will hit it and may not work out why.
+
+**A drop target needs a shield wider than the pane.** While an item is on the cursor, releasing it
+anywhere outside the inventory GUI is read by vanilla as *throw it on the floor*. So a pane with a
+slot in it — LegendQuest's spellbook slot — must swallow clicks across the whole region left of
+`getGuiLeft()`, not just its own bounds, or a player carrying a book toward that slot drops it
+instead. The host cannot do this: it does not know the region exists, and a seam that claimed to
+arbitrate space it cannot see would be lying about what it arbitrates.
+
+LegendQuest keeps its own `ScreenEvent.MouseButtonPressed.Pre` for it, and **the narrowing is the
+part to copy**: it fires only while an item is carried, and it explicitly does *not* cancel clicks
+inside the pane, so it cannot fight the host's routing. Write the narrow version; the broad one
+eats clicks that were never yours.
+
+If two panes ever want the same shield, it becomes a seam feature — the host already knows which
+pane is open, and only the open one can plausibly own it. Not built on one consumer.
 
 ## 5. The rule that outranks everything here
 
