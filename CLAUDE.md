@@ -804,7 +804,15 @@ check by grepping the sibling repos for the import, not by remembering.
   The handler is checked **first**, because it is the general case — Factions' panel is a pane the
   button *toggles*, and "make one and show it" cannot express a second press putting it away.
   Both are sugar over the command, which must go on working for a client that has neither.
-- `PANELS-API.md` — **built 2026-09-09 and driven the same day by Factions' panel.** Who may draw on
+- `PANELS-API.md` — **built 2026-09-09, driven the same day by Factions' panel, and awaiting its
+  real proof.** ⚠ **The next Standards and Factions releases are held until LegendQuest has moved
+  its panes onto it** — see §4. Factions' panel was written by whoever wrote the seam, on the same
+  evening, which makes it a demonstration rather than evidence; a consumer who did not design the
+  API is the only thing that can say whether it is right. Two gaps are already known and named
+  there (content-driven height, and a frame that would cost LQ its own colours), deliberately
+  unbuilt so that the shape is the consumer's to choose. This is the same standard `VANISH-API.md`
+  records for LegendQuest's `VanishSupport`, and the same reason it was worth more than any amount
+  of our own testing. Who may draw on
   the inventory screen. The finding it turns on: there is no free space to guess at — vanilla's
   potion effects render at `leftPos + imageWidth + 2`, and the recipe book, LegendQuest's two panes
   and Factions' panel all want the left. So Standards decides, and only one pane is open at a time.
