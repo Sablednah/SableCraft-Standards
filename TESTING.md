@@ -620,6 +620,13 @@ because more than one mod draws there.
       behind" looked like and is why this is modal rather than a stand-down
 - [ ] the inventory lands in **exactly the same place** as it does for the recipe book and for LQ's
       panes. Open all three in turn and watch the inventory: it must not hop
+- [ ] ⚠ **the other direction: recipe book open, then click the panel button.** The book closes and
+      the pane opens. Both halves of that matter — "the recipe book wins" is right only when the
+      book is what you just opened, and clicking a panel button must never be a button that does
+      nothing
+- [ ] the click that opened it is not swallowed: the **next** click on the pane works immediately,
+      with no dead first click
+- [ ] with more than one registered pane, clicking a second pane's button closes the first
 - [ ] the panel button stays **green** throughout, including while the pane is standing down. It is
       reporting its own state, not the recipe book's
 - [ ] ⚠ **open LegendQuest's character pane first, then ours.** Ours stands down and returns. LQ
