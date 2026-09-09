@@ -694,7 +694,21 @@ has played on yet, and that ambiguity is what let this survive a whole day of te
 - If Gradle hangs on `:compileJava` with no CPU and no class files, that is the known WSL2 `/mnt/d`
   degradation: `wsl --shutdown` from Windows PowerShell, reopen, rebuild.
 - The first build after changing `accesstransformer.cfg` re-runs the neoform runtime and takes
-  10+ minutes. It is working, not hung. (Standards has no AT yet — keep it that way if you can.)
+  10+ minutes. It is working, not hung. **Standards has exactly one AT** —
+  `AbstractContainerScreen.leftPos`, so a panel can slide the inventory across the way the recipe
+  book does — and it should stay at one: an AT names a vanilla member, so a release that renames it
+  breaks the build, which puts it in the same version-fragile family as the single mixin. The file
+  itself argues the case, for whoever wants to add a second.
+
+  ⚠ **Two traps, both of which look like the AT being wrong when it has not been read at all.**
+  First, ModDevGradle is documented as auto-detecting
+  `src/main/resources/META-INF/accesstransformer.cfg` and on this build it did not — nothing
+  changed, every task reported up-to-date, and the only symptom was
+  `leftPos has protected access`. It is now named explicitly in `build.gradle`. Second, that
+  directory did not previously exist (metadata lives in `src/main/templates/`), so a heredoc
+  written to it from the wrong working directory fails silently and leaves you debugging an AT
+  that is not there. `./gradlew :createMinecraftArtifacts --rerun-tasks --info` prints the real
+  error — `NoSuchFileException` on the cfg — where the ordinary build prints only exit code 1.
 
 ## Status lines rot, and they rot quietly
 
@@ -784,7 +798,8 @@ check by grepping the sibling repos for the import, not by remembering.
   knowing about them; and `Net.sendIfAble` is written before anything else, because the failure mode
   of getting it wrong is vanilla clients being kicked during login.
 
-  Two seams for what a button does on a modded client, and the ordering matters:
+  See also `PANELS-API.md`. Two seams for what a button does on a modded client, and the ordering
+  matters:
   `Actions.registerScreen` makes a screen and shows it, `Actions.registerHandler` runs anything.
   The handler is checked **first**, because it is the general case — Factions' panel is a pane the
   button *toggles*, and "make one and show it" cannot express a second press putting it away.

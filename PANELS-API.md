@@ -92,10 +92,57 @@ the same way, and know nothing about this seam. A mod that plays by vanilla's ow
 handled correctly without ever having been asked to cooperate, which is the only kind of cooperation
 you can actually rely on from code you do not control.
 
-The obvious alternative was reflection on `leftPos`, to shift the inventory ourselves the way the
-recipe book does. That is the wrong trade: private-field access into a vanilla screen is a
-version-fragile surface, and `CLAUDE.md` spends a whole decision on why this mod keeps exactly one
-of those. So a Standards pane draws in the margin and is clamped, rather than moving anything.
+Since Standards now moves the inventory itself (§3a), the test has a second half: off centre *at the
+value we last wrote* is our own shift, not somebody else's.
+
+## 3a. Moving the inventory, and the access transformer it costs
+
+The first version drew in whatever margin the centred inventory happened to leave and moved nothing.
+That was the cheap correct thing, and it looked wrong beside the recipe book and beside LegendQuest,
+both of which slide the inventory right. Consistency won, and it cost two things worth naming.
+
+**Standards gained its first access transformer**, for `AbstractContainerScreen.leftPos` — protected,
+no setter. The alternative was reflection, which is what LegendQuest does today:
+
+```java
+LEFT_POS = AbstractContainerScreen.class.getDeclaredField("leftPos");
+...
+throw new IllegalStateException("LegendQuest: inventory screen internals moved", e);
+```
+
+Same fragility, worse failure. Reflection finds out at **runtime**, in front of a player, as an
+exception on the inventory screen. An access transformer finds out at **build** time, on the machine
+of whoever is doing the port, with the field named in the error. The field has to be written either
+way, so being told early is the whole of the difference. It is the mod's only AT and should stay
+that way — the note in `accesstransformer.cfg` is written for whoever wants to add a second.
+
+⚠ **Only Standards needs it.** Factions moves nothing and has no AT: it hands over a pane and is
+handed a rectangle. That is the seam earning its keep — one mod carries the fragile surface and
+every other mod is spared it, which is also the strongest argument for LegendQuest adopting, since
+LQ currently carries two reflective reads of its own.
+
+⚠ **Moving `leftPos` is not enough on its own.** Vanilla sets it *and* repositions the recipe-book
+button in the same handler:
+
+```java
+this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
+ScreenPosition p = this.getRecipeBookButtonPosition();   // leftPos + 104
+button.setPosition(p.x(), p.y());
+```
+
+So the host finds that button on `Init.Post` — the only `ImageButton` on the inventory screen, 20×18
+— measures its offset from `leftPos` rather than hardcoding 104, and moves the two together. **If it
+is not found, the pane does not shift at all** and falls back to margin drawing: losing the shift is
+a far better way to be wrong than moving the inventory and abandoning vanilla's own button inside
+the pane.
+
+⚠ **The shift happens in `Render.Pre`, not `Post`.** Post fires after the inventory has drawn, so
+moving `leftPos` there would place the inventory from last frame's value and the pane from this
+frame's — one frame of the two overlapping, every time the pane opens. Layout, then draw, is the
+only order in which they cannot disagree.
+
+Under a window too narrow to give the pane its own room, nothing shifts and the pane falls back to
+the margin — which is what the recipe book does below 379px.
 
 **Standing down is not closing.** An occluded pane stays open and simply is not drawn, so it comes
 back when the recipe book closes. Closing it would mean reopening something you never shut — and
@@ -113,13 +160,12 @@ way. What adoption would buy:
   and `AbstractRecipeBookScreen.recipeBookComponent` reflectively, and throws
   `IllegalStateException("LegendQuest: inventory screen internals moved")` if either goes. That is
   two private vanilla fields on the version-fragile list, in a mod that has three other Minecraft
-  lines to keep up with. The seam has none.
+  lines to keep up with. Standards carries one access transformer so that no consumer has to carry
+  anything — and an AT breaks the build rather than the game.
 - **One frame style** across LQ, Factions and whatever comes next.
 
-What it would cost: LQ's panes currently *shift* the inventory and Standards' do not, so its two
-panes would sit in the margin instead. On a narrow window that is a visible difference. It is also
-the reason the seam has no `shift` option — adding one means adding the reflection back for
-everybody, which is the thing being escaped.
+What it would cost: very little now. Standards' panes shift the inventory exactly as LQ's do, so
+the two behave the same way — that objection is what §3a was written to remove.
 
 **Standards would become a hard dependency of LegendQuest.** That is the owner's call, not this
 document's. It is already a hard dependency of Factions, and LQ already depends on Standards'

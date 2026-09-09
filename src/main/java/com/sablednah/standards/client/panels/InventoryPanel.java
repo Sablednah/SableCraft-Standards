@@ -61,6 +61,25 @@ public interface InventoryPanel {
     }
 
     /**
+     * The mouse moved with a button held, having been pressed inside you.
+     *
+     * <p><b>Delivered even when the cursor has left your rectangle</b>, which is the whole reason
+     * this is a separate callback rather than a click you could infer. A scrollbar thumb dragged
+     * quickly ends up well outside the pane, and one that stops tracking the moment the cursor
+     * strays is worse than one you cannot drag at all — it looks like it broke rather than like it
+     * has an edge. Dragging ends at {@link #mouseReleased}.</p>
+     *
+     * @return true if you used it, which stops it reaching the screen underneath
+     */
+    default boolean mouseDragged(double mouseX, double mouseY, int button,
+            double dragX, double dragY) {
+        return false;
+    }
+
+    /** A button came up. Where a drag ends, wherever the cursor happens to be. */
+    default void mouseReleased(double mouseX, double mouseY, int button) {}
+
+    /**
      * The wheel turned over you.
      *
      * @return true if you used it. Say false when you have nothing to scroll — the wheel then does
@@ -71,7 +90,15 @@ public interface InventoryPanel {
         return false;
     }
 
-    /** You have just become the open pane. A good moment to ask the server for fresh data. */
+    /**
+     * You are about to be shown. The moment to ask the server for fresh data.
+     *
+     * <p><b>Called more than once</b>, and you must treat every call as "start again": when the
+     * pane is opened, and again every time the inventory screen is opened while it is still
+     * showing. A pane stays open across an inventory close, so a pane that asked only on the first
+     * call would show one snapshot for the rest of the session — accurate when it was drawn and
+     * quietly wrong from then on, which is worse than being empty.</p>
+     */
     default void onOpen() {}
 
     /** You are no longer showing — because you were closed, or because somebody else opened. */
