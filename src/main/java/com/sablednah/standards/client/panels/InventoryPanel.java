@@ -152,7 +152,7 @@ public interface InventoryPanel {
      * a pane inside its bounds is the pane, laying out against the {@code width} and {@code height}
      * it was handed.</p>
      */
-    default void renderOverlay(GuiGraphics graphics, Font font, int mouseX, int mouseY) {}
+    default void renderOverlay(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {}
 
     /**
      * You are about to be shown. The moment to ask the server for fresh data.

@@ -309,7 +309,7 @@ public final class PanelHost {
         graphics.fill(x, y, x + width, y + 1, theme.border());
         graphics.fill(x, y + height - 1, x + width, y + height, theme.border());
         graphics.fill(x, y, x + 1, y + height, theme.border());
-        graphics.fill(x + width - 1, y, x + width, y + height, theme.border())
+        graphics.fill(x + width - 1, y, x + width, y + height, theme.border());
 
         // Guarded, because the pane belongs to another mod: one that throws should cost that mod
         // its pane rather than taking the inventory screen down with it.
