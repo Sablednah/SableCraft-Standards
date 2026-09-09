@@ -683,6 +683,34 @@ something reads it back.** Both mods now log their store contents on start — `
 faction(s) holding 18 claim(s).` — because an empty store is indistinguishable from a server nobody
 has played on yet, and that ambiguity is what let this survive a whole day of testing.
 
+### A fifth: the version number is a promise, and it goes stale between releases
+
+**Bump when the API grows, not when you release.** It cost three separate incidents on 2026-09-09,
+and the third was committed by somebody who had fixed the second nine hours earlier.
+
+- Adding a component to `Action`'s canonical record constructor silently deleted the previously
+  canonical eight-argument form, **under an unchanged version number**. StoryTeller's already-shipped
+  jar called it and hit `NoSuchMethodError`, surviving only because it happened to wrap the call in
+  a `LinkageError` guard.
+- StoryTeller declared `legendquest [2.4.0,)` while calling API that existed only in 2.4.1. It
+  loaded happily and threw the moment a GM awarded levels.
+- LegendQuest then declared `standards [1.6.0,)` for a panel seam that does not exist in the
+  published 1.6.0 — written by the session that had just fixed the previous one.
+
+The shape is always the same: **a version range is written against a number, and between the API
+growing and the release happening, that number is saying something untrue to everybody who reads
+it.** A range that admits a version the code cannot run against is worse than no range, because it
+converts a clear "missing dependency, install it" into a `NoSuchMethodError` somewhere unrelated,
+long after start-up, in a mod that looks innocent.
+
+So: the moment a seam gains a method another mod could call, bump. It costs nothing — the number is
+free until CurseForge sees it — and it is the only thing a consumer's range can be honest about.
+
+⚠ And **put the reason beside the number**, in `gradle.properties`. A version one minor ahead of the
+published release looks like a mistake, and the next person will "fix" it. Same instinct as the
+javadoc note telling people not to add a scissor to the panel host: the code cannot defend a
+decision it does not explain.
+
 ## Gotchas already paid for
 
 - **Static initialisation order.** A `static final` collection declared *after* the fields that
