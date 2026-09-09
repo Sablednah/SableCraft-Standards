@@ -4,9 +4,11 @@
 Adopted by LegendQuest's StoryTeller on 2026-09-07, which registered five actions against it.**
 What is built: the optional channel and its capability payload, `api/actions`, `/actions` and
 `/actions all`, the drawn bar on the inventory screen with right-click children and categories,
-`ClientActions.run`, keybinds, `Actions.registerScreen` and `Actions.registerHandler`, and Factions'
-faction panel as a pane on the inventory screen. What is not: the live map — see `MAP-API.md`, which
-is a separate plan and not part of this one.
+`ClientActions.run`, keybinds, `Actions.registerScreen`, `Actions.registerHandler` and
+`Actions.registerClientState`, the **panel seam** (`client/panels`, see `PANELS-API.md`) with its
+one-pane-at-a-time arbitration, and Factions' faction panel drawn through it. What is not:
+`Area.BUTTON_STRIP`, deliberately — `PANELS-API.md` §6 — and the live map, which is `MAP-API.md` and
+a separate plan.
 
 A client half for Standards and Factions: quick toggles beside the inventory, and real GUIs for
 faction management. Optional in the strict sense — a vanilla client loses nothing but convenience.

@@ -627,6 +627,26 @@ because more than one mod draws there.
 - [ ] the wheel over the **overview** tab is not swallowed: it does whatever it did before, because
       that tab has nothing to scroll
 
+### The panel with no faction — built 2026-09-09
+
+The panel button is now the **one** Factions button not gated on membership, so leave your faction
+(or test before creating one) for these.
+
+- [ ] with no faction, the panel button is **offered**, and the pane says what a faction is for
+- [ ] **Create a faction** opens the chat box pre-filled with `/f create ` and the pane closes
+- [ ] finishing that command and reopening the pane shows the real faction sheet
+- [ ] **Who is out there?** runs `/f list`
+- [ ] ⚠ **type `/f panel` in chat, in the world, with no inventory open.** It must open the
+      inventory with the pane showing. This broke once already: turning the panel from a screen
+      into a pane made the reply a pure store, so the command silently did nothing on exactly the
+      clients that had installed the mod
+- [ ] ...and typing it while already in some other screen does **not** yank you out of it
+- [ ] on a **vanilla** client with no faction, `/f panel` still prints "you are not in a faction"
+- [ ] as a **leader**, the ✎ and # pencils sit on the title line and pre-fill `/f rename ` and
+      `/f tag `
+- [ ] as an **officer or member**, both pencils are absent — and the faction name does not clip
+      where a leader's did not, because the space is reserved either way
+
 ## Before a release
 
 - [x] SnakeYAML is bundled jar-in-jar and declared in the metadata — the classic works-in-dev,
