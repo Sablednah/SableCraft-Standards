@@ -57,6 +57,12 @@ public interface InventoryPanel {
      * {@code max(2, min(guiTop, screenHeight - height - 2))}. That is LegendQuest's own rule,
      * adopted verbatim, because a pane growing downward off the bottom of the screen is the failure
      * it was written to prevent.</p>
+     *
+     * <p><b>Both halves are measured rather than asserted.</b> LegendQuest's first run switched tab
+     * without touching the inventory and the pane grew 166 → 230 logical pixels — which a cached
+     * height would have clipped — and its top moved from 37 to 8, matching
+     * {@code min(37, 240 - 230 - 2)} exactly. If you are here to make this cheaper by calling it
+     * once in {@code onOpen}, that is the test you would be breaking.</p>
      */
     default int preferredHeight() {
         return 0;
