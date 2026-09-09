@@ -40,7 +40,94 @@ public final class ActionCommands {
     public static com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack> actions() {
         return Commands.literal("actions")
                 .requires(StandardsPermissions.require(StandardsPermissions.ACTIONS))
-                .executes(ActionCommands::show);
+                .executes(ActionCommands::show)
+                .then(Commands.literal("all").executes(ActionCommands::all));
+    }
+
+    /**
+     * {@code /actions all} — the whole registry, including what you are <b>not</b> being offered.
+     *
+     * <h2>Why a second listing</h2>
+     *
+     * <p>Because a withheld button and a broken button look exactly the same, and the seam is built
+     * so that they must: {@code available} is evaluated server-side and only the ids that pass are
+     * ever sent, which is deliberate — a button offered for something the player cannot do is the
+     * "granted command renders red" bug in reverse. The cost is that a correctly hidden button is
+     * silent, and silence is what a bug sounds like.</p>
+     *
+     * <p>It was paid in full once already. Four of Factions' five buttons and all five of
+     * StoryTeller's were absent from the bar, correctly — the player was in no faction and was not
+     * a storyteller — and the reports were "the faction panel button just draws the chat map" and
+     * "still no storytellers". Both were the seam working. Establishing that took disassembling two
+     * shipped jars to read their predicates and reading the world's save file to prove the faction
+     * store was empty. This command is that afternoon, in one line.</p>
+     *
+     * <p>It reports <em>whether</em>, not <em>why</em>: the predicate belongs to another mod and
+     * only that mod knows its own reason. Naming the mod is enough to ask the right person.</p>
+     */
+    private static int all(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        List<Action> registry = Actions.all();
+        if (registry.isEmpty()) {
+            Feedback.chat(player, Lang.get("msg.actions.all_none"));
+            return 0;
+        }
+        Feedback.chat(player, Lang.get("msg.actions.all_header"));
+        int offered = 0;
+        for (Action action : registry) {
+            boolean can = available(action, player);
+            if (can) {
+                offered++;
+            }
+            Feedback.chat(player, Lang.fmt("msg.actions.all_row",
+                    "id", action.id(),
+                    "priority", action.priority(),
+                    "state", Lang.get(can ? "msg.actions.all_offered" : "msg.actions.all_withheld"),
+                    // Only meaningful for an action you are actually being offered: the state, the
+                    // hint and the children are all evaluated for you, and a withheld action's are
+                    // answers to a question nobody asked.
+                    "extra", can ? extras(action, player) : ""));
+        }
+        return offered;
+    }
+
+    /** The parts of an offered action that only exist for this player, if any of them do. */
+    private static String extras(Action action, ServerPlayer player) {
+        StringBuilder out = new StringBuilder();
+        if (action.isCategory()) {
+            out.append(" &8category");
+        }
+        if (action.active() != null && test(action.active(), player)) {
+            out.append(" &aon");
+        }
+        String hint = action.hint() == null ? null : safeHint(action, player);
+        if (hint != null && !hint.isEmpty()) {
+            out.append(" &7\"").append(hint).append('"');
+        }
+        int kids = action.children() == null ? 0 : safeChildren(action, player);
+        if (kids > 0) {
+            out.append(" &7+").append(kids);
+        }
+        return out.toString();
+    }
+
+    /** A foreign hint that throws costs its own mod a hint, and nothing else. */
+    private static String safeHint(Action action, ServerPlayer player) {
+        try {
+            return String.valueOf(action.hint().apply(player));
+        } catch (RuntimeException e) {
+            return "";
+        }
+    }
+
+    /** Likewise for children — this listing must never be the thing that breaks. */
+    private static int safeChildren(Action action, ServerPlayer player) {
+        try {
+            var kids = action.children().apply(player);
+            return kids == null ? 0 : kids.size();
+        } catch (RuntimeException e) {
+            return 0;
+        }
     }
 
     private static int show(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
