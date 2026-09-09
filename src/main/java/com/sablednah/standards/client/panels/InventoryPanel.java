@@ -1,7 +1,7 @@
 package com.sablednah.standards.client.panels;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /**
  * A pane another mod draws on the inventory screen, in a space Standards hands it.
@@ -48,7 +48,7 @@ public interface InventoryPanel {
      * pane on a server looks like the same furniture rather than like four mods each having a go.
      * Draw your content and nothing else.</p>
      */
-    void render(GuiGraphics graphics, Font font,
+    void render(GuiGraphicsExtractor graphics, Font font,
             int x, int y, int width, int height, int mouseX, int mouseY);
 
     /**

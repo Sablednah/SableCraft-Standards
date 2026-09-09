@@ -1,7 +1,7 @@
 package com.sablednah.standards.client.panels;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -281,7 +281,7 @@ public final class PanelHost {
             drawn = false;
             return;
         }
-        GuiGraphics graphics = event.getGuiGraphics();
+        GuiGraphicsExtractor graphics = event.getGuiGraphics();
         graphics.fill(x, y, x + width, y + height, BG);
         graphics.fill(x, y, x + width, y + 1, EDGE);
         graphics.fill(x, y + height - 1, x + width, y + height, EDGE);
