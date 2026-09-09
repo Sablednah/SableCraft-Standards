@@ -417,6 +417,18 @@ part to copy**: it fires only while an item is carried, and it explicitly does *
 inside the pane, so it cannot fight the host's routing. Write the narrow version; the broad one
 eats clicks that were never yours.
 
+⚠ **That narrowing is load-bearing and nothing enforces it.** The host's click routing listens to
+the same `ScreenEvent.MouseButtonPressed.Pre`, and `@SubscribeEvent`'s `receiveCanceled` defaults to
+**false** — verified in the annotation's own `AnnotationDefault`, not assumed — so **a cancelled
+event never reaches the other listener at all**. Both handlers run at `NORMAL` priority, so which
+goes first is undefined.
+
+Today that is safe only because the two regions are disjoint: your shield claims space *outside* the
+pane, the host claims clicks *inside* it, and no click belongs to both. The moment a shield cancels
+an in-pane click, the host's routing silently stops for that click — and the symptom is "the pane's
+buttons stop responding while an item is on the cursor", which reads as a bug in Standards. Keep the
+regions disjoint, and if you ever cannot, say so rather than raising your priority.
+
 If two panes ever want the same shield, it becomes a seam feature — the host already knows which
 pane is open, and only the open one can plausibly own it. Not built on one consumer.
 
