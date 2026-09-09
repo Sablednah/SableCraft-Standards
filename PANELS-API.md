@@ -166,6 +166,16 @@ pane that "stays active but behind": its button still lit, its space still spoke
 visible to close. LegendQuest resolves it the same way and in the same place, and the pane being put
 away is what a player expects from something that shares a space with a modal.
 
+**Both directions, and they are not the same rule.** "The recipe book wins" is right when the book
+is what you just opened and exactly wrong when the pane is — clicking a panel button while the book
+is up must open the panel, not refuse. So the two are told apart by who moved last: `Panels.open`
+puts the book away at the moment of opening, which means that by the time the layout pass runs, a
+visible book can only be one opened *after* the pane, and closing the pane is then unambiguous.
+Closing it is `toggleVisibility()` and nothing else — vanilla's own button also recomputes `leftPos`
+and moves itself, both of which already happen every frame, and sets a flag that swallows the next
+mouse-release for the button that was pressed. That button was ours, so honouring it would eat the
+first click on the pane that just opened.
+
 Asking is exact rather than inferred: `AbstractRecipeBookScreen` keeps its `RecipeBookComponent`
 private, but adds it to the screen with `addWidget`, so it arrives in `Init.Post`'s listener list
 like any other — **no reflection and no second access transformer**. `RecipeBookComponent` is public,
