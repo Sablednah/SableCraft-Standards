@@ -105,6 +105,12 @@ public interface InventoryPanel {
      * strays is worse than one you cannot drag at all — it looks like it broke rather than like it
      * has an edge. Dragging ends at {@link #mouseReleased}.</p>
      *
+     * <p>⚠ <b>The return value cancels the event</b>, so it decides behaviour rather than reporting
+     * it: true stops the drag reaching the screen underneath, false lets vanilla have it. Return
+     * true while a drag of yours is in flight — or vanilla's own slot-dragging runs beneath your
+     * ghost — and false when there is nothing in flight, or you silently eat every drag that
+     * happens to cross the pane, which is a bug in a mod that looks unrelated.</p>
+     *
      * @return true if you used it, which stops it reaching the screen underneath
      */
     default boolean mouseDragged(double mouseX, double mouseY, int button,

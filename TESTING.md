@@ -627,6 +627,38 @@ because more than one mod draws there.
 - [ ] the click that opened it is not swallowed: the **next** click on the pane works immediately,
       with no dead first click
 - [ ] with more than one registered pane, clicking a second pane's button closes the first
+
+### The seam's second consumer **[needs a dev client]** — LegendQuest, 2026-09-10
+
+⚠ **Everything here is a first run.** `preferredHeight()`, `theme()` and `renderOverlay()` were
+built to LegendQuest's description before LegendQuest had written against them, and `onClose()`
+became unconditional on the strength of a question rather than a failure. Treat every line as
+suspect. LQ's `CharacterPane` is the first non-default `theme()` anyone has ever painted.
+
+- [ ] ⚠ **mutual exclusion between LQ's pane and the faction pane, both directions.** This has
+      never worked in any build: until LQ registered there was nothing to be mutually exclusive
+      with, and the two could overlap because both shift the inventory to the same place
+- [ ] LQ's pane draws in **its own gold-on-near-black**, not Standards' purple, and the border is
+      one clean pixel at GUI scale 1 through 4
+- [ ] the alpha over the inventory looks right — `0xE8101018` is LQ's, and no pane has been drawn
+      with a non-default background before
+- [ ] LQ's pane is **as tall as its content**, and grows when a race or class picker opens, without
+      needing the inventory reopened
+- [ ] ...and slides **up** rather than off the bottom when both pickers are open on a short window
+- [ ] the faction pane's members tab is now **content-height** too: 20 members show without
+      scrolling on a normal window, and the scrollbar only appears when the screen is genuinely
+      too short
+- [ ] LQ's tooltips draw over everything and are **not clipped** at the pane edge — they flip sides
+      near the screen edge and hang over the inventory
+- [ ] ⚠ **carry an item to LQ's spellbook slot.** It must not land on the floor. That shield is
+      LQ's own hook over the region left of the GUI, not the seam's — see PANELS-API.md §4a
+- [ ] ...and a click **inside** either pane still reaches the pane, so the shield is not fighting
+      the host's routing
+- [ ] drag a skill onto a slot and release **outside** the pane — the drag survives leaving it
+- [ ] a drag that merely crosses a pane with nothing in flight is **not** swallowed
+- [ ] `onClose()` fires for every route: closing it, opening the other pane, opening the recipe
+      book, `available()` going false. LQ has deleted its own recipe-book detection on the strength
+      of this, so a missed call strands its tab state and an in-progress drag
 - [ ] the panel button stays **green** throughout, including while the pane is standing down. It is
       reporting its own state, not the recipe book's
 - [ ] ⚠ **open LegendQuest's character pane first, then ours.** Ours stands down and returns. LQ
