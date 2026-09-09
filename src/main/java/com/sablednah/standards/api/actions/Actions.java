@@ -126,5 +126,37 @@ public final class Actions {
         return java.util.Optional.ofNullable(HANDLERS.get(id));
     }
 
+    /**
+     * Whether an action is on, when only the client knows.
+     *
+     * <p>{@link Action#active} is evaluated <b>server-side</b> and sent with the capability set,
+     * which is right for every state the server owns — flying, vanished, autoclaiming. It cannot
+     * answer for a state that exists only on the client: whether Factions' panel is currently
+     * <em>open</em> is not a fact the server has, has any way to learn, or should be told.</p>
+     *
+     * <p>So a handler that toggles something can say so here, and the bar lights its button the
+     * same way it lights {@code /fly}. Without this a toggle button is the one button on the bar
+     * that never shows its own state — the exact complaint that got the lit-panel drawn in the
+     * first place.</p>
+     */
+    private static final java.util.Map<String, java.util.function.BooleanSupplier> CLIENT_STATE =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Say whether this action is on, from the client, overriding what the server said.
+     *
+     * <p>Overriding rather than OR-ing: two answers to one question need a winner, and the client
+     * is the one that knows — the server's {@code active} for such an action is {@code null}
+     * anyway, since there was nothing for it to report.</p>
+     */
+    public static void registerClientState(String id, java.util.function.BooleanSupplier state) {
+        CLIENT_STATE.put(id, state);
+    }
+
+    /** The client's own answer for this action, if it registered one. */
+    public static java.util.Optional<java.util.function.BooleanSupplier> clientState(String id) {
+        return java.util.Optional.ofNullable(CLIENT_STATE.get(id));
+    }
+
     private Actions() {}
 }

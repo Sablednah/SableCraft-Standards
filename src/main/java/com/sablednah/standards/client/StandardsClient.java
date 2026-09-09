@@ -24,6 +24,11 @@ public class StandardsClient {
     public StandardsClient(ModContainer container, IEventBus modEventBus) {
         modEventBus.addListener(StandardsKeys::register);
         NeoForge.EVENT_BUS.register(ActionBar.class);
+        // Registered BEFORE the bar's own click handling matters, though order between them is not
+        // load-bearing: the pane sits in the left margin and the bar sits under the inventory, so
+        // their rectangles cannot overlap.
+        NeoForge.EVENT_BUS.register(
+                com.sablednah.standards.client.panels.PanelHost.class);
         NeoForge.EVENT_BUS.register(ClientLifecycle.class);
         NeoForge.EVENT_BUS.addListener(
                 (net.neoforged.neoforge.client.event.ClientTickEvent.Post event) ->

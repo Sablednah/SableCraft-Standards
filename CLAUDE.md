@@ -789,6 +789,15 @@ check by grepping the sibling repos for the import, not by remembering.
   The handler is checked **first**, because it is the general case — Factions' panel is a pane the
   button *toggles*, and "make one and show it" cannot express a second press putting it away.
   Both are sugar over the command, which must go on working for a client that has neither.
+- `PANELS-API.md` — **built 2026-09-09 and driven the same day by Factions' panel.** Who may draw on
+  the inventory screen. The finding it turns on: there is no free space to guess at — vanilla's
+  potion effects render at `leftPos + imageWidth + 2`, and the recipe book, LegendQuest's two panes
+  and Factions' panel all want the left. So Standards decides, and only one pane is open at a time.
+  Note the occlusion check is **one comparison and no reflection**: the inventory being off centre
+  means somebody took the left, which catches LegendQuest without LegendQuest having heard of the
+  seam. LQ is the intended second consumer and adopting would let it drop two reflective reads of
+  vanilla internals — that decision belongs to an LQ session, not this one.
+
 - `MAP-API.md` — **researched 2026-09-08, nothing built.** Putting claims, homes, warps and quest
   markers on JourneyMap rather than growing a cartography mod. Does **not** reverse "do not build a
   minimap" — it depends on it. The finding that shapes it: JourneyMap has a **server-side** overlay
