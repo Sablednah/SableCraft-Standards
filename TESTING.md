@@ -635,9 +635,12 @@ built to LegendQuest's description before LegendQuest had written against them, 
 became unconditional on the strength of a question rather than a failure. Treat every line as
 suspect. LQ's `CharacterPane` is the first non-default `theme()` anyone has ever painted.
 
-- [ ] ⚠ **mutual exclusion between LQ's pane and the faction pane, both directions.** This has
-      never worked in any build: until LQ registered there was nothing to be mutually exclusive
-      with, and the two could overlap because both shift the inventory to the same place
+- [x] ⚠ **mutual exclusion between LQ's pane and the faction pane, both directions. Confirmed
+      2026-09-10**, one dev server with Standards 1.7.0, Factions 1.5.0 and LegendQuest 2.5.0, a
+      player in a faction so both panes were `available()`. Faction pane open → LQ button → faction
+      pane gone, LQ's in its place. LQ pane open → `/f panel` → LQ's gone, theirs showing. Exactly
+      one pane, no overlap, inventory shifted correctly throughout — and the two frames differ
+      (purple, then gold) in the same slot, which proves `theme()` is genuinely per-panel
 - [x] LQ's pane draws in **its own gold-on-near-black**, not Standards' purple — the first time
       `theme()` has been called with anything but its default. **Confirmed at GUI scale 2 only**
 - [ ] ...at GUI scales 1, 3 and 4
