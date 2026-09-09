@@ -93,6 +93,17 @@ public final class Lang {
         def("msg.actions.button_on", "&a[{name}{hint}]");
         def("msg.actions.button_off", "&7[&f{name}{hint}&7]");
         def("msg.actions.none", "&7Nothing to offer you here. {term.dim}(no actions you have permission for)");
+        // ⚠ These five exist because a WITHHELD button is indistinguishable from a broken one.
+        // Four of Factions' five buttons and all five of StoryTeller's were correctly hidden — the
+        // player was in no faction and was not a storyteller — and the report that came back was
+        // "the panel button draws the chat map" and "still no storytellers". It cost most of a day
+        // of log archaeology to establish that nothing was wrong. `/actions all` answers it in one
+        // line, so the next such report is a question the player can answer themselves.
+        def("msg.actions.all_header", "{term.prefix} &7Every registered action:");
+        def("msg.actions.all_row", "&8 {id} &7p{priority} {state}{extra}");
+        def("msg.actions.all_offered", "&aoffered");
+        def("msg.actions.all_withheld", "&cwithheld &8(its own mod says no)");
+        def("msg.actions.all_none", "&7No mod has registered an action.");
         def("msg.vanish.still_held", "&e...but something else is still hiding you: &f{holders}&e. {term.dim}(you are not visible yet — whatever placed that hold has to drop it)");
         // Persisted switches are invisible by definition — say so on login, or
         // staff spend a week wondering why the server feels quiet.

@@ -550,6 +550,23 @@ entirely unverified. Treat every line below as suspect rather than as a formalit
 - [ ] a modded client and a vanilla client on the same server at once, so the send is exercised in
       both directions in one pass
 
+**A withheld button is not a missing one, and only `/actions all` can tell you which you have.**
+Every check above answers "is the bar drawing"; none of them answers "why is *that* button absent",
+and on 2026-09-09 that cost most of a day — nine of the seventeen registered actions were correctly
+hidden (no faction, not a storyteller) and the report was that the panel was broken. Run these
+before concluding anything is:
+
+- [ ] `/actions all` lists **every** registered action, Standards' and other mods', with each one
+      marked offered or withheld
+- [ ] join a faction and the four Factions buttons flip from withheld to offered, on the listing
+      *and* on the bar — the two must agree, since disagreement means the capability send is stale
+- [ ] leave it again and they go back
+- [ ] an offered action shows its extras: `on` for an active switch, the hint in quotes, `+N` for
+      children, `category` for a placeholder
+- [ ] a withheld action shows **none** of those — they are answers to a question nobody asked
+- [ ] with StoryTeller installed and the player not a storyteller, all five of its actions read
+      withheld rather than being absent from the listing
+
 ## Before a release
 
 - [x] SnakeYAML is bundled jar-in-jar and declared in the metadata — the classic works-in-dev,
