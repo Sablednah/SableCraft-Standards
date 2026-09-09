@@ -4,8 +4,9 @@
 one-pane-at-a-time arbitration and the `LEFT` area are built and in use. `BUTTON_STRIP` is specified
 below and **not built** — see §6 for why that is deliberate rather than unfinished.
 
-**Intended second consumer: LegendQuest**, whose character and skills panes are the reason the
-arbitration is shaped the way it is. Nothing in LegendQuest has changed yet.
+**LegendQuest adopts next, and the release waits on it** — see §4. Its character and skills panes are
+the reason the arbitration is shaped the way it is, and a pane written by somebody who did not design
+the seam is the only thing that can prove the seam. Two gaps are already known and named there.
 
 ---
 
@@ -188,33 +189,70 @@ back when the recipe book closes. Closing it would mean reopening something you 
 worse, pressing the button while the recipe book was open would open a pane that immediately hid
 itself again, which reads as a broken button.
 
-## 4. What this asks of LegendQuest
+## 4. LegendQuest adopts first, and is the proof
 
-Nothing, today. LQ works as it is, and the occlusion rule already keeps Factions' pane out of its
-way. What adoption would buy:
+**Decided 2026-09-09: LegendQuest builds its panes on this seam before Standards or Factions ship
+another release.** Not because LQ needs it — LQ works — but because *nothing else can tell us whether
+the seam is right*. Factions' panel was written by whoever wrote the seam, on the same evening, which
+makes it a demonstration rather than evidence. A pane written by somebody who did not design the API,
+against a UI that already existed and has its own opinions, is the only thing that can find out what
+is missing. Same standard `VANISH-API.md` records for LegendQuest's `VanishSupport`, and the same
+reason it was worth more than any amount of our own testing.
 
-- **Opening the faction panel would close LQ's pane, and vice versa.** ⚠ This is now the one real
-  gap rather than a nicety. Since Standards adopted vanilla's shift formula — which is also LQ's —
-  an inventory sitting at that value is indistinguishable from one we shifted ourselves. So the
-  faction pane stands down correctly when LQ's is opened **first**, and if the faction pane is
-  already open when LQ's opens, the two overlap. Matching everybody else's position cost that, and
-  it was the right trade: a pane that lands where no other pane lands is wrong every time, where
-  this is wrong only with two panes open at once. Registering here closes it.
-- **LQ stops needing its own reflection.** `CharacterPanel` reads `AbstractContainerScreen.leftPos`
-  and `AbstractRecipeBookScreen.recipeBookComponent` reflectively, and throws
-  `IllegalStateException("LegendQuest: inventory screen internals moved")` if either goes. That is
-  two private vanilla fields on the version-fragile list, in a mod that has three other Minecraft
-  lines to keep up with. Standards carries one access transformer so that no consumer has to carry
-  anything — and an AT breaks the build rather than the game.
-- **One frame style** across LQ, Factions and whatever comes next.
+So the release waits on it.
 
-What it would cost: very little now. Standards' panes shift the inventory exactly as LQ's do, so
-the two behave the same way — that objection is what §3a was written to remove.
+### What adoption buys
 
-**Standards would become a hard dependency of LegendQuest.** That is the owner's call, not this
-document's. It is already a hard dependency of Factions, and LQ already depends on Standards'
-economy, vanish and chat seams at runtime — so the change is one of declaration more than of
-substance. **Not yet done, and not to be done from a Standards session.**
+- **Mutual exclusion that actually works.** ⚠ This is now a real defect rather than a nicety. Since
+  Standards adopted vanilla's shift formula — which is also LQ's — an inventory sitting at that value
+  is indistinguishable from one we shifted. So the faction pane stands down correctly when LQ's opens
+  **first**, and if the faction pane is already open when LQ's opens, the two overlap. Registering
+  here is what closes it.
+- **LQ drops two reflective reads of vanilla internals.** `CharacterPanel` reads
+  `AbstractContainerScreen.leftPos` and `AbstractRecipeBookScreen.recipeBookComponent` reflectively
+  and throws `IllegalStateException("LegendQuest: inventory screen internals moved")` if either goes
+  — at runtime, in front of a player. Standards carries one access transformer so no consumer has to
+  carry anything, and an AT breaks the build instead of the game.
+- **One frame style**, and one place that knows where panes go.
+
+### ⚠ Two things the seam does NOT do yet, found by reading LQ rather than by waiting
+
+Named here so the LQ session does not have to rediscover them. Neither has been built, deliberately:
+the shape they should take is LQ's to say, since LQ is the one that needs them.
+
+1. **Height is fixed; LQ's is content-driven.** The host hands out
+   `min(screen.height - 8, inventory height)` anchored at `getGuiTop()`. `CharacterPanel.panelHeight()`
+   grows with the tab — the skills list, both race and class pickers open — and `panelY` slides the
+   pane *up* when it would run off the bottom: `max(2, min(getGuiTop(), height - panelHeight() - 2))`.
+   `InventoryPanel` almost certainly needs a `preferredHeight()` beside `preferredWidth()`, and the
+   host needs LQ's slide-up rule.
+2. **The frame is Standards' and it is the wrong colour.** The host paints the background and border
+   so that four mods' panes look like one set of furniture. LQ's is gold on near-black
+   (`0xFFDAA520` on `0xE8101018`) and that is LQ's identity, not decoration. Either the frame becomes
+   themeable per panel, or a panel can opt out and paint its own. **Do not just let LQ lose its
+   colours** — a seam that costs a consumer its look is a seam consumers avoid.
+
+Not needed, checked: **keyboard input.** `CharacterPanel` handles no key or character events, and
+the one place LQ needs typed text — renaming a party — opens the chat box pre-filled, which is where
+Factions' panel got the idea. So the seam's mouse-only surface is not a gap for either of them.
+Dragging *is* needed for the skills loadout and is already there: `mouseDragged` / `mouseReleased`,
+routed without a bounds check so a drag survives leaving the pane.
+
+### What to report back
+
+Whatever the answer, say so in the LQ repo and message the Standards session:
+
+- the two above, with the shape you want rather than the shape you worked around;
+- anything else missing, however small;
+- **and if nothing else is missing, say that too** — "we needed nothing" is the result this is
+  looking for, and an unstated pass is indistinguishable from nobody having tried.
+
+### The dependency
+
+Adopting makes **Standards a hard dependency of LegendQuest**. It is already a hard dependency of
+Factions, and LQ already uses Standards' economy, vanish and chat seams at runtime, so the change is
+one of declaration more than of substance. The owner has agreed to it. The work belongs in an LQ
+session; nothing here should edit that repo.
 
 ## 5. The rule that outranks everything here
 
