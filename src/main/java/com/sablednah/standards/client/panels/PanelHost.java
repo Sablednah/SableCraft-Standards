@@ -74,21 +74,38 @@ public final class PanelHost {
     private static int recipeButtonOffset;
 
     /**
-     * Whether somebody <em>else</em> has taken the left margin.
+     * Vanilla's recipe book itself, so the question "is it open" can be <em>asked</em>.
      *
-     * <p>{@code AbstractContainerScreen.init} centres the inventory at
-     * {@code (width - imageWidth) / 2}, and the recipe book — and LegendQuest's panes, which follow
-     * the same convention — move it off centre to make room. So an off-centre inventory means the
-     * space is spoken for, and that is true of mods which have never heard of this seam. It is the
-     * cheapest useful signal in the whole feature: one comparison, no reflection, and it cooperates
-     * with code that never agreed to cooperate.</p>
+     * <p>{@code AbstractRecipeBookScreen} keeps it private, but it is added to the screen with
+     * {@code addWidget}, so it arrives in the listener list like any other — no reflection and no
+     * second access transformer. {@code RecipeBookComponent} is public, and so are
+     * {@code isVisible()} and {@code updateScreenPosition(...)}.</p>
+     */
+    private static net.minecraft.client.gui.screens.recipebook.RecipeBookComponent<?> recipeBook;
+
+    /**
+     * Whether somebody <em>else</em> is holding the inventory somewhere of their own choosing.
      *
-     * <p>The second half of the test exists because <b>we</b> move it too now. Off centre at the
-     * value we last wrote is our own shift, not somebody else's.</p>
+     * <p>Three values are legitimate: where vanilla wants it, where <em>we</em> would put a pane,
+     * and where we last actually put one. Anything else was written by a mod that is not a
+     * registrant — LegendQuest, most likely, which shifts {@code leftPos} exactly as the recipe
+     * book does and knows nothing about this seam. The open pane stands down until they let go.</p>
+     *
+     * <p>That is the cheapest useful signal in the whole feature and it needs no reflection: a mod
+     * playing by vanilla's own convention is handled correctly without having agreed to cooperate,
+     * which is the only kind of cooperation you can rely on from code you do not control.</p>
+     *
+     * <p>⚠ <b>With one honest gap.</b> Now that we use vanilla's shift formula — which is also
+     * LegendQuest's — an inventory sitting at that value is indistinguishable from ours. So we
+     * stand down correctly when LQ opens <em>first</em>, and if ours is already open when LQ's
+     * opens, the two panes overlap. Matching everybody else's position cost this, and it was worth
+     * it: a pane that lands where no other pane on the screen lands is wrong every time, where this
+     * is wrong only when two panes are open at once. It closes the day LegendQuest registers here,
+     * which is what {@code PANELS-API.md} §4 is about.</p>
      */
     public static boolean occluded(AbstractContainerScreen<?> screen) {
         int at = screen.getGuiLeft();
-        return at != (screen.width - screen.getXSize()) / 2 && at != shiftedTo;
+        return at != naturalLeft(screen) && at != shiftedLeft(screen) && at != shiftedTo;
     }
 
     /** Put the inventory back where vanilla had it, and vanilla's button with it. */
@@ -98,8 +115,12 @@ public final class PanelHost {
         }
         // Only if it is still where we left it. If somebody else has written leftPos since, it is
         // theirs now and restoring would be us reaching into their layout.
+        //
+        // Restored to where vanilla wants it *at this moment* rather than to a hardcoded centre:
+        // if the recipe book has opened meanwhile, centred is the wrong answer and asking the book
+        // is the right one.
         if (screen.getGuiLeft() == shiftedTo) {
-            moveTo(screen, (screen.width - screen.getXSize()) / 2);
+            moveTo(screen, naturalLeft(screen));
         }
         shiftedTo = Integer.MIN_VALUE;
     }
@@ -107,8 +128,13 @@ public final class PanelHost {
     /** Write {@code leftPos}, keeping vanilla's recipe-book button with it. */
     private static void moveTo(AbstractContainerScreen<?> screen, int leftPos) {
         screen.leftPos = leftPos;
+        positionRecipeButton(screen);
+    }
+
+    /** Keep vanilla's recipe button with the inventory, wherever the inventory has got to. */
+    private static void positionRecipeButton(AbstractContainerScreen<?> screen) {
         if (recipeButton != null) {
-            recipeButton.setX(leftPos + recipeButtonOffset);
+            recipeButton.setX(screen.getGuiLeft() + recipeButtonOffset);
         }
     }
 
@@ -163,6 +189,12 @@ public final class PanelHost {
             return;
         }
         AbstractContainerScreen<?> container = screen;
+        // ⚠ Every frame, not only when we move it. Vanilla repositions its recipe button inside its
+        // own click handler, so the button goes stale the moment ANYBODY else writes leftPos — and
+        // ours would go stale whenever vanilla does. LegendQuest learned this and says so in a
+        // comment; chasing it every frame is the only arrangement where nobody has to be told.
+        positionRecipeButton(container);
+
         var showing = Panels.showing().orElse(null);
         if (showing == null) {
             unshift(container);
@@ -175,38 +207,42 @@ public final class PanelHost {
             Panels.close();
             return;
         }
+        // ⚠ MODAL, and vanilla is the one that wins. The recipe book opening CLOSES the pane rather
+        // than hiding it behind: the first version stood the pane down and left it open, and from
+        // the player's side that is a pane that "stays active but behind" — its button still lit,
+        // its space still spoken for, and nothing visible to close. LegendQuest resolves it the
+        // same way and in the same place: if the book is up, put the panel away.
+        if (recipeBook != null && recipeBook.isVisible()) {
+            shiftedTo = Integer.MIN_VALUE;
+            Panels.close();
+            return;
+        }
+
         if (occluded(container)) {
-            // Standing down, not closing — it comes back when the recipe book does. And NOT
-            // unshifting: whoever moved the inventory owns that number now, and putting it back
-            // would be us editing their layout.
             shiftedTo = Integer.MIN_VALUE;
             return;
         }
 
-        // The pane and the inventory are laid out as one block and that block is centred, which is
-        // what the recipe book does and therefore what the shift looks like to a player who has
-        // seen one before.
+        int natural = naturalLeft(container);
+        int shifted = shiftedLeft(container);
         int want = Math.max(60, safeWidth(showing.panel()));
-        int centred = (screen.width - container.getXSize()) / 2;
-        int block = want + GAP + container.getXSize();
-        int paneLeft = (screen.width - block) / 2;
-        if (paneLeft < MARGIN) {
-            // Too narrow to give the pane its own room. Fall back to the margin the inventory
-            // already leaves, unshifted — the recipe book does the same thing under 379px, and a
-            // pane squeezed to nothing is not a smaller pane, it is a stripe nobody can read.
+        if (shifted == natural) {
+            // Too narrow for vanilla to shift, so we do not either. The pane overlays the margin
+            // that is there, clamped — the same fallback the recipe book takes below 379px.
             unshift(container);
-            int room = centred - GAP - MARGIN;
+            int room = container.getGuiLeft() - GAP - MARGIN;
             if (room < 60) {
                 return;
             }
             width = Math.min(want, room);
-            x = centred - GAP - width;
         } else {
             width = want;
-            x = paneLeft;
-            moveTo(container, paneLeft + want + GAP);
-            shiftedTo = container.getGuiLeft();
+            moveTo(container, shifted);
+            shiftedTo = shifted;
         }
+        // Clamped rather than allowed off the left edge, which is what LegendQuest does too — on a
+        // window barely over 379px the shift does not buy a full panel's width.
+        x = Math.max(MARGIN, container.getGuiLeft() - width - GAP);
         height = Math.min(screen.height - MARGIN * 2, container.getYSize());
         y = container.getGuiTop();
         drawn = true;
@@ -353,14 +389,50 @@ public final class PanelHost {
     private static void findRecipeButton(InventoryScreen screen,
             java.util.List<net.minecraft.client.gui.components.events.GuiEventListener> widgets) {
         recipeButton = null;
+        recipeBook = null;
         for (var listener : widgets) {
-            if (listener instanceof net.minecraft.client.gui.components.ImageButton button
+            if (recipeButton == null
+                    && listener instanceof net.minecraft.client.gui.components.ImageButton button
                     && button.getWidth() == 20 && button.getHeight() == 18) {
                 recipeButton = button;
                 recipeButtonOffset = button.getX() - screen.getGuiLeft();
-                return;
+            } else if (listener
+                    instanceof net.minecraft.client.gui.screens.recipebook.RecipeBookComponent<?> b) {
+                recipeBook = b;
             }
         }
+    }
+
+    /**
+     * Where vanilla would put the inventory right now — centred, or shifted for its own book.
+     *
+     * <p>Asked of the recipe book rather than computed, because only it knows whether it is open.
+     * That is also what makes putting the inventory back safe: we restore to whatever vanilla wants
+     * at that moment, not to a "centred" that may no longer be true.</p>
+     */
+    private static int naturalLeft(AbstractContainerScreen<?> screen) {
+        return recipeBook != null
+                ? recipeBook.updateScreenPosition(screen.width, screen.getXSize())
+                : (screen.width - screen.getXSize()) / 2;
+    }
+
+    /**
+     * Where the inventory goes with a pane open — <b>vanilla's own formula, deliberately copied</b>.
+     *
+     * <pre>177 + (width - imageWidth - 200) / 2</pre>
+     *
+     * <p>This is what {@code RecipeBookComponent.updateScreenPosition} computes for itself, and
+     * what LegendQuest's panes use. Standards' first attempt centred the pane and the inventory as
+     * a block instead, which is defensible arithmetic and lands the inventory somewhere no other
+     * panel on the screen puts it — so opening two mods' panes in turn made the inventory hop. The
+     * number matters less than everyone using the same one.</p>
+     *
+     * <p>Below 379px vanilla does not shift at all ({@code widthTooNarrow}), and neither do we.</p>
+     */
+    private static int shiftedLeft(AbstractContainerScreen<?> screen) {
+        return screen.width >= 379
+                ? 177 + (screen.width - screen.getXSize() - 200) / 2
+                : naturalLeft(screen);
     }
 
     private static boolean within(double mouseX, double mouseY) {

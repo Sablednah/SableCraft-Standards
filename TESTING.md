@@ -615,13 +615,20 @@ because more than one mod draws there.
       never placed from different frames
 - [ ] a window too narrow for pane + gap + inventory: nothing shifts, and the pane falls back to
       whatever margin there is (or draws nothing at all if there is none)
-- [ ] ⚠ **open the recipe book while the pane is open.** The pane stands down — and **comes back**
-      when the recipe book closes. It must not need reopening: it was never closed
+- [ ] ⚠ **open the recipe book while the pane is open.** The pane **closes** — button unlit, space
+      given up. It must not linger open-but-hidden behind the book, which is what "stays active but
+      behind" looked like and is why this is modal rather than a stand-down
+- [ ] the inventory lands in **exactly the same place** as it does for the recipe book and for LQ's
+      panes. Open all three in turn and watch the inventory: it must not hop
 - [ ] the panel button stays **green** throughout, including while the pane is standing down. It is
       reporting its own state, not the recipe book's
-- [ ] ⚠ **open LegendQuest's character pane.** Same thing: ours stands down and returns. LQ knows
-      nothing about the seam — this works because LQ shifts the inventory off centre, which is the
-      only signal the check reads
+- [ ] ⚠ **open LegendQuest's character pane first, then ours.** Ours stands down and returns. LQ
+      knows nothing about the seam; this works because LQ holds the inventory somewhere that is
+      neither vanilla's position nor one we wrote
+- [ ] ⚠ **the other order — ours open, then LQ's.** Expected to **overlap**, and that is the known
+      gap: both now use vanilla's shift formula, so the two are indistinguishable from `leftPos`
+      alone. Confirm it is overlap and not something worse (a crash, a stuck inventory), and note
+      that LQ adopting the seam is the fix
 - [ ] with **JEI** installed, its overlay is on the right and is never covered — and its tooltips no
       longer fire under our pane, because the pane is not on top of it any more
 - [ ] the player's **potion effects** stay visible with the pane open. This is the regression the

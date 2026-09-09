@@ -141,8 +141,37 @@ moving `leftPos` there would place the inventory from last frame's value and the
 frame's — one frame of the two overlapping, every time the pane opens. Layout, then draw, is the
 only order in which they cannot disagree.
 
-Under a window too narrow to give the pane its own room, nothing shifts and the pane falls back to
-the margin — which is what the recipe book does below 379px.
+⚠ **Use vanilla's number, not a better one.** The first version centred the pane and the inventory
+as a block, which is defensible arithmetic and puts the inventory somewhere no other panel on the
+screen puts it — so opening a Standards pane and then a LegendQuest one made the inventory hop.
+Everyone here uses the same formula, which is the recipe book's own:
+
+```java
+leftPos = 177 + (width - imageWidth - 200) / 2;
+```
+
+Below 379px vanilla does not shift at all (`widthTooNarrow`), and neither do we: the pane overlays
+whatever margin exists, clamped.
+
+⚠ **Vanilla's recipe button must be repositioned every frame, not only when we move it.** Vanilla
+moves it inside its own click handler, so it goes stale the moment anybody else writes `leftPos` —
+and ours would go stale whenever vanilla does. LegendQuest found this and says so in a comment.
+Chasing `getGuiLeft()` every frame is the only arrangement where nobody has to be told.
+
+## 3b. The recipe book is modal, and it wins
+
+An open pane closes when the recipe book opens. The first version stood the pane *down* — kept it
+open and stopped drawing it — which is correct bookkeeping and reads, from the player's side, as a
+pane that "stays active but behind": its button still lit, its space still spoken for, and nothing
+visible to close. LegendQuest resolves it the same way and in the same place, and the pane being put
+away is what a player expects from something that shares a space with a modal.
+
+Asking is exact rather than inferred: `AbstractRecipeBookScreen` keeps its `RecipeBookComponent`
+private, but adds it to the screen with `addWidget`, so it arrives in `Init.Post`'s listener list
+like any other — **no reflection and no second access transformer**. `RecipeBookComponent` is public,
+and so are `isVisible()` and `updateScreenPosition(...)`. The second of those is also how a pane
+puts the inventory *back*: restore to whatever vanilla wants at that moment rather than to a
+hardcoded centre, which would be the wrong answer if the book had opened meanwhile.
 
 **Standing down is not closing.** An occluded pane stays open and simply is not drawn, so it comes
 back when the recipe book closes. Closing it would mean reopening something you never shut — and
@@ -154,8 +183,13 @@ itself again, which reads as a broken button.
 Nothing, today. LQ works as it is, and the occlusion rule already keeps Factions' pane out of its
 way. What adoption would buy:
 
-- **Opening the faction panel would close LQ's pane, and vice versa.** Right now the faction pane
-  merely hides behind LQ's, which is correct but not the same as tidy.
+- **Opening the faction panel would close LQ's pane, and vice versa.** ⚠ This is now the one real
+  gap rather than a nicety. Since Standards adopted vanilla's shift formula — which is also LQ's —
+  an inventory sitting at that value is indistinguishable from one we shifted ourselves. So the
+  faction pane stands down correctly when LQ's is opened **first**, and if the faction pane is
+  already open when LQ's opens, the two overlap. Matching everybody else's position cost that, and
+  it was the right trade: a pane that lands where no other pane lands is wrong every time, where
+  this is wrong only with two panes open at once. Registering here closes it.
 - **LQ stops needing its own reflection.** `CharacterPanel` reads `AbstractContainerScreen.leftPos`
   and `AbstractRecipeBookScreen.recipeBookComponent` reflectively, and throws
   `IllegalStateException("LegendQuest: inventory screen internals moved")` if either goes. That is
