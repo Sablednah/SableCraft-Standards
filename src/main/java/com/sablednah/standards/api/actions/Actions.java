@@ -92,5 +92,39 @@ public final class Actions {
         return java.util.Optional.ofNullable(SCREENS.get(id));
     }
 
+    /**
+     * Client handlers an action can run instead of sending its command, by id.
+     *
+     * <p>{@link #registerScreen} covers exactly one shape — <em>make a screen and show it</em> —
+     * and the first real consumer wanted a different one. Factions' panel is an inline pane on the
+     * inventory screen that the button <b>toggles</b>, the way LegendQuest's character sheet
+     * behaves, so there is no screen to hand back and pressing the button a second time has to put
+     * it away. A supplier cannot express that.</p>
+     */
+    private static final java.util.Map<String, Runnable> HANDLERS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Offer something for an action to do <b>on a modded client</b>, instead of sending its command.
+     *
+     * <p>Same contract as {@link #registerScreen}, and it matters more here because a handler can
+     * do anything: the action still carries a command, that command must still work, and what the
+     * handler shows may only be what the command would have said. A nicer surface for the same
+     * answer, never a second capability — otherwise a vanilla client has lost something, and
+     * decision 2 is the whole reason this seam runs commands rather than sending payloads.</p>
+     *
+     * <p>Checked <b>before</b> the screen registry, so a mod that registers both gets the handler.
+     * That ordering is deliberate: the handler is the general case and the screen is sugar, so the
+     * more specific registration is the one that loses.</p>
+     */
+    public static void registerHandler(String id, Runnable handler) {
+        HANDLERS.put(id, handler);
+    }
+
+    /** The client handler for this action, if one was registered. */
+    public static java.util.Optional<Runnable> handler(String id) {
+        return java.util.Optional.ofNullable(HANDLERS.get(id));
+    }
+
     private Actions() {}
 }

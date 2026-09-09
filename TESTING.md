@@ -567,6 +567,39 @@ before concluding anything is:
 - [ ] with StoryTeller installed and the player not a storyteller, all five of its actions read
       withheld rather than being absent from the listing
 
+### The faction panel **[needs a dev client]** — rebuilt as a pane 2026-09-09
+
+It was a full `Screen` and is now a pane drawn on the inventory screen, toggled by the panel button.
+`/f fixture members 20` fills a faction up first — the rows, the buttons and the scrolling are all
+invisible at two members. `debug.fixtures` must be on.
+
+- [ ] the panel button opens the pane; **pressing it again puts it away**
+- [ ] the pane sits to the **right** of the inventory and the inventory does **not** move — the
+      whole reason it went right is that the left is contested
+- [ ] open **LegendQuest's** character pane at the same time. LQ shifts the inventory right; our
+      pane must follow it rather than being left behind or drawn over it
+- [ ] open the **recipe book** as well — same check, and the three must coexist
+- [ ] close the inventory and reopen it: the pane is **still open**, and its numbers have been
+      **asked for again** rather than being last session's
+- [ ] Overview / Relations / Members chips switch, and the chip row stays put while a long list
+      scrolls under it
+- [ ] ⚠ **the member rows' ^ v x buttons line up with the name beside them.** This is the bug that
+      caused the rewrite: vanilla's `Button` has a 20px minimum height and the rows are 12px, so
+      they sat low. They are hand-drawn now and are the row's height by construction
+- [ ] with 20+ members the wheel scrolls the list, **only** while the cursor is over the pane —
+      off the pane, the wheel does whatever it did before
+- [ ] the count in the corner tracks the scroll, and the arrow flips at the bottom
+- [ ] `Thistlebottom999` and `Ingrid_Sallow001` are the full 16 characters a username may be: they
+      are clipped with an ellipsis rather than running into the buttons
+- [ ] promote, demote and kick each work **and the pane refreshes itself** — the row moves because
+      the server said so, not because the button asked
+- [ ] as an ordinary **member**, the three buttons are absent rather than present and refusing
+- [ ] `/f fixture clear` takes the recruits back out as well as the neighbour factions
+- [ ] a client with **Standards but no Factions** clicking a faction button still gets the chat
+      answer — the handler seam falls through to the command
+- [ ] ⚠ **hover an item near the right edge of the inventory.** Its tooltip is drawn before our
+      pane, so the pane covers it. Decide whether that is acceptable or the pane needs to move
+
 ## Before a release
 
 - [x] SnakeYAML is bundled jar-in-jar and declared in the metadata — the classic works-in-dev,

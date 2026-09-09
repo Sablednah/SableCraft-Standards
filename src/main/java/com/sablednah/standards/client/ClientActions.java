@@ -2,6 +2,7 @@ package com.sablednah.standards.client;
 
 import net.minecraft.client.Minecraft;
 
+import com.sablednah.standards.Standards;
 import com.sablednah.standards.api.actions.Action;
 import com.sablednah.standards.api.actions.Actions;
 
@@ -36,10 +37,25 @@ public final class ClientActions {
             // message every time they brushed it would be worse than the missing feature.
             return false;
         }
-        // A registered screen wins, but only as a nicer surface for the same answer: the command
-        // below is what a vanilla client sends and it must give the same information. If the mod
-        // that owns the screen is absent, or older than its own screen, this falls through and
-        // everybody still gets the chat version.
+        // A registered handler wins, but only as a nicer surface for the same answer: the command
+        // below is what a vanilla client sends and it must give the same information. Checked
+        // before the screen registry because it is the general case — a panel the button toggles
+        // cannot be expressed as "make a screen and show it".
+        var handler = Actions.handler(action.id());
+        if (handler.isPresent()) {
+            // Guarded because the handler belongs to another mod: one that throws should cost its
+            // own mod a button, not take the click path down with it. Falls through to the command
+            // rather than swallowing the click, so the player still gets the chat answer.
+            try {
+                handler.get().run();
+                return true;
+            } catch (RuntimeException | LinkageError e) {
+                Standards.LOGGER.warn("Standards: client handler for '{}' failed ({}); "
+                        + "falling back to its command", action.id(), e.toString());
+            }
+        }
+        // A registered screen next, same contract. If the mod that owns it is absent, or older
+        // than its own screen, this falls through and everybody still gets the chat version.
         var screen = Actions.screen(action.id());
         if (screen.isPresent()) {
             Object made = screen.get().get();
