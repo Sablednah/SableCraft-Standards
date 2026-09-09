@@ -131,6 +131,29 @@ public final class PanelHost {
         positionRecipeButton(screen);
     }
 
+    /**
+     * A pane is about to open: put the recipe book away if it is up.
+     *
+     * <p>The other half of §3b's modality, and the half that has to be an <em>action</em> rather
+     * than a rule. "The recipe book wins" is right when the book is what you just opened, and
+     * exactly wrong when the pane is — clicking a panel button while the book is up must open the
+     * panel, not refuse. So the two cases are told apart by who moved last, and the cleanest way to
+     * know that is to do this here, at the moment of opening: by the time {@link #onLayout} runs,
+     * a visible book can only be one that was opened <b>after</b> the pane, and closing the pane is
+     * then unambiguously the right answer.</p>
+     *
+     * <p>Only {@code toggleVisibility()}, deliberately. Vanilla's own button also recomputes
+     * {@code leftPos} and moves itself, and both of those already happen here every frame. It also
+     * sets {@code buttonClicked}, which exists to swallow the following mouse-release for the
+     * button that was pressed — and the button that was pressed was <em>ours</em>, so swallowing a
+     * release we did not cause would eat the next click on the pane.</p>
+     */
+    static void makeRoom() {
+        if (recipeBook != null && recipeBook.isVisible()) {
+            recipeBook.toggleVisibility();
+        }
+    }
+
     /** Keep vanilla's recipe button with the inventory, wherever the inventory has got to. */
     private static void positionRecipeButton(AbstractContainerScreen<?> screen) {
         if (recipeButton != null) {

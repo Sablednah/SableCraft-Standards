@@ -102,13 +102,20 @@ public final class Panels {
         }
     }
 
-    /** Show this one, closing whatever was showing. Unknown ids are ignored. */
+    /**
+     * Show this one, closing whatever was showing. Unknown ids are ignored.
+     *
+     * <p>"Whatever was showing" includes <b>vanilla's recipe book</b>, not only another registered
+     * pane. They share one space, so opening a pane while the book is up has to put the book away —
+     * anything else is a button that does nothing, or a pane that opens behind something.</p>
+     */
     public static void open(String id) {
         Registration next = PANELS.get(id);
         if (next == null || id.equals(openId)) {
             return;
         }
         close();
+        PanelHost.makeRoom();
         openId = id;
         next.panel().onOpen();
     }
