@@ -42,6 +42,42 @@ public interface InventoryPanel {
     int preferredWidth();
 
     /**
+     * How tall you would like to be, or {@code 0} to match the inventory.
+     *
+     * <p>⚠ <b>Asked every frame, immediately before the pane is positioned, and never cached.</b>
+     * That is a promise rather than an implementation detail: a panel's height is allowed to depend
+     * on what it is showing right now. LegendQuest's grows with the open tab, the skill count, the
+     * party list and whether the race and class pickers are open — so a host that asked once and
+     * remembered would draw the wrong height the moment a player opened a picker, and would compute
+     * the slide-up below against a stale number. Keep it a cheap function of state you already
+     * hold; it is called once per frame and it is meant to be.</p>
+     *
+     * <p>A pane taller than the room available is anchored at the inventory's top and <b>slid up
+     * only as far as it needs</b>, never above two pixels, leaving two at the bottom:
+     * {@code max(2, min(guiTop, screenHeight - height - 2))}. That is LegendQuest's own rule,
+     * adopted verbatim, because a pane growing downward off the bottom of the screen is the failure
+     * it was written to prevent.</p>
+     */
+    default int preferredHeight() {
+        return 0;
+    }
+
+    /**
+     * The colours Standards paints your frame with.
+     *
+     * <p>Say nothing and you get {@link PanelTheme#STANDARD}, so several mods' panes look like one
+     * set of furniture. Return your own when the frame is part of your identity rather than
+     * decoration — LegendQuest's gold on near-black is the case this exists for.</p>
+     *
+     * <p>Everything <em>inside</em> the pane is yours and always was; the host paints only the
+     * frame. If you want a single palette, keep these two constants where the rest of your colours
+     * live and hand them over here.</p>
+     */
+    default PanelTheme theme() {
+        return PanelTheme.STANDARD;
+    }
+
+    /**
      * Draw yourself into the rectangle you have been given.
      *
      * <p>The background and border are already drawn — Standards paints the frame so that every
@@ -91,6 +127,22 @@ public interface InventoryPanel {
     }
 
     /**
+     * Draw anything that must sit above everything else — a tooltip, a dragged item under the cursor.
+     *
+     * <p>Called after the pane, after its frame, and after anything else the host draws, so nothing
+     * can paint over it. <b>Unclipped, and in screen coordinates</b>: a tooltip for a control at
+     * your right edge is supposed to hang over the inventory, and one near the bottom is supposed
+     * to flip upward past your own bounds.</p>
+     *
+     * <p>⚠ <b>The host does not scissor the pane rectangle at any point</b> — not here and not in
+     * {@link #render}. Panes may overflow, and that is a guarantee rather than an oversight: do not
+     * "fix" it later by adding a scissor, because tooltips and drag ghosts depend on it. What keeps
+     * a pane inside its bounds is the pane, laying out against the {@code width} and {@code height}
+     * it was handed.</p>
+     */
+    default void renderOverlay(GuiGraphics graphics, Font font, int mouseX, int mouseY) {}
+
+    /**
      * You are about to be shown. The moment to ask the server for fresh data.
      *
      * <p><b>Called more than once</b>, and you must treat every call as "start again": when the
@@ -101,7 +153,22 @@ public interface InventoryPanel {
      */
     default void onOpen() {}
 
-    /** You are no longer showing — because you were closed, or because somebody else opened. */
+    /**
+     * You are no longer the open pane.
+     *
+     * <p><b>Unconditional.</b> It fires for every reason a pane stops being open: the player closed
+     * it, another pane opened, the recipe book opened, another mod took the space, or
+     * {@link #available()} answered false. There is no path that quietly stops showing a pane
+     * without telling it — that was worth removing a nicety for, because a conditional teardown
+     * callback is one every consumer has to second-guess.</p>
+     *
+     * <p>⚠ <b>The one thing this is NOT is the inventory screen closing.</b> A pane stays open
+     * across that — it is a toggle, and the button is the only thing that changes it — so closing
+     * your inventory and opening it again finds the pane where you left it and fires
+     * {@link #onOpen()}, not this. Reset transient interaction state (a drag in progress, a scroll
+     * offset) in {@code onOpen}, which is documented as "every call means start again" precisely
+     * so it can carry that.</p>
+     */
     default void onClose() {}
 
     /**
