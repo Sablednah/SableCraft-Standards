@@ -597,8 +597,35 @@ invisible at two members. `debug.fixtures` must be on.
 - [ ] `/f fixture clear` takes the recruits back out as well as the neighbour factions
 - [ ] a client with **Standards but no Factions** clicking a faction button still gets the chat
       answer — the handler seam falls through to the command
-- [ ] ⚠ **hover an item near the right edge of the inventory.** Its tooltip is drawn before our
-      pane, so the pane covers it. Decide whether that is acceptable or the pane needs to move
+- [ ] hover an item whose tooltip reaches across the pane — it draws **over** the pane. That is
+      vanilla's doing (`deferredTooltip` is flushed last, on its own stratum) and needs no code,
+      but it is worth one look, because the whole point of a tooltip is being on top
+
+### The panel seam **[needs a dev client]** — built 2026-09-09
+
+The pane moved to the LEFT and Standards now owns the space. These are the checks that only exist
+because more than one mod draws there.
+
+- [ ] the pane opens in the **left margin**, and the inventory does **not** move
+- [ ] ⚠ **open the recipe book while the pane is open.** The pane stands down — and **comes back**
+      when the recipe book closes. It must not need reopening: it was never closed
+- [ ] the panel button stays **green** throughout, including while the pane is standing down. It is
+      reporting its own state, not the recipe book's
+- [ ] ⚠ **open LegendQuest's character pane.** Same thing: ours stands down and returns. LQ knows
+      nothing about the seam — this works because LQ shifts the inventory off centre, which is the
+      only signal the check reads
+- [ ] with **JEI** installed, its overlay is on the right and is never covered — and its tooltips no
+      longer fire under our pane, because the pane is not on top of it any more
+- [ ] the player's **potion effects** stay visible with the pane open. This is the regression the
+      move exists to fix: they render at `leftPos + imageWidth + 2` and the old right-hand pane sat
+      exactly there
+- [ ] narrow the window until there is no left margin — the pane draws **nothing** rather than a
+      four-pixel stripe, and nothing is logged
+- [ ] GUI scale 1 through 4
+- [ ] clicks inside the pane do **not** reach the screen behind it, even on dead space between
+      buttons — a pane is solid
+- [ ] the wheel over the **overview** tab is not swallowed: it does whatever it did before, because
+      that tab has nothing to scroll
 
 ## Before a release
 

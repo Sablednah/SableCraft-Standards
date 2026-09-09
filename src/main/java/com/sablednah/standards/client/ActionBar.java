@@ -115,6 +115,24 @@ public final class ActionBar {
     }
 
     /**
+     * On, according to whoever knows — the client if it claimed the question, else the server.
+     *
+     * <p>Guarded because the supplier belongs to another mod, and a button that throws while being
+     * drawn takes the whole bar down with it rather than costing one green border.</p>
+     */
+    private static boolean isOn(String id) {
+        var own = Actions.clientState(id);
+        if (own.isPresent()) {
+            try {
+                return own.get().getAsBoolean();
+            } catch (RuntimeException | LinkageError e) {
+                return false;
+            }
+        }
+        return ClientCapabilities.isActive(id);
+    }
+
+    /**
      * The tooltip says the state, not just the name.
      *
      * <p>"Fly — on" reads as an answer; "Fly" reads as a label. For a gamemaster tool the state is
@@ -128,7 +146,7 @@ public final class ActionBar {
         if (!hint.isEmpty()) {
             text.append(" (").append(hint).append(')');
         }
-        if (ClientCapabilities.isActive(action.id())) {
+        if (isOn(action.id())) {
             text.append(" — on");
         }
         // Said in the tooltip, because a corner mark tells you there IS something and not how to
@@ -327,7 +345,7 @@ public final class ActionBar {
             // over it. The first version tinted the icon at 25% alpha and it was invisible against
             // a coloured item — watched in game, reported as "either not working or so subtle it is
             // invisible", which is the same thing from the player's side.
-            if (ClientCapabilities.isActive(entry.action().id())) {
+            if (isOn(entry.action().id())) {
                 graphics.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, 0xFF1E5E1E);
                 // A border too: a filled panel alone is ambiguous against a dark inventory
                 // background, and an outline reads as "this one is different" at any scale.
