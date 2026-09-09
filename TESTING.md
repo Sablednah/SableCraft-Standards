@@ -606,7 +606,15 @@ invisible at two members. `debug.fixtures` must be on.
 The pane moved to the LEFT and Standards now owns the space. These are the checks that only exist
 because more than one mod draws there.
 
-- [ ] the pane opens in the **left margin**, and the inventory does **not** move
+- [ ] the pane opens on the left and the **inventory slides right** to make room, the way the recipe
+      book does — and slides back when the pane closes
+- [ ] ⚠ **vanilla's recipe-book button moves with it.** This is the half that is easy to forget:
+      vanilla repositions that button every time it shifts `leftPos`, so a pane that moved the
+      inventory alone would leave the button sitting inside the pane
+- [ ] no flicker on open — the shift happens in `Render.Pre`, so the inventory and the pane are
+      never placed from different frames
+- [ ] a window too narrow for pane + gap + inventory: nothing shifts, and the pane falls back to
+      whatever margin there is (or draws nothing at all if there is none)
 - [ ] ⚠ **open the recipe book while the pane is open.** The pane stands down — and **comes back**
       when the recipe book closes. It must not need reopening: it was never closed
 - [ ] the panel button stays **green** throughout, including while the pane is standing down. It is

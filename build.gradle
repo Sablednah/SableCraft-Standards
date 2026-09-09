@@ -61,7 +61,12 @@ neoForge {
         }
     }
 
-    // Access Transformers are auto-detected from META-INF/accesstransformer.cfg
+    // ⚠ Declared explicitly rather than trusting the auto-detection. ModDevGradle is documented
+    // as picking up src/main/resources/META-INF/accesstransformer.cfg on its own, and on this
+    // build it did not: adding the file changed nothing, every task reported up-to-date, and the
+    // only symptom was "leftPos has protected access" — which reads as the AT being wrong rather
+    // than as the AT never having been read. One line beats diagnosing that twice.
+    accessTransformers.from('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         client {
