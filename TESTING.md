@@ -638,13 +638,21 @@ suspect. LQ's `CharacterPane` is the first non-default `theme()` anyone has ever
 - [ ] ⚠ **mutual exclusion between LQ's pane and the faction pane, both directions.** This has
       never worked in any build: until LQ registered there was nothing to be mutually exclusive
       with, and the two could overlap because both shift the inventory to the same place
-- [ ] LQ's pane draws in **its own gold-on-near-black**, not Standards' purple, and the border is
-      one clean pixel at GUI scale 1 through 4
-- [ ] the alpha over the inventory looks right — `0xE8101018` is LQ's, and no pane has been drawn
-      with a non-default background before
-- [ ] LQ's pane is **as tall as its content**, and grows when a race or class picker opens, without
-      needing the inventory reopened
-- [ ] ...and slides **up** rather than off the bottom when both pickers are open on a short window
+- [x] LQ's pane draws in **its own gold-on-near-black**, not Standards' purple — the first time
+      `theme()` has been called with anything but its default. **Confirmed at GUI scale 2 only**
+- [ ] ...at GUI scales 1, 3 and 4
+- [x] the alpha over the inventory is correct. **Measured 2026-09-10**, not eyeballed: predicted
+      `0x101018` over the closed-state pixel at `0xE8/255` against the actual open pixel, worst
+      channel error **1/255** across six points. Note LQ discarded three more where the closed shot
+      showed the *GUI* rather than the world — the GUI moves when the pane closes, so those compared
+      unlike with unlike and implied a false 0.969
+- [x] LQ's pane is **as tall as its content**, and grows when a tab changes without needing the
+      inventory reopened. **Measured 2026-09-10**: Stats → Skills grew 166 → 230 logical with no
+      reopen, which a cached `preferredHeight()` would have clipped
+- [x] ...and slides **up** rather than off the bottom. **Measured**: top moved 37 → 8, matching
+      `min(37, 240 - 230 - 2)` to the pixel
+- [ ] the same with a race or class **picker** opening, on a short window — the tab case is proven,
+      this one is not
 - [ ] the faction pane's members tab is now **content-height** too: 20 members show without
       scrolling on a normal window, and the scrollbar only appears when the screen is genuinely
       too short
