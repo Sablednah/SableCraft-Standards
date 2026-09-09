@@ -635,6 +635,35 @@ neighbours — a door is two blocks), inventory, and put the feedback where the 
 buttons will still visibly twitch; that twitch *is* the correction landing and cannot be prevented
 from the server.
 
+### A fourth: correctly withheld looks exactly like broken
+
+The action bar evaluates every action's `available` predicate **server-side** and sends only the ids
+that pass, which is deliberate and right — see decision 2, and the "granted command renders red" bug
+it is the mirror of. The cost is that a button hidden *on purpose* is completely silent, and silence
+is what a bug sounds like.
+
+It was paid in full on 2026-09-09. The report was *"factions' actions button just draws the chat map
+(as does `/f panel`)"* and *"still no storytellers"*. Both were the seam working perfectly:
+
+- Four of Factions' five buttons are gated on `inFaction`, and the test world's `factions.dat` was
+  30 bytes — no factions at all. Only `factions:map` (`p -> true`) was ever drawn, so every click on
+  "the factions button" was a click on the map button, and `/f panel` was answering *"you are not in
+  a faction"*.
+- All five of StoryTeller's are gated on `STPermissions.isStoryteller`, and the player was not one.
+
+Establishing that took disassembling two shipped jars to read their predicates out of the bootstrap
+method table, and gunzipping a world save to prove the faction store was empty. **Nothing was
+wrong**, and there was no cheaper way to find that out — which is the actual defect.
+
+So `/actions all` now lists the whole registry with each entry marked offered or withheld. It
+reports *whether*, not *why*: the predicate belongs to another mod and only that mod knows its
+reason, but naming the mod is enough to ask the right person.
+
+The general rule, and it generalises past this seam: **whenever a feature's correct behaviour is to
+show nothing, ship the command that says so.** Any gate that filters silently — an action's
+`available`, a chat decorator that declines, a claims provider that abstains — needs a way to ask it
+what it decided and why, or the first person to hit it files a bug against working code.
+
 ### A third: the migration that copied the file somewhere nothing reads
 
 The 26.1 save migration wrote a byte-perfect copy of `factions.dat` to `data/factions/data.dat` and

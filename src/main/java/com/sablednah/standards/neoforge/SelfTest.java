@@ -965,6 +965,15 @@ public final class SelfTest {
                         "msg.toggle.fly", "fly", p -> true));
         check("a duplicate action id is refused",
                 com.sablednah.standards.api.actions.Actions.all().size() == before);
+
+        // `/actions all` is the answer to "my button is missing", and a listing nobody can type is
+        // worth nothing. Parsed here rather than assumed, because the whole point of it is being
+        // reachable on the day something looks broken.
+        var listing = d.parse("actions all", src);
+        check("/actions all parses",
+                listing.getExceptions().isEmpty() && !listing.getReader().canRead());
+        check("...and reaches something executable",
+                boundCommand(listing) != null);
     }
 
     /**
