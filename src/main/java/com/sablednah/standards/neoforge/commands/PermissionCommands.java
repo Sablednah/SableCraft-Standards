@@ -14,6 +14,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.sablednah.standards.core.PermissionRules;
+import com.sablednah.standards.StandardsConfig;
 import com.sablednah.standards.neoforge.Feedback;
 import com.sablednah.standards.neoforge.Lang;
 import com.sablednah.standards.neoforge.StandardsData;
@@ -456,7 +457,11 @@ public final class PermissionCommands {
             return 0;
         }
         if (!store(ctx).setGroupNode(group, spec.get().node(), spec.get().value())) {
-            return unknownGroup(ctx, group);
+            // The configured default is built on demand rather than refused — see autovivifyDefault.
+            if (!autovivifyDefault(ctx, group)
+                    || !store(ctx).setGroupNode(group, spec.get().node(), spec.get().value())) {
+                return unknownGroup(ctx, group);
+            }
         }
         refresh(ctx, null);
         Feedback.reply(ctx.getSource(), Lang.fmt("msg.perm.group_node_set",
@@ -688,9 +693,52 @@ public final class PermissionCommands {
         return StandardsData.get(server).byName(server, name);
     }
 
+    /**
+     * ⚠ Say what to do, not just what is wrong.
+     *
+     * <p>"No rank called default" is accurate and useless: on a fresh server it is the answer to
+     * the very first thing an admin tries — granting a node to everybody — and it reads as a typo
+     * or a syntax error rather than as a missing step. Reported from a real first run, where it
+     * cost somebody a while to work out the command wanted {@code create} first.</p>
+     *
+     * <p>The configured default group gets its own line, because that one is not a typo: the config
+     * has already named it, so the server means it to exist and the only question is that nobody
+     * has made it yet. See {@link #autovivifyDefault} for why it is created rather than explained
+     * when it is being written to.</p>
+     */
     private static int unknownGroup(CommandContext<CommandSourceStack> ctx, String name) {
-        Feedback.fail(ctx.getSource(), Lang.fmt("msg.perm.group_unknown", "name", name));
+        String key = name.equalsIgnoreCase(StandardsConfig.DEFAULT_PERMISSION_GROUP.get())
+                ? "msg.perm.group_unknown_default" : "msg.perm.group_unknown";
+        Feedback.fail(ctx.getSource(), Lang.fmt(key, "name", name));
         return 0;
+    }
+
+    /**
+     * Create the configured default group on first write, rather than refusing it.
+     *
+     * <p>⚠ <b>Only the name the config already carries</b>, and that restriction is the whole
+     * safety argument. Creating any group on a failed write would turn
+     * {@code /rank group defualt set x} into a silently invented rank — a typo becoming state is a
+     * far worse failure than the refusal this replaces. The configured name cannot be a typo,
+     * because the server owner wrote it in the config and the mod consults it on every permission
+     * check; it is a group the installation has already declared and simply has not built.</p>
+     *
+     * <p>Bounded to writes deliberately. {@code /rank group default info} on a fresh server should
+     * still say it does not exist, because that is the true answer to a question rather than an
+     * obstacle in front of an instruction.</p>
+     *
+     * @return true if the group now exists, one way or another
+     */
+    private static boolean autovivifyDefault(CommandContext<CommandSourceStack> ctx, String name) {
+        if (!name.equalsIgnoreCase(StandardsConfig.DEFAULT_PERMISSION_GROUP.get())) {
+            return false;
+        }
+        if (!store(ctx).createGroup(name)) {
+            return false;
+        }
+        Feedback.reply(ctx.getSource(),
+                Lang.fmt("msg.perm.group_created_default", "name", name), true);
+        return true;
     }
 
     private static int unknownPlayer(CommandContext<CommandSourceStack> ctx, String name) {
