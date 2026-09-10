@@ -405,6 +405,17 @@ The host owns **your rectangle**, and that is the whole of what it can own. Some
 are defined by space it does not occupy, and those stay yours. Reported by LegendQuest on the first
 migration, and worth writing down because the next consumer will hit it and may not work out why.
 
+⚠ **First, the half this section used to miss.** It read as though a drop target's problem is only
+the region *outside* the pane. It is not — **it is also releases inside it**, and that half is the
+seam's job rather than the consumer's:
+
+`mouseReleased` returns `boolean` and **you must return true when the release was yours**. Vanilla
+reads a release outside the inventory's own bounds, with an item on the cursor, as *throw it on the
+floor* — and a pane is outside those bounds by construction. This callback returned `void` for its
+first day, so a pane had no way to claim a release, and carrying an item to LegendQuest's spellbook
+slot dropped it on the ground. Found by somebody playing; it needs an item on the cursor and a hand
+to drag it, which no screenshot or log reaches.
+
 **A drop target needs a shield wider than the pane.** While an item is on the cursor, releasing it
 anywhere outside the inventory GUI is read by vanilla as *throw it on the floor*. So a pane with a
 slot in it — LegendQuest's spellbook slot — must swallow clicks across the whole region left of
@@ -416,6 +427,12 @@ LegendQuest keeps its own `ScreenEvent.MouseButtonPressed.Pre` for it, and **the
 part to copy**: it fires only while an item is carried, and it explicitly does *not* cancel clicks
 inside the pane, so it cannot fight the host's routing. Write the narrow version; the broad one
 eats clicks that were never yours.
+
+⚠ **Narrow it to presses, not releases.** LegendQuest's pre-migration handler cancelled releases
+over the pane *as well as* presses outside it. Narrowing the hook to "outside the pane only" was
+right for presses — the host's `mouseClicked` boolean covers those — and it silently dropped the
+release half, which is what surfaced the bug above. Releases inside the pane belong to
+`mouseReleased`; only the region beyond your rectangle needs a hook of your own.
 
 ⚠ **That narrowing is load-bearing and nothing enforces it.** The host's click routing listens to
 the same `ScreenEvent.MouseButtonPressed.Pre`, and `@SubscribeEvent`'s `receiveCanceled` defaults to

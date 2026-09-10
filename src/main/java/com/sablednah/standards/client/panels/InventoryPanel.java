@@ -124,8 +124,28 @@ public interface InventoryPanel {
         return false;
     }
 
-    /** A button came up. Where a drag ends, wherever the cursor happens to be. */
-    default void mouseReleased(double mouseX, double mouseY, int button) {}
+    /**
+     * A button came up. Where a drag ends, wherever the cursor happens to be.
+     *
+     * <p>⚠ <b>Returning true matters, and it took a real bug to learn that.</b> This used to return
+     * {@code void}, on the reasoning that a release swallowed by a pane is a button somewhere else
+     * left stuck down. That is true and it is not the whole story: <b>vanilla reads a release
+     * outside the inventory's own bounds, with an item on the cursor, as "throw it on the floor"</b>
+     * — and a pane is outside those bounds by construction. So a pane with a drop target in it had
+     * no way to say "that release was mine", and carrying an item to LegendQuest's spellbook slot
+     * dropped it on the ground.</p>
+     *
+     * <p>Found by somebody playing, not by anybody testing. It needed an item on the cursor and a
+     * hand to drag it, which is exactly the class of thing a screenshot and a log cannot reach.</p>
+     *
+     * <p>The original concern survives in the host: a release is cancelled <b>only</b> when you
+     * say you used it, so a pane that ignores releases still lets every one through.</p>
+     *
+     * @return true if you used it, which stops it reaching the screen underneath
+     */
+    default boolean mouseReleased(double mouseX, double mouseY, int button) {
+        return false;
+    }
 
     /**
      * The wheel turned over you.
