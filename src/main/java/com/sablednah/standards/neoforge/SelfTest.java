@@ -986,6 +986,18 @@ public final class SelfTest {
                 "unknown".equals(halfCorrupt.commit())
                         && "unknown".equals(halfCorrupt.branch()));
 
+        // ⚠ And the same thing with the bad line FIRST. Against Properties.load this is trivially
+        // unknown — the throw comes before anything parses — so it looks redundant beside the case
+        // above. It is not: it guards the OTHER implementation somebody might reach for, a lenient
+        // line parser that skips a bad line and carries on. Under that, the case above passes and
+        // this one fails. LegendQuest's addition; the two orderings together catch what either
+        // alone can miss.
+        var badFirst = com.sablednah.standards.BuildInfo.read(
+                new java.io.ByteArrayInputStream(
+                        ("branch=" + BAD_ESCAPE + NL + "commit=abc12345" + NL).getBytes(
+                                java.nio.charset.StandardCharsets.UTF_8)));
+        check("...in either order", "unknown".equals(badFirst.commit()));
+
         // And a stream that fails mid-read, which is the one case neither of the above covers.
         var broken = com.sablednah.standards.BuildInfo.read(new java.io.InputStream() {
             @Override
