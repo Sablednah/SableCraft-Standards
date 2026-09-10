@@ -390,8 +390,15 @@ public final class PanelHost {
     /**
      * The end of a drag, wherever the cursor is.
      *
-     * <p>Never cancelled. A release the pane swallowed is a button somewhere else that stays stuck
-     * down, and the pane has no way to know what else was waiting for it.</p>
+     * <p>⚠ Cancelled <b>only when the pane says it used it</b>. The first version never cancelled
+     * at all, reasoning that a release a pane swallowed is a button somewhere else left stuck down.
+     * That reasoning holds for a pane that does not care — and it stranded the one that does:
+     * vanilla reads a release outside the inventory's bounds with an item on the cursor as "throw
+     * it on the floor", a pane is outside those bounds by construction, and LegendQuest's spellbook
+     * slot dropped items on the ground because nothing could say the release was claimed.</p>
+     *
+     * <p>Returning a boolean keeps both: a pane that ignores releases still lets every one through,
+     * and one with a drop target can stop exactly the release it wanted.</p>
      */
     @SubscribeEvent
     static void onRelease(ScreenEvent.MouseButtonReleased.Pre event) {
@@ -404,7 +411,10 @@ public final class PanelHost {
             return;
         }
         try {
-            showing.panel().mouseReleased(event.getMouseX(), event.getMouseY(), event.getButton());
+            if (showing.panel().mouseReleased(event.getMouseX(), event.getMouseY(),
+                    event.getButton())) {
+                event.setCanceled(true);
+            }
         } catch (RuntimeException | LinkageError e) {
             Standards.LOGGER.warn("Standards: panel '{}' failed on a release ({})",
                     showing.id(), e.toString());
