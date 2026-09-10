@@ -287,6 +287,62 @@ one version and comparing.
   between identical runs and warns explicitly against tightening those into equality assertions:
   it produces a test that fails at random and teaches everyone to ignore it.
 
+## Port by construction, not by reading — LegendQuest's technique, 2026-09-10
+
+The best thing to come out of the panel-seam migration, and it is not about panels.
+
+The usual way to carry a rewritten file to a version branch is to cherry-pick and then resolve the
+conflicts by reading. That fails in one specific, nasty way: **a wrong resolution often draws
+correctly.** Taking "ours" on a hunk where the incoming commit *removed* something leaves a
+duplicate that works — a tooltip drawn twice, a fill painted twice — on one branch and not the
+others. Nothing errors. Nothing looks wrong. It is found months later, if at all.
+
+LegendQuest avoided the merge entirely:
+
+1. Verify the 26.x file differs from `main`'s **pre-change** file by *nothing except the known
+   rename substitutions*.
+2. Take `main`'s **post-change** file wholesale and re-apply exactly those substitutions.
+3. Verify afterwards that the ported file differs from `main`'s by *only* those substitutions —
+   with a filtered diff that must come back **empty**.
+
+The port is then correct by construction, and step 3 is the part that matters: a mistake shows up as
+an **unexpected line in a diff** rather than as something you have to notice by reading. That is the
+difference between a check and a hope.
+
+⚠ It only works while the branches differ by *mechanical* substitutions. The moment a branch has a
+genuine behavioural divergence, step 1 fails — which is itself the signal to stop and merge
+properly, rather than a reason to skip the check.
+
+## 26.2 moved the screen accessors, and 26.1 did **not**
+
+⚠ **This substitution is 26.2-only. Applying it to 26.1 breaks the build**, which is the worst
+shape of porting error because the two branches otherwise take the same edits.
+
+| 1.21.11 / 26.1 | 26.2 |
+|---|---|
+| `mc.screen` | `mc.gui.screen()` |
+| `mc.setScreen(s)` | `mc.setScreenAndShow(s)` **or** `mc.gui.setScreen(s)` |
+
+**The two replacements are not equivalent**, and the sources say why:
+
+```java
+public void setScreenAndShow(Screen screen) {
+    try (Zone ignored = Profiler.get().zone("forcedTick")) {
+        this.gui.setScreen(screen);
+        this.renderFrame(false);     // <- forces a frame, synchronously
+    }
+}
+```
+
+So `gui.setScreen` is the faithful equivalent of the old `setScreen`, and `setScreenAndShow` is that
+plus an immediate forced render — which is what vanilla uses where a frame *must* appear before
+something blocking. Prefer `gui.setScreen` for an ordinary "open this screen"; reach for
+`setScreenAndShow` only when you need the frame now.
+
+⚠ **Standards and Factions currently use `setScreenAndShow` on 26.2 and neither has ever been
+rendered** — the 26.x branches are compile-verified only. Check this the first time a 26.2 client
+actually opens the chat box from the faction pane's create button.
+
 ## Traps already known about, so they cost nothing twice
 
 - **Java version tracks Minecraft.** 26.1 shipped `java-runtime-epsilon` and needed JDK 25.
