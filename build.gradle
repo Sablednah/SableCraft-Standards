@@ -188,6 +188,38 @@ dependencies {
     }
 }
 
+// The build stamp: which commit these bytes came from.
+//
+// A version number answers "which release". During development that is a different question from
+// "which bytes", and the gap between them cost three sessions a day between them: a jar rebuilt
+// under an unchanged version broke an already-shipped consumer, a dependency range admitted a jar
+// it could not run against, and nobody could tell a stale instance jar from its filename.
+//
+// ⚠ The LOG LINE is the half that matters. A stamp inside a jar says what is on disk; the startup
+// line says what actually RAN, which is the question a bug report needs and the one none of us
+// could answer for the panel work.
+//
+// Resolved at configure time and tolerant of git being absent — a source zip, a CI checkout with
+// no history. An unknown stamp must never fail a build; it is diagnostic information, not a
+// dependency. Format agreed with LegendQuest, which implemented it first; keep the four field
+// names identical across the mods so one reader works everywhere.
+static String gitOut(File dir, String... args) {
+    try {
+        var proc = new ProcessBuilder(args).directory(dir).redirectErrorStream(true).start()
+        var out = proc.inputStream.text.trim()
+        return proc.waitFor() == 0 && !out.isEmpty() ? out : null
+    } catch (Exception ignored) {
+        return null
+    }
+}
+var buildCommit = gitOut(projectDir, "git", "rev-parse", "--short=8", "HEAD") ?: "unknown"
+var buildBranch = gitOut(projectDir, "git", "rev-parse", "--abbrev-ref", "HEAD") ?: "unknown"
+// Built from uncommitted changes? Say so. Seeing "-dirty" in somebody's log saves an hour
+// reproducing against a tag that is not what they ran.
+if (gitOut(projectDir, "git", "status", "--porcelain")) buildCommit += "-dirty"
+var buildTime = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone("UTC"))
+logger.lifecycle("Build stamp: ${buildCommit} on ${buildBranch} at ${buildTime}")
+
 // Expand mod metadata properties into the generated neoforge.mods.toml.
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     var replaceProperties = [
@@ -202,6 +234,9 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_version            : mod_version,
             mod_authors            : mod_authors,
             mod_description        : mod_description,
+            build_commit           : buildCommit,
+            build_branch           : buildBranch,
+            build_time             : buildTime,
     ]
     inputs.properties replaceProperties
     expand replaceProperties
@@ -210,6 +245,20 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
 }
 sourceSets.main.resources.srcDir generateModMetadata
 neoForge.ideSyncTask generateModMetadata
+
+// The same four values as manifest attributes, for anything inspecting a jar WITHOUT loading it —
+// which is what answers "is this instance jar stale" from a shell.
+tasks.named('jar', Jar) {
+    manifest {
+        attributes([
+                "Implementation-Title"  : mod_name,
+                "Implementation-Version": mod_version,
+                "Build-Commit"          : buildCommit,
+                "Build-Branch"          : buildBranch,
+                "Build-Time"            : buildTime,
+        ])
+    }
+}
 
 publishing {
     publications {

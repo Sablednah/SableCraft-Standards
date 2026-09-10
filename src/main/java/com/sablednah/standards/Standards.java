@@ -34,7 +34,9 @@ public class Standards {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public Standards(IEventBus modEventBus, ModContainer modContainer) {
-        LOGGER.info("Standards initialising");
+        // Which bytes, not just which release — see BuildInfo. This line is what a bug report can
+        // quote, and the only record of what actually ran.
+        LOGGER.info("SableCraft Standards {}", BuildInfo.describe());
 
         modContainer.registerConfig(ModConfig.Type.COMMON, StandardsConfig.SPEC);
 
