@@ -66,8 +66,17 @@ export PATH="$JAVA_HOME/bin:$PATH"
 ./deploy.sh                       # build + copy into the CurseForge test instance
 ```
 
-- **The dev server runs on port 25569**, set in `gradle.properties`, so it cannot collide with a
-  CityWorld `runServer` (25565) or a ZombieMod one (25567). **Kill the previous `runServer` before
+- ⚠ **`dev_server_port=25569` in `gradle.properties` is the CLIENT's target, not the server's
+  port.** It is baked into `runClientBuddy`/`runClientThird` as
+  `--quickPlayMultiplayer 127.0.0.1:25569`. The server's actual port comes from
+  `run/server.properties`, which is **gitignored** — so it is set by hand per checkout and drifts.
+  On this desktop the two disagree today: `server-port=25565` while the clients quick-play to
+  25569, which means auto-join has silently never worked here. The symptom is a client that starts,
+  joins nothing, and looks like broken quick-play rather than a wrong number. **Set them to match
+  when you create a `run/`.** (Found by LegendQuest while checking a port table across every repo;
+  only Standards, Cast and Chronicler declare a `dev_server_port` at all.)
+- **25569 was chosen** so it cannot collide with a CityWorld `runServer` (25565) or a ZombieMod one
+  (25567). **Kill the previous `runServer` before
   starting another** — a lingering one holds the port and the clash surfaces as
   `bind(..) failed: Address already in use` → `Failed to initialize server` → a crash report, which
   reads like a code fault and is not one.
@@ -438,6 +447,47 @@ unzip -oq ../build/moddev/artifacts/neoforge-21.11.42-sources.jar 'net/neoforged
 - `AttributeModifier` is a **record** `(Identifier id, double amount, Operation)`;
   `AttributeInstance.removeModifier(Identifier)` and `addTransientModifier(...)`.
 - `CompoundTag` getters return `Optional`.
+
+## The second machine, and the thing it can do that Windows cannot
+
+`ssh -i ~/.ssh/vivo_ed25519 sable@192.168.7.102` — "Vivo", an 8-core/18GB Ubuntu laptop beside the
+desktop, set up by the LegendQuest session. Its own write-up is `~/dev/README.md` **on that machine**
+and is the authority; this is only what Standards needs.
+
+**The point is not spare capacity, it is that a client can be driven.** On Windows,
+`SetForegroundWindow` is refused to a background process and `PostMessage` does not reach GLFW, so
+synthetic keystrokes land in whatever window the owner is actually using — a client here cannot be
+automated at all. On Vivo the client runs on a private `Xvfb` display where nothing competes for
+focus and `xdotool` owns it completely.
+
+That converts most of the "needs a person" list into something checkable. Verified there on
+2026-09-10, unattended: the faction pane opening on the left with the inventory shifted, the members
+tab with twenty seeded members, the ▲▼✕ row buttons landing on their rows, a sixteen-character name
+not clipping, and **the scrollbar dragged with `mousedown`/`mousemove`/`mouseup`** — which had never
+been exercised anywhere.
+
+```bash
+~/dev/xstart.sh :9                 # Xvfb, display 9 is Standards' claim
+~/dev/std-server.sh [-Pselftest]   # gradlew runServer, port 25569
+~/dev/std-client.sh                # gradlew runClientBuddy on :9, auto-joins
+DISPLAY=:9 xdotool key t; xdotool type "/f panel"; xdotool key Return
+import -window root /tmp/shot.png  # then scp it back
+```
+
+Three things it cost, each worth knowing once:
+
+- ⚠ **`gradlew` was committed 100644 and a clone could not build.** `/mnt/d` is drvfs and cannot
+  represent the mode, so git never noticed here. Fixed — but the class of bug is the lesson: this
+  repo builds on one filesystem that cannot express some of its own defects.
+- ⚠ **Read chat from the client's log, not from RCON.** `Feedback.chat` sends to the *player*, so
+  RCON returns an empty string even on success. `grep -o "\[CHAT\].*" runBuddy/logs/latest.log`.
+- **Rendering is llvmpipe**: a few frames a second. Fine for keys, clicks and screenshots, useless
+  for judging whether anything looks smooth. "The code ran" and "the pixels are right" are still
+  different questions, and only the first is answerable there.
+
+⚠ **Never `pgrep -f`/`pkill -f` a pattern that appears in your own command line** — over SSH that
+kills the shell asking the question and reads as a dropped connection. Ask the thing itself: a port
+(`ss -lntp | grep :25569`), `xdpyinfo -display :9`, a window id.
 
 ## Two-player testing on Windows + WSL
 
