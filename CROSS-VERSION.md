@@ -311,7 +311,24 @@ difference between a check and a hope.
 
 ⚠ It only works while the branches differ by *mechanical* substitutions. The moment a branch has a
 genuine behavioural divergence, step 1 fails — which is itself the signal to stop and merge
-properly, rather than a reason to skip the check.
+properly, rather than a reason to skip the check. The method is safe **because the diff comes back
+empty**; a non-empty diff has told you something true and the answer is to listen to it, not to
+widen the filter until it passes.
+
+⚠ **And be precise about what it does not catch.** It catches a wrong *resolution*, because that
+shows up as an unexpected line. It does **not** catch a wrong *substitution list* — get the list
+wrong and the filtered diff comes back clean, and is clean about the wrong thing.
+
+The case in point is in this document. `Minecraft.setScreen` has two plausible 26.2 successors and
+the obvious-looking one is wrong: `setScreenAndShow` reads like the rename, and is actually
+`gui.setScreen` plus a synchronous forced frame. A port built on that belief would verify perfectly
+and quietly cost a frame-time spike inside every click handler that opened a screen — the kind of
+thing nobody ever traces back.
+
+So: **the substitution list must come from the branch's own existing code**, not from what a name
+looks like it should mean. Find a call site that already works on that branch and copy what it does.
+That is where LegendQuest's list came from, which is why its port was right and the note it sent
+about it was not.
 
 ## 26.2 moved the screen accessors, and 26.1 did **not**
 
