@@ -88,6 +88,7 @@ public final class SelfTest {
         checkReputation(server);
         checkCapabilityPayload();
         checkActionSeam();
+        checkBuildStamp();
         checkSafeLoc(server);
         checkTeleportRequests();
         checkDurations();
@@ -922,6 +923,67 @@ public final class SelfTest {
      * Every command must parse from the console <em>and</em> reach an executable node. A literal
      * that exists but leads nowhere is the failure mode a bare {@code parse()} misses.
      */
+    /**
+     * The build stamp, including the paths that only run when something is wrong.
+     *
+     * <p>⚠ <b>This exists because the degrade path was asserted and not executed.</b>
+     * {@code BuildInfo}'s own javadoc claimed "degrades to unknown and never throws" for an hour
+     * before anything ran it — a claim, not a result, and exactly the bug family this file's
+     * header is about. MobHealth spotted it by testing theirs on a bare classpath instead of
+     * reading the comment.</p>
+     *
+     * <p>It drives {@code BuildInfo.read} itself rather than a copy of the parsing, which is the
+     * rule this whole class keeps: a probe that re-derives what it is testing is testing the
+     * duplicate.</p>
+     */
+    private void checkBuildStamp() {
+        // Built rather than written inline: a newline and a backslash inside a Java string inside
+        // a generated file is three levels of escaping and every one of them has been wrong once.
+        final String NL = System.lineSeparator();
+        final String BAD_ESCAPE = "\\" + "uZZZZ";
+
+        // The real one, from the resource the build generated. Not asserting a particular value —
+        // that would fail on a source checkout — only that it resolved to something.
+        check("the build stamp reports a version",
+                !com.sablednah.standards.BuildInfo.version().isBlank());
+        check("...and a commit",
+                !com.sablednah.standards.BuildInfo.commit().isBlank());
+        check("...and describes itself in one line",
+                com.sablednah.standards.BuildInfo.describe().contains("build "));
+
+        // No resource at all: a source build, or a jar somebody stripped.
+        var absent = com.sablednah.standards.BuildInfo.read(null);
+        check("a missing stamp reads as unknown rather than null",
+                "unknown".equals(absent.commit()) && "unknown".equals(absent.branch())
+                        && "unknown".equals(absent.time()) && "unknown".equals(absent.version()));
+
+        // A partial one: present, readable, and missing fields. Each key degrades on its own.
+        var partial = com.sablednah.standards.BuildInfo.read(
+                new java.io.ByteArrayInputStream(("commit=abc12345" + NL).getBytes(
+                        java.nio.charset.StandardCharsets.UTF_8)));
+        check("a partial stamp keeps what it has", "abc12345".equals(partial.commit()));
+        check("...and degrades only what it lacks", "unknown".equals(partial.branch()));
+
+        // ⚠ Malformed rather than merely absent, and the distinction matters: Properties.load
+        // throws IllegalArgumentException — NOT an IOException — on a bad unicode escape, so a
+        // catch of IOException alone would let a corrupt resource take the mod down at class-init.
+        var malformed = com.sablednah.standards.BuildInfo.read(
+                new java.io.ByteArrayInputStream(("commit=" + BAD_ESCAPE + NL).getBytes(
+                        java.nio.charset.StandardCharsets.UTF_8)));
+        check("a malformed stamp degrades instead of throwing",
+                "unknown".equals(malformed.commit()));
+
+        // And a stream that fails mid-read, which is the one case neither of the above covers.
+        var broken = com.sablednah.standards.BuildInfo.read(new java.io.InputStream() {
+            @Override
+            public int read() throws java.io.IOException {
+                throw new java.io.IOException("deliberate");
+            }
+        });
+        check("an unreadable stamp degrades instead of throwing",
+                "unknown".equals(broken.commit()));
+    }
+
     /**
      * The action seam: ordering, and that it refuses a duplicate rather than silently replacing.
      *
