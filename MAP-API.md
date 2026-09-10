@@ -1,6 +1,9 @@
-# Maps — decorating somebody else's, not building our own
-
-**Status: researched 2026-09-08 against the real API sources, nothing built.** A plan for putting
+**Status: Factions' JourneyMap integration is BUILT and compile-verified, 2026-09-11 — and nothing
+has been seen on a real map yet.** The server plugin (territory polygons, standard waypoints), the
+client plugin (layer toggle, claim mode, click-to-claim) and the coordinate `/f claim <x> <z>`
+commands all exist and self-test. What has never happened is a rendered frame: JourneyMap is not in
+the dev server's mods folder, and CityWorld's notes are emphatic that **only a real client catches a
+client-plugin crash**, having had two reach a player. Treat every visual claim below as unverified.
 faction claims, homes, warps, quest markers and landmarks on a map, without this series growing a
 cartography mod. No code exists in any repo yet, and the version compatibility caveat in §7 is
 unresolved.
