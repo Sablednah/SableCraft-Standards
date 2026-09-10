@@ -756,6 +756,18 @@ long after start-up, in a mod that looks innocent.
 So: the moment a seam gains a method another mod could call, bump. It costs nothing — the number is
 free until CurseForge sees it — and it is the only thing a consumer's range can be honest about.
 
+⚠ **And bumping is not enough on its own, because VERSION EQUALITY IS NOT BUILD EQUALITY.** Between
+two bumps a version number names many different builds, and nothing on disk distinguishes them.
+LegendQuest very nearly shipped the carried-item bug to a live instance for exactly this reason: the
+deployed jar was the pre-1.8.0 *workaround* and the fixed one was the seam version, both named
+`legendquest-2.5.0+mc1.21.11.jar`, both reporting 2.5.0, three kilobytes apart — and a redeploy had
+been skipped because "the version already reads 2.5.0". The only thing that told them apart was the
+build stamp inside.
+
+That is what `BuildInfo` is for, and why the startup log line matters more than the stamp in the
+jar: the jar says what is on disk, the log says what ran. A `-dirty` suffix earns its keep the same
+way — a clean clone of this repo stamped itself dirty on the day the stamp shipped, and was right.
+
 ⚠ And **put the reason beside the number**, in `gradle.properties`. A version one minor ahead of the
 published release looks like a mistake, and the next person will "fix" it. Same instinct as the
 javadoc note telling people not to add a scissor to the panel host: the code cannot defend a
