@@ -973,6 +973,19 @@ public final class SelfTest {
         check("a malformed stamp degrades instead of throwing",
                 "unknown".equals(malformed.commit()));
 
+        // ⚠ The dangerous one, and the one the two cases above do NOT cover: a stamp whose FIRST
+        // line is valid and whose second is not. Properties.load parses line by line and throws
+        // part-way, so a reader that took fields as they arrived would report a real-looking commit
+        // with everything else missing — which looks like an answer and is not. All four fields
+        // must degrade together.
+        var halfCorrupt = com.sablednah.standards.BuildInfo.read(
+                new java.io.ByteArrayInputStream(
+                        ("commit=abc12345" + NL + "branch=" + BAD_ESCAPE + NL).getBytes(
+                                java.nio.charset.StandardCharsets.UTF_8)));
+        check("a stamp that goes bad half way discards the good half too",
+                "unknown".equals(halfCorrupt.commit())
+                        && "unknown".equals(halfCorrupt.branch()));
+
         // And a stream that fails mid-read, which is the one case neither of the above covers.
         var broken = com.sablednah.standards.BuildInfo.read(new java.io.InputStream() {
             @Override
