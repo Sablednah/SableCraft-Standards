@@ -643,7 +643,15 @@ suspect. LQ's `CharacterPane` is the first non-default `theme()` anyone has ever
       (purple, then gold) in the same slot, which proves `theme()` is genuinely per-panel
 - [x] LQ's pane draws in **its own gold-on-near-black**, not Standards' purple — the first time
       `theme()` has been called with anything but its default. **Confirmed at GUI scale 2 only**
-- [ ] ...at GUI scales 1, 3 and 4
+- [x] GUI scale **2 and 3** — driven client on Vivo, 2026-09-10. Bar rows and pane both scale and
+      stay aligned to the inventory's edge
+- [ ] GUI scale 4 needs a window at least 960 logical pixels tall; Minecraft silently clamps the
+      setting to what fits, so `guiScale:4` in a 720p window is really scale 3 and proves nothing.
+      Scale 1 has strictly more room than any verified case
+- [x] the **potion effects panel is visible beside the inventory with a pane open** — the regression
+      that moving off the right existed to fix, seen rather than reasoned about
+- [x] withheld buttons are withheld in practice: with no warps and no faction home set, `warp` and
+      `factions:home` are simply absent, and the other nine draw
 - [x] the alpha over the inventory is correct. **Measured 2026-09-10**, not eyeballed: predicted
       `0x101018` over the closed-state pixel at `0xE8/255` against the actual open pixel, worst
       channel error **1/255** across six points. Note LQ discarded three more where the closed shot
@@ -665,6 +673,13 @@ suspect. LQ's `CharacterPane` is the first non-default `theme()` anyone has ever
       LQ's own hook over the region left of the GUI, not the seam's — see PANELS-API.md §4a
 - [ ] ...and a click **inside** either pane still reaches the pane, so the shield is not fighting
       the host's routing
+- [x] **the scrollbar drags.** Driven with `mousedown`/`mousemove`/`mouseup` on Vivo, 2026-09-10:
+      twenty-one members scrolled from the top of the list to the bottom and the thumb tracked with
+      it. This had never been exercised anywhere — dragging is the one thing a screenshot cannot
+      fake, and it is not reachable at all from a Windows client
+- [x] ⚠ **carrying an item to LegendQuest's spellbook slot does not drop it.** Confirmed by the
+      owner on a real client after `mouseReleased` gained its boolean; loadout and skill reorder
+      both behaving, nothing duplicated or lost
 - [ ] drag a skill onto a slot and release **outside** the pane — the drag survives leaving it
 - [ ] a drag that merely crosses a pane with nothing in flight is **not** swallowed
 - [ ] `onClose()` fires for every route: closing it, opening the other pane, opening the recipe
@@ -691,6 +706,19 @@ suspect. LQ's `CharacterPane` is the first non-default `theme()` anyone has ever
       buttons — a pane is solid
 - [ ] the wheel over the **overview** tab is not swallowed: it does whatever it did before, because
       that tab has nothing to scroll
+
+### ⚠ Creative mode shows no bar and no pane at all — found 2026-09-10, undecided
+
+Everything keys off `event.getScreen() instanceof InventoryScreen`. Creative uses
+`CreativeModeInventoryScreen`, a sibling rather than a subclass, so an operator in creative gets
+neither the action bar nor any pane. Found on the driven client by switching game mode and watching
+both vanish.
+
+Whether that is a gap or the intended scope is a decision rather than a bug report: the bar's
+geometry is built around the survival inventory, and broadening the check to
+`AbstractContainerScreen` would put it under chests and furnaces too. Left as-is pending that call —
+but the people most likely to want `/fly`, `/god` and `/vanish` on a button are exactly the people
+who spend their time in creative.
 
 ### The panel with no faction — built 2026-09-09
 
