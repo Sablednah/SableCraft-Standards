@@ -944,10 +944,15 @@ public final class SelfTest {
 
         // The real one, from the resource the build generated. Not asserting a particular value —
         // that would fail on a source checkout — only that it resolved to something.
-        check("the build stamp reports a version",
-                !com.sablednah.standards.BuildInfo.version().isBlank());
-        check("...and a commit",
-                !com.sablednah.standards.BuildInfo.commit().isBlank());
+        // ⚠ Not merely non-blank — GENERATED. This runs from a Gradle build, so the resource is
+        // always present and the stamp must be real. "unknown" here means generation broke
+        // silently, which is the failure that looks exactly like nothing being wrong. CityWorld's
+        // point: a fallback verified once is a fallback that rots, and so is the generator.
+        check("the build stamp was actually generated, not defaulted",
+                !"unknown".equals(com.sablednah.standards.BuildInfo.commit())
+                        && !"unknown".equals(com.sablednah.standards.BuildInfo.version()));
+        check("...and the version carries the Minecraft line",
+                com.sablednah.standards.BuildInfo.version().contains("+mc"));
         check("...and describes itself in one line",
                 com.sablednah.standards.BuildInfo.describe().contains("build "));
 
@@ -985,18 +990,19 @@ public final class SelfTest {
         check("a stamp that goes bad half way discards the good half too",
                 "unknown".equals(halfCorrupt.commit())
                         && "unknown".equals(halfCorrupt.branch()));
+        // ⚠ VALID-THEN-BAD, and the order is the whole point. A reversed fixture — bad escape
+        // first — cannot tell a correct implementation from a broken one, because load throws on
+        // line one with nothing populated and BOTH return unknown. This repo briefly carried that
+        // reversed case on the strength of reasoning; measured against two deliberately broken
+        // implementations, it catches a strict subset of what this one does:
+        //
+        //     fixture           correct   swallow-then-read   lenient-skip-bad-line
+        //     valid then bad    unknown   deadbeef (caught)   deadbeef (caught)
+        //     bad then valid    unknown   unknown  (MISSED)   deadbeef (caught)
+        //
+        // Both orderings pass against CORRECT code, which is exactly why reasoning about them
+        // settled nothing and running a broken one settled it immediately.
 
-        // ⚠ And the same thing with the bad line FIRST. Against Properties.load this is trivially
-        // unknown — the throw comes before anything parses — so it looks redundant beside the case
-        // above. It is not: it guards the OTHER implementation somebody might reach for, a lenient
-        // line parser that skips a bad line and carries on. Under that, the case above passes and
-        // this one fails. LegendQuest's addition; the two orderings together catch what either
-        // alone can miss.
-        var badFirst = com.sablednah.standards.BuildInfo.read(
-                new java.io.ByteArrayInputStream(
-                        ("branch=" + BAD_ESCAPE + NL + "commit=abc12345" + NL).getBytes(
-                                java.nio.charset.StandardCharsets.UTF_8)));
-        check("...in either order", "unknown".equals(badFirst.commit()));
 
         // And a stream that fails mid-read, which is the one case neither of the above covers.
         var broken = com.sablednah.standards.BuildInfo.read(new java.io.InputStream() {
