@@ -707,18 +707,28 @@ suspect. LQ's `CharacterPane` is the first non-default `theme()` anyone has ever
 - [ ] the wheel over the **overview** tab is not swallowed: it does whatever it did before, because
       that tab has nothing to scroll
 
-### ⚠ Creative mode shows no bar and no pane at all — found 2026-09-10, undecided
+### Creative mode shows no bar and no pane — settled 2026-09-10, and it stays that way
 
-Everything keys off `event.getScreen() instanceof InventoryScreen`. Creative uses
-`CreativeModeInventoryScreen`, a sibling rather than a subclass, so an operator in creative gets
+Everything keys off `event.getScreen() instanceof InventoryScreen`, and creative uses
+`CreativeModeInventoryScreen` — a sibling rather than a subclass — so an operator in creative gets
 neither the action bar nor any pane. Found on the driven client by switching game mode and watching
-both vanish.
+both disappear, and raised as a possible gap on the grounds that admins live in creative.
 
-Whether that is a gap or the intended scope is a decision rather than a bug report: the bar's
-geometry is built around the survival inventory, and broadening the check to
-`AbstractContainerScreen` would put it under chests and furnaces too. Left as-is pending that call —
-but the people most likely to want `/fly`, `/god` and `/vanish` on a button are exactly the people
-who spend their time in creative.
+**The owner's call is that it is correct as it stands, and the reason is better than the objection:
+creative already grants flight, invulnerability and being ignored by mobs, so the switches the bar
+exists to offer are things that mode has already given you.** A button for `/fly` in creative is a
+button for something that is already on.
+
+Two things worth having on the record for whoever revisits this:
+
+- `/vanish` is the partial exception — creative does not hide you from other *players*. The command
+  is unaffected, so nothing is lost beyond the shortcut.
+- The alternative was broadening the check to `AbstractContainerScreen`, which would have put the
+  bar under chests, furnaces and every other container as well. That is the cost that made this a
+  decision rather than an oversight.
+
+⚠ **So `instanceof InventoryScreen` is load-bearing, not incidental.** Do not widen it while
+"fixing" something else.
 
 ### The panel with no faction — built 2026-09-09
 
