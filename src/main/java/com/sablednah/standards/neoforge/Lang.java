@@ -651,7 +651,17 @@ public final class Lang {
         def("msg.perm.group_tag", "{term.dim}  chat tag:&r [{tag}]");
         def("msg.perm.no_nodes", "{term.dim}  no nodes set");
         def("msg.perm.node_row", " &f{node} {term.dim}=&r {state}");
-        def("msg.perm.group_unknown", "&cNo {term.rank} called &f{name}&c.");
+        // ⚠ Says what to do, not only what is wrong. "No rank called default" was the answer to
+        // the first thing an admin tries on a fresh server, and it reads as a typo rather than as
+        // a missing step.
+        def("msg.perm.group_unknown",
+                "&cNo {term.rank} called &f{name}&c. {term.dim}(/rank group {name} create)");
+        def("msg.perm.group_unknown_default",
+                "&cThe default {term.rank} &f{name}&c does not exist yet. "
+                        + "{term.dim}(/rank group {name} create — it is the one your config names)");
+        def("msg.perm.group_created_default",
+                "{term.prefix} &7Created the default {term.rank} &f{name}&7. "
+                        + "{term.dim}(your config already names it)");
         def("msg.perm.group_exists", "&cThere is already a {term.rank} called &f{name}&c.");
         def("msg.perm.group_created", "{term.prefix} &7Created {term.rank} &f{name}&7.");
         def("msg.perm.group_deleted", "{term.prefix} &7Deleted {term.rank} &f{name}&7, and took it off everyone who had it.");

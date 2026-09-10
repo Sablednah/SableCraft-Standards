@@ -70,6 +70,15 @@ public final class ActionBar {
      */
     private static String expanded;
 
+    /**
+     * How long a hint may be before it lives in the tooltip alone.
+     *
+     * <p>Three, because the overlay it borrows is vanilla's stack count and that is what it is
+     * shaped for — "64" fits, "999" fits, a name does not. A hint longer than this is not a smaller
+     * label, it is unreadable text over an icon.</p>
+     */
+    private static final int MAX_ICON_HINT = 3;
+
     private record Entry(Action action, Button button) {}
 
     @SubscribeEvent
@@ -370,8 +379,18 @@ public final class ActionBar {
                                 ? 0xFF55FF55 : 0xFFAAAAAA);
             }
 
+            // ⚠ SHORT hints only. This is the stack-count overlay, sized for "64" and not for a
+            // word: StoryTeller's possession hint is the name of whoever you are wearing, and
+            // "Daisy" rendered sprawled across a 16-pixel icon — "waaay too big", correctly.
+            //
+            // The threshold rather than removing it, because the number is the thing that was
+            // asked for: this bar shipped without one and the first report back was "there's no
+            // number on the home button". Dropping every hint to the tooltip would fix a name by
+            // regressing a count. Anything longer than a stack size belongs in the tooltip, which
+            // already carries it as "name (hint)" — so nothing is lost, it just stops shouting.
             String hint = ClientCapabilities.hint(entry.action().id());
-            if (!hint.isEmpty()) {
+            if (!hint.isEmpty() && hint.length() <= MAX_ICON_HINT) {
+                // 26.x renamed renderItemDecorations -> itemDecorations.
                 graphics.itemDecorations(
                         net.minecraft.client.Minecraft.getInstance().font, icon, x + 2, y + 2,
                         hint);
