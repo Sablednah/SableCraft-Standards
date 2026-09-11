@@ -96,8 +96,20 @@ public final class PermissionRoles implements GroupProvider {
         return KIND;
     }
 
+    /**
+     * ⚠ No player means no roles — see {@code StandardsGroupProvider.groupsOf}, which needed the
+     * same guard for the same reason.
+     *
+     * <p>Two providers, one mistake, and the second only surfaced because the first was fixed and
+     * the log was read afterwards rather than assumed clean. Worth the note: the seam hands a
+     * provider whatever the caller passed, so <b>every</b> provider that dereferences the player
+     * owns this, and a new one will need it too.</p>
+     */
     @Override
     public Collection<Group> groupsOf(ServerPlayer player) {
+        if (player == null) {
+            return List.of();
+        }
         PermissionStore store = PermissionStore.get(server);
         return store.groupsOf(player.getUUID()).stream()
                 .map(store::group)
