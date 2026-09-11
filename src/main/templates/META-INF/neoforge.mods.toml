@@ -14,9 +14,24 @@ description='''
 ${mod_description}
 '''
 displayURL="https://github.com/Sablednah/SableCraft-Standards"
-logoFile="standards.png"
-# 256x256, which is what the mods list actually draws at — a larger source is jar weight for
-# pixels nobody sees. Not blurred, so the pixel-art blocks in it stay crisp at that size.
+# Three keys, because the mod list changed shape in 26.2:
+#   iconFile   — the small SQUARE beside the name in the list (26.2+). Without one, our row is
+#                the only one in the list with no icon at all.
+#   bannerFile — the wide image in the info panel (26.2+), drawn at its own aspect ratio.
+#   logoFile   — what 1.21.x and 26.1 show in the info panel, and what 26.2 falls back to when
+#                bannerFile is absent. Kept so older versions still show artwork.
+# Older loaders ignore the two keys they do not know, so all three ship on every branch.
+iconFile="standards.png"
+bannerFile="standards-banner.png"
+logoFile="standards-banner.png"
+# The icon is 256x256, which is what the list actually draws at — a larger source is jar weight
+# for pixels nobody sees.
+#
+# ⚠ NOT blurred, and that is deliberate rather than an omission: the artwork is pixel-art blocks,
+# which go soft and muddy under smoothing. Factions sets both to true for the opposite reason —
+# its banner has soft edges that go crunchy at nearest-neighbour. Match the art, not the sibling.
+logoBlur=false
+iconBlur=false
 
 # The mod's only mixin: /vanish answers vanilla's own visibility question rather than fighting
 # the entity tracker with packets. See ServerPlayerVanishMixin for why, and check it first on a
