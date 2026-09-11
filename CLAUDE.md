@@ -481,6 +481,18 @@ Three things it cost, each worth knowing once:
   repo builds on one filesystem that cannot express some of its own defects.
 - ⚠ **Read chat from the client's log, not from RCON.** `Feedback.chat` sends to the *player*, so
   RCON returns an empty string even on success. `grep -o "\[CHAT\].*" runBuddy/logs/latest.log`.
+- ⚠ **Do NOT mute the Vivo client, unlike the Windows ones.** `TestClient.cmd` zeroes every
+  `soundCategory_*` because two clients and a server on one desktop play everything twice, slightly
+  out of step. `std-client.sh` deliberately does not, and that is the owner's decision rather than
+  an oversight: the client runs on a private `Xvfb` display where **no window ever appears on a
+  screen**, so the music is the only thing that says one is still running. A session left one up for
+  half an hour and the owner heard it from the study — which is the mechanism working, not failing.
+  He turned the volume down rather than accept a mute.
+
+  The corollary is the actual rule: **stop the client when you are finished with it**, every time,
+  not only at the end of a session. Restarting it for one more check and forgetting is exactly how
+  this happened.
+
 - **Rendering is llvmpipe**: a few frames a second. Fine for keys, clicks and screenshots, useless
   for judging whether anything looks smooth. "The code ran" and "the pixels are right" are still
   different questions, and only the first is answerable there.
