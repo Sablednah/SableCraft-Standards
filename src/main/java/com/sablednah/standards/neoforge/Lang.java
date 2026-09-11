@@ -730,7 +730,7 @@ public final class Lang {
             Standards.LOGGER.warn("Missing message key '{}'", key);
             return key;
         }
-        return substituteTerms(template);
+        return substituteTerms(key, template);
     }
 
     /** {@code fmt("msg.home.set", "name", home, "place", where)} — key/value pairs. */
@@ -774,9 +774,15 @@ public final class Lang {
         return get("term." + name);
     }
 
-    private static String substituteTerms(String template) {
+    private static String substituteTerms(String forKey, String template) {
         if (!template.contains("{term.")) return template;
         String out = template;
+        // ⚠ The owning mod's prefix, not always Standards' — see ownPrefix. Done FIRST, so the
+        // generic pass below finds no {term.prefix} left to replace on a contributed message.
+        String own = ownPrefix(forKey);
+        if (own != null) {
+            out = out.replace("{term.prefix}", own);
+        }
         for (String key : DEFAULTS.keySet()) {
             if (!key.startsWith("term.")) continue;
             String marker = "{" + key + "}";
@@ -785,6 +791,47 @@ public final class Lang {
             }
         }
         return out;
+    }
+
+    /**
+     * The prefix belonging to whichever mod owns this message, or null to use Standards' own.
+     *
+     * <h2>⚠ {@code {term.prefix}} means "the prefix of whoever owns this line"</h2>
+     *
+     * <p>Not "Standards' prefix". Factions contributes eighty-odd messages through
+     * {@link #contribute}, every one of them opening with {@code {term.prefix}} — so a faction
+     * claiming a chunk announced itself as <b>[Standards]</b>, and so did every other Factions
+     * command. Factions is a separate mod and a separate release; signing its messages with
+     * another mod's name is simply wrong, and it took an owner reading his own chat log to notice.</p>
+     *
+     * <p>Keys are already required to carry their mod id — {@code msg.factions.claimed}; see
+     * {@link #contribute} — so the owner is right there in the key. A mod gets its own identity by
+     * defining <b>{@code term.<modid>.prefix}</b> and nothing else: no API change, no second
+     * template syntax, and the owner can re-skin it in the same file as everything else.</p>
+     *
+     * <p><b>Why it is resolved here rather than by rewriting Factions' templates.</b> Because
+     * substitution happens on the <em>stored</em> template, and `messages.yml` is merged rather
+     * than overwritten — a server that has already run keeps the text it has. Editing the eighty
+     * defaults would have fixed a fresh install and left every existing one still saying
+     * [Standards], which is the half of the change nobody would have tested.</p>
+     *
+     * <p>Standards' own keys ({@code msg.home.set}) have no mod-id segment, so they never match and
+     * keep {@code term.prefix} exactly as before.</p>
+     */
+    private static String ownPrefix(String forKey) {
+        if (forKey == null || !forKey.startsWith("msg.")) {
+            return null;
+        }
+        int dot = forKey.indexOf('.', 4);
+        if (dot < 0) {
+            return null;
+        }
+        String candidate = "term." + forKey.substring(4, dot) + ".prefix";
+        String value = active.get(candidate);
+        if (value == null) {
+            value = DEFAULTS.get(candidate);
+        }
+        return value;
     }
 
     // --- file lifecycle ---
