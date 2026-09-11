@@ -1,12 +1,19 @@
-**Status: Factions' JourneyMap integration is BUILT and compile-verified, 2026-09-11 — and nothing
-has been seen on a real map yet.** The server plugin (territory polygons, standard waypoints), the
-client plugin (layer toggle, claim mode, click-to-claim) and the coordinate `/f claim <x> <z>`
-commands all exist and self-test. What has never happened is a rendered frame: JourneyMap is not in
-the dev server's mods folder, and CityWorld's notes are emphatic that **only a real client catches a
-client-plugin crash**, having had two reach a player. Treat every visual claim below as unverified.
-faction claims, homes, warps, quest markers and landmarks on a map, without this series growing a
-cartography mod. No code exists in any repo yet, and the version compatibility caveat in §7 is
-unresolved.
+**Status: Factions' JourneyMap integration is BUILT and driven end to end on a real client,
+2026-09-11.** Territory polygons with relation borders, the hover tooltip, the layer switch, claim
+mode with click-to-claim and right-click-to-unclaim, and standard waypoints in their own folder —
+all watched on a live map rather than inferred from a log. What playing it found, and reading the
+code had not:
+
+- **The layer button flipped its own label and nothing else.** The overlays are pushed by the
+  server, so a client-side `BooleanOption` is a preference nobody reads. It is now `/f map layer
+  on|off`, like every other button in this pair.
+- **Standard pins multiplied.** Every push mints a new guid, so one banner and one walk to the
+  nether and back left two pins. They are now taken down and re-pushed as a whole set.
+- **`WaypointGroup.addWaypoint` is client-only** and throws `ClassCastException` on a dedicated
+  server, returning `false` unconditionally either way. The folder existed and was empty.
+
+All three are the same shape and it is the one CityWorld's notes warn about: **only a real client
+catches a client-plugin fault**, and two of these three were entirely silent.
 
 ---
 
