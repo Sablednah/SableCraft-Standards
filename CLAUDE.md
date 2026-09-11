@@ -773,6 +773,41 @@ published release looks like a mistake, and the next person will "fix" it. Same 
 javadoc note telling people not to add a scissor to the panel host: the code cannot defend a
 decision it does not explain.
 
+### A sixth: a control that reports itself, and a container that reports nothing
+
+Both halves of a pair can be individually correct and the feature still be broken, because the
+defect is in the gap between them and neither side can see it. Three in one afternoon, all on
+Factions' JourneyMap layer, and **all three invisible to every check short of watching a real
+client**:
+
+- **The layer button flipped its own label and nothing else.** It wrote a client-side
+  `BooleanOption`; the overlays are pushed by the *server*, which was never told. The tooltip read
+  "off" over a map still covered in territory. Nothing threw, nothing logged, and the code on each
+  side read correctly in isolation. The fix is the rule this repo already had — **buttons run
+  commands** — applied to a preference rather than an action: `/f map layer on|off`, which a vanilla
+  client can type.
+- **The waypoint folder was created empty.** The API's own `WaypointGroup.addWaypoint` is a *client*
+  method: on a dedicated server it casts to `ClientWaypointImpl` and throws, and it returns `false`
+  unconditionally so the return value cannot tell you either. Our `catch` logged one DEBUG line. The
+  folder existed, the pin sat in Default, and the only way to know was to open the waypoint manager.
+- **The pins multiplied.** Every push minted a new id and nothing took the old one down. One banner,
+  one walk to the nether and back, and the manager read **2** — which also meant a standard that was
+  captured or broken stayed pinned where it no longer stood.
+
+The generalisation, and it is worth more than the three bugs: **a control must report the state of
+the thing it controls, not its own.** A switch that shows what it was last set to is telling you
+about itself, and it is right about that while being wrong about everything you care about. Same for
+a container: a group, a folder, a list that can be created without anything ever going into it will
+be created empty, and an empty container looks exactly like an empty *collection*.
+
+Both are the "correctly withheld looks exactly like broken" family seen from the other end — there,
+correct behaviour looked like a bug; here, a bug looked like correct behaviour. **The second is
+worse, because nobody files it.** The layer button was reported as working by me, twice, before a
+screenshot showed the label and the territory disagreeing.
+
+Practical consequence for anything with a client half: **press it and look.** Not the log, not the
+option value, not the code path — the screen. Two of these three produced no output at all.
+
 ## Gotchas already paid for
 
 - **Static initialisation order.** A `static final` collection declared *after* the fields that
@@ -919,7 +954,7 @@ check by grepping the sibling repos for the import, not by remembering.
   seam. LQ is the intended second consumer and adopting would let it drop two reflective reads of
   vanilla internals — that decision belongs to an LQ session, not this one.
 
-- `MAP-API.md` — **researched 2026-09-08, nothing built.** Putting claims, homes, warps and quest
+- `MAP-API.md` — **built and driven on a real map, 2026-09-11.** Putting claims, homes, warps and quest
   markers on JourneyMap rather than growing a cartography mod. Does **not** reverse "do not build a
   minimap" — it depends on it. The finding that shapes it: JourneyMap has a **server-side** overlay
   API, so the passive half (claims drawn on everyone's map) needs no client code of ours at all, and
