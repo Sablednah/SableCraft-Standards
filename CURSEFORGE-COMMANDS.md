@@ -463,7 +463,15 @@ can be overridden per standing, so a hospital and a raider camp can use differen
 ## Permissions — `/rank`
 
 Only present when Standards' own permission handler is the active one
-(`permissionHandler = "standards:permissions"` in `neoforge-server.toml`). Node:
+(`permissionHandler = "standards:permissions"` in `neoforge-server.toml`).
+
+⚠ **That line is needed even if you run no other permissions mod.** NeoForge picks the active
+handler and defaults to its own; installing Standards does not claim the slot. Until you set it,
+`/rank` is not registered — absent rather than refused, which reads like the feature not existing.
+
+It is also how you grant another mod's nodes: `storyteller.*`, for instance, defaults to false for
+**everybody including operators**, so it cannot be handed out by opping somebody — it has to be
+granted. Node:
 `standards.permissions`, ops by default — deliberately separate from `standards.admin`, so a
 moderator can reload messages without also being able to grant themselves everything.
 

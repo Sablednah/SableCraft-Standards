@@ -132,9 +132,21 @@ and `/rank` appears:
 Groups with inheritance, per-player grants, `standards.*` wildcards, an explicit deny that beats
 everything, and a default group everybody is in without being put there.
 
-**Dormant unless you pick it.** NeoForge decides which handler is active — leave that line alone and
-this one never runs, and `/rank` is not even registered. Switching either way is that one line, with
-nothing to import and nothing to migrate off.
+**Dormant unless you pick it — including on a server with no permissions mod at all.** Installing
+Standards does not make it the handler. NeoForge decides which one is active, the default is its
+own, and it does not hand the job over just because nobody else wants it. So on a bare server you
+are still on NeoForge's handler until you write that line.
+
+The symptom if you do not, and it is worth knowing because it looks like a missing feature rather
+than a setting: **`/rank` is not registered at all.** Not refused, not greyed out — absent, exactly
+as if the command did not exist. Everything else carries on working, because NeoForge's handler
+answers our nodes from operator status; you lose only the ability to grant anything to anyone who
+is not an operator.
+
+**Turning it on changes nothing until you grant something.** A group or player with no entry has no
+opinion, so the node falls through to its own default — which is what it was doing before. You can
+switch it on, look around, and switch it back off, and nothing will have moved. Switching either
+way is that one line, with nothing to import and nothing to migrate off.
 
 ### It tells you *why*
 
