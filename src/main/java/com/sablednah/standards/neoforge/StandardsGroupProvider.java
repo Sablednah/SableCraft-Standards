@@ -72,8 +72,25 @@ public final class StandardsGroupProvider implements GroupProvider {
         return KIND;
     }
 
+    /**
+     * ⚠ No player means no groups, answered here rather than at the seam.
+     *
+     * <p>{@link com.sablednah.standards.api.groups.Groups} hands a provider whatever the caller
+     * passed, and the self-test passes null deliberately — it is headless, and its own fixture
+     * providers ignore the argument. This one cannot: it looks a UUID up. So it answers for itself,
+     * and "nobody is in no groups" is the only answer there is rather than a guess.</p>
+     *
+     * <p>Without this the null reached {@code player.getUUID()} and threw, which
+     * {@code Groups.safely} caught and logged as <em>"group provider 'standards:group' threw"</em>
+     * at ERROR on every single self-test run. The behaviour was already right — the catch treats
+     * the player as ungrouped — so the only damage was a healthy run that shouted, and a log nobody
+     * can afford to start ignoring.</p>
+     */
     @Override
     public Collection<Group> groupsOf(ServerPlayer player) {
+        if (player == null) {
+            return List.of();
+        }
         return StandardsGroups.get(server).of(player.getUUID())
                 .<Collection<Group>>map(e -> List.of(wrap(e)))
                 .orElseGet(List::of);

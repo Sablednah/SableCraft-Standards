@@ -1893,6 +1893,17 @@ public final class SelfTest {
      * lowest-first and suffixes highest-first. Getting this backwards on one side only is exactly
      * the kind of thing that looks fine until a second mod registers.</p>
      */
+    /**
+     * The named entries in the order the seam produced them, ignoring anybody else's.
+     *
+     * <p>So an ordering assertion stays an ordering assertion on a server where other mods
+     * decorate too — which is every real one.</p>
+     */
+    private static java.util.List<String> only(java.util.List<String> all, String... wanted) {
+        java.util.Set<String> want = java.util.Set.of(wanted);
+        return all.stream().filter(want::contains).toList();
+    }
+
     private void checkChatDecorators() {
         record Fixed(String id, int priority, String pre, String post) implements NameDecorator {
             public String id() { return id; }
@@ -1914,18 +1925,31 @@ public final class SelfTest {
             Chat.register(faction);
             Chat.register(rank);
 
-            // A null player is fine here: these fixed decorators never look at it.
+            // ⚠ EVERY registered decorator runs here, not only these three. A comment on this
+            // line used to say the opposite — "a null player is fine, these fixed decorators never
+            // look at it" — which was true of the fixtures and said nothing about the real ones
+            // standing beside them. GroupTags does look at the player, so the null travelled all
+            // the way into a group provider and NPE'd there, caught by Groups.safely and logged at
+            // ERROR on every single run. The seam now answers a null player itself; see
+            // Groups.all. The comment was true the day it was written and rotted silently.
             var prefixes = Chat.prefixes(null);
             var suffixes = Chat.suffixes(null);
 
             check("decorators registered", Chat.all().size() == before + 3);
+            // ⚠ Asserted as the order OURS come in, not as the whole list. Exact equality quietly
+            // made "no other mod decorates anybody" part of this test — never a rule anybody
+            // stated, untrue on any server running Factions or LegendQuest, and it would have
+            // failed here for a reason that had nothing to do with ordering.
             check("prefixes run lowest priority first (furthest from the name)",
-                    prefixes.equals(java.util.List.of("[FACTION]", "[PARTY]", "Lord")));
+                    only(prefixes, "[FACTION]", "[PARTY]", "Lord")
+                            .equals(java.util.List.of("[FACTION]", "[PARTY]", "Lord")));
             check("suffixes mirror them, highest priority nearest the name",
-                    suffixes.equals(java.util.List.of("the noble", "-party", "-faction")));
+                    only(suffixes, "the noble", "-party", "-faction")
+                            .equals(java.util.List.of("the noble", "-party", "-faction")));
             // The worked example from the design, end to end.
             check("assembles the intended line",
-                    String.join("", prefixes).equals("[FACTION][PARTY]Lord"));
+                    String.join("", only(prefixes, "[FACTION]", "[PARTY]", "Lord"))
+                            .equals("[FACTION][PARTY]Lord"));
         } finally {
             // MUST come out again. Left registered, these decorate every real chat line on the
             // server for the rest of its life — which also drags every message onto the

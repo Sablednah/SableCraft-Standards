@@ -107,7 +107,16 @@ public final class Groups {
         return provider == null ? List.of() : safely(provider, player);
     }
 
-    /** Every group of every kind that the player is in. */
+    /**
+     * Every group of every kind that the player is in.
+     *
+     * <p>⚠ <b>The player is passed to providers exactly as given, null included.</b> That is not an
+     * oversight and a guard here was tried and reverted: the self-test is headless, so it drives
+     * this seam with a null stand-in and fixture providers that never look at it — short-circuiting
+     * on null made three of those checks fail, because the fixtures stopped being asked at all. A
+     * provider that genuinely needs a player answers for itself; see
+     * {@code StandardsGroupProvider.groupsOf}.</p>
+     */
     public static Collection<Group> all(ServerPlayer player) {
         List<GroupProvider> providers;
         synchronized (Groups.class) {
