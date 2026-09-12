@@ -117,6 +117,30 @@ instinct is to define a tidy `ToggleFlyPayload` instead:
 The button is a macro. That is not a compromise, it is the correct architecture for a feature whose
 stated rule is *same answers, nicer surface*.
 
+### The rule, as the owner put it
+
+> Vanilla can always do the same. Modded has it nicer. A button in a GUI instead of typing a
+> command. Solid visible areas and grids instead of particles. **Same but better.**
+
+Worth keeping in those words, because it decides cases this document could not have listed. It is
+not "the client may show more" — it is "the client may show the *same thing* better", and the two
+are only distinguishable when you ask what a vanilla player would have learned.
+
+Three features have now been settled by it, and none of them by argument:
+
+| | vanilla gets | modded gets |
+|---|---|---|
+| faction facts | `/f panel` as text | the pane, with the same numbers |
+| running a command | typing it | a button that sends that command |
+| claim borders | a line of particles | a wall and a tinted floor |
+
+The border is the sharpest case and the one that tested the rule, because it is the first thing in
+either mod that a vanilla client genuinely cannot render a version of. It still passes: the wall
+and the particles carry identical facts — which chunks are claimed, and what each owner is to you —
+and a vanilla player is not missing information, only fidelity. **The day one of these can answer a
+question the other cannot, decision 2 is broken**, and the fix is to give the command the answer
+too rather than to withdraw the surface.
+
 ---
 
 ## 5. The one payload that matters: what may I do?
