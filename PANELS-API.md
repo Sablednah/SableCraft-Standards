@@ -1,12 +1,21 @@
 # Panels — who draws on the inventory screen
 
-**Status: built 2026-09-09, and driven the same day by Factions' faction panel.** The seam, the
-one-pane-at-a-time arbitration and the `LEFT` area are built and in use. `BUTTON_STRIP` is specified
-below and **not built** — see §6 for why that is deliberate rather than unfinished.
+**Status: built 2026-09-09, adopted by LegendQuest, and shipped in Standards 1.8.0 on 2026-09-12.**
+The seam, the one-pane-at-a-time arbitration and the `LEFT` area are built and in use by two mods.
+`BUTTON_STRIP` is specified below and **not built** — see §6 for why that is deliberate rather than
+unfinished.
 
-**LegendQuest adopts next, and the release waits on it** — see §4. Its character and skills panes are
-the reason the arbitration is shaped the way it is, and a pane written by somebody who did not design
-the seam is the only thing that can prove the seam. Two gaps are already known and named there.
+**The release hold is lifted, and it did its job.** This used to say the release waited on
+LegendQuest, because a pane written by whoever designed the seam demonstrates it rather than proving
+it. LQ's review returned four gaps, two questions and a correction — all built or answered — and its
+`CharacterPane` now implements the interface for real. That is what the wait bought.
+
+⚠ **It also found the one thing a review could not.** `mouseReleased` returned `void` until a player
+dragged an item to LQ's spellbook slot and watched it drop on the floor; the signature is `boolean`
+now. The cost of that change is recorded in §4 and is worth reading before altering this interface
+again: a consumer compiled against the old signature does not fail loudly, it silently stops
+overriding and the default runs instead. LegendQuest's 26.x branches sat in exactly that state for a
+day.
 
 ---
 
@@ -293,7 +302,8 @@ against a UI that already existed and has its own opinions, is the only thing th
 is missing. Same standard `VANISH-API.md` records for LegendQuest's `VanishSupport`, and the same
 reason it was worth more than any amount of our own testing.
 
-So the release waits on it.
+That wait is over: LegendQuest adopted the seam, and Standards 1.8.0 shipped on 2026-09-12 with
+`CharacterPane` implementing this interface. The review it bought is listed below.
 
 ### What adoption buys
 

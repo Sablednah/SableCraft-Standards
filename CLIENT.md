@@ -1,7 +1,8 @@
 # The optional client
 
-**Status: the seam, the bar and Factions' panel are built and have been driven by hand, 2026-09-09.
-Adopted by LegendQuest's StoryTeller on 2026-09-07, which registered five actions against it.**
+**Status: shipped in Standards 1.8.0, 2026-09-12.** The seam, the bar and the panel area are built
+and driven by hand; adopted by LegendQuest's StoryTeller on 2026-09-07 (five actions) and by
+LegendQuest itself on 2026-09-11, when its character pane moved onto `api/panels`.
 What is built: the optional channel and its capability payload, `api/actions`, `/actions` and
 `/actions all`, the drawn bar on the inventory screen with right-click children and categories,
 `ClientActions.run`, keybinds, `Actions.registerScreen`, `Actions.registerHandler` and

@@ -941,11 +941,11 @@ check by grepping the sibling repos for the import, not by remembering.
   The handler is checked **first**, because it is the general case — Factions' panel is a pane the
   button *toggles*, and "make one and show it" cannot express a second press putting it away.
   Both are sugar over the command, which must go on working for a client that has neither.
-- `PANELS-API.md` — **built 2026-09-09, driven the same day by Factions' panel, and awaiting its
-  real proof.** ⚠ **The next Standards and Factions releases are held until LegendQuest has moved
-  its panes onto it** — see §4. Factions' panel was written by whoever wrote the seam, on the same
-  evening, which makes it a demonstration rather than evidence; a consumer who did not design the
-  API is the only thing that can say whether it is right. Two gaps are already known and named
+- `PANELS-API.md` — **built 2026-09-09, adopted by LegendQuest, and shipped in Standards 1.8.0 on
+  2026-09-12.** The hold on the release is lifted and it earned its keep — see §4. Factions' panel
+  was written by whoever wrote the seam, on the same evening, which made it a demonstration rather
+  than evidence; a consumer who did not design the API is the only thing that can say whether it is
+  right. Two gaps are already known and named
   there (content-driven height, and a frame that would cost LQ its own colours), deliberately
   unbuilt so that the shape is the consumer's to choose — LegendQuest's review then returned four
   gaps, two questions and a correction, all now built or answered. This is the same standard
