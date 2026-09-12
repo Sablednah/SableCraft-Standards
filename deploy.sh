@@ -106,7 +106,12 @@ install_one() {
         echo "   !! $name: copy did not verify — jar may be corrupt." >&2
         return 1
     fi
-    echo "   $base  ($(stamp_of "$jar" "$name"))"
+    # ⚠ Stamped from the jar in the INSTANCE, never the one in build/libs. Reading the source
+    # tells you what was built, which is the question you already knew the answer to; the one
+    # worth asking is what is now sitting in the folder the game will load. A write is not a
+    # success until something reads it back — the rule this repo learned from a migration that
+    # copied a file somewhere nothing reads and logged success.
+    echo "   $base  ($(stamp_of "$mods/$base" "$name"))"
 }
 
 # --- deploy ----------------------------------------------------------------------------------
