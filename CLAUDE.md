@@ -497,6 +497,19 @@ Three things it cost, each worth knowing once:
   for judging whether anything looks smooth. "The code ran" and "the pixels are right" are still
   different questions, and only the first is answerable there.
 
+⚠ **A dead client leaves its window behind, and `xdotool search | head -1` will pick it.** Two
+windows both answer to "Minecraft NeoForge"; the stale one renders a frozen, blurred last frame with
+a black box in the middle, which reads exactly like a GUI failing to draw. Three rounds went into
+"why is the tp not moving the camera" before the second window was noticed. **The live one names the
+server in its title** — `xdotool search --name "Multiplayer"` — so match on that, or check
+`xdotool search --name "Minecraft NeoForge" | wc -l` before trusting a screenshot.
+
+⚠ **Stopping the client can stop the SERVER, because they share a Gradle daemon.** It exits
+`BUILD SUCCESSFUL` after forty-five minutes, which reads as a clean finish rather than collateral
+damage, and the first sign is the client showing *"Connection Lost — Server closed"*. Kill the
+client by the one thing unique to it — its run directory: `pkill -f runBuddy` — never by
+`runClientBuddy` or `net.minecraft.client.main.Main`.
+
 ⚠ **Never `pgrep -f`/`pkill -f` a pattern that appears in your own command line** — over SSH that
 kills the shell asking the question and reads as a dropped connection. Ask the thing itself: a port
 (`ss -lntp | grep :25569`), `xdpyinfo -display :9`, a window id.
