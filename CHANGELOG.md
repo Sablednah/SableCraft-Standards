@@ -1,8 +1,28 @@
 # Changelog
 
-## Unreleased
+## 1.8.0 — 2026-09-12
 
 ### Added
+
+- **`api/panels` — who draws on the inventory screen.** Four things wanted that left margin —
+  vanilla's recipe book, LegendQuest's two panes and Factions' panel — and none of them could see
+  each other. There is no free space to guess at: vanilla's potion effects render at
+  `leftPos + imageWidth + 2`, and JEI's tooltips fire underneath anything drawn there. So a mod says
+  *what* it wants to draw and Standards says *where*, **one pane at a time**, sliding the inventory
+  across the way the recipe book already does.
+
+  The occlusion check is one comparison and no reflection: an inventory that is off centre means
+  somebody else took the left, which catches LegendQuest whether or not it has heard of the seam.
+
+  **Held for LegendQuest to adopt before release**, because a pane written by whoever designed the
+  API demonstrates it rather than proves it. That review returned four gaps, two questions and a
+  correction — themeable frames, content-driven height, a release that a pane can claim, and a
+  warning that a consumer's own click hook can silently disable the host's.
+
+- **The build stamp.** Every jar records the commit, branch, time and Minecraft line it was built
+  from, and the server logs it on start. Version equality is not build equality: between two bumps a
+  version number names many different builds, and a stale jar reporting the right version is
+  indistinguishable from a fresh one without this.
 
 - **Right-click a button for a row of children**, and **categories** — a button that holds others
   and does nothing itself.
@@ -70,6 +90,39 @@
 
   It says what to draw, never what is allowed. The server re-checks on the command, so a stale set
   gets you a button that fails, which is what typing the command would have got you.
+
+### Fixed
+
+- **A pane could not claim a mouse release, so a drop target lost the item.** `mouseReleased`
+  returned `void`; vanilla reads a release outside the inventory's own bounds with an item on the
+  cursor as *throw it on the floor*, and a pane is outside those bounds by construction. Carrying an
+  item to LegendQuest's spellbook slot dropped it on the ground. The signature is `boolean` now.
+
+  ⚠ A consumer compiled against the old signature does not fail loudly — it silently stops
+  overriding, and the default runs instead.
+
+- **`/rank` reported the default group as granted when it was merely the default**, and a long name
+  sprawled over its icon on the action bar.
+
+- **A group provider handed a null player logged an ERROR on every self-test run.** Behaviour was
+  always right — the seam treats a throwing provider as ungrouped — but a healthy run that shouts is
+  a log people learn to ignore. Two providers needed the guard, and the second was only found by
+  reading the log after fixing the first.
+
+- **`gradlew` was committed non-executable**, so a fresh clone on Linux could not build. `/mnt/d` is
+  drvfs and cannot represent the mode, which is why nothing noticed for months.
+
+### Changed
+
+- **`{term.prefix}` now means "the prefix of whichever mod owns this line".** Factions contributes
+  eighty-odd messages through `Lang.contribute` and every one of them opened with it, so a faction
+  claiming a chunk announced itself as **[Standards]**. A mod gets its own identity by declaring
+  `term.<modid>.prefix` and nothing else. Resolved at render time rather than by rewriting the
+  defaults, because `messages.yml` is merged rather than overwritten — editing the defaults would
+  have fixed a fresh install and left every existing one unchanged.
+
+- **`iconFile` and `bannerFile` for 26.2's reshaped mod list**, alongside `logoFile` for older
+  loaders. Without them the row has no icon at all.
 
 ## 1.6.0 — 2026-09-07
 
