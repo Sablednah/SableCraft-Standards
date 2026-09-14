@@ -479,6 +479,9 @@ Three things it cost, each worth knowing once:
 - ⚠ **`gradlew` was committed 100644 and a clone could not build.** `/mnt/d` is drvfs and cannot
   represent the mode, so git never noticed here. Fixed — but the class of bug is the lesson: this
   repo builds on one filesystem that cannot express some of its own defects.
+
+  It recurred: `deploy.sh` was 100644 on every branch until 2026-09-13. **Ask `git ls-tree`, never
+  `ls -l`** — drvfs reports every file as 777.
 - ⚠ **Read chat from the client's log, not from RCON.** `Feedback.chat` sends to the *player*, so
   RCON returns an empty string even on success. `grep -o "\[CHAT\].*" runBuddy/logs/latest.log`.
 - ⚠ **Do NOT mute the Vivo client, unlike the Windows ones.** `TestClient.cmd` zeroes every
@@ -833,14 +836,51 @@ screenshot showed the label and the territory disagreeing.
 Practical consequence for anything with a client half: **press it and look.** Not the log, not the
 option value, not the code path — the screen. Two of these three produced no output at all.
 
+### A seventh: the evidence was real, and it was about the other half
+
+Four bugs from 2026-09-12/13, three in Factions' border grid and one next door in StoryTeller. Each
+had a measurement or a working path that looked like it settled things, and each was about the
+wrong half.
+
+- **The grid drew no line between two factions that touched.** It traced the *union* of every claim
+  in range, so a shared boundary was interior and nobody drew it — while the particles, which draw a
+  side wherever ownership changes, had always been right. The modded surface showed **less** than
+  the vanilla one, the single direction the client rule forbids. Traced once per relation now.
+  **When a client surface and its vanilla fallback disagree, diff them against each other**, not
+  each against the spec.
+- **The grid never turned off.** Particles are transient, so stopping is simply the absence of the
+  next pulse. The grid is state the *client keeps*, and `/f borders` said "hidden" over walls that
+  stayed. **Anything a client keeps needs an explicit off sent to it**, not merely an absence of on.
+- **A wider radius made an old bug reachable.** `ClaimOutline.simplify` merges straight runs, so at
+  radius 1 an edge never exceeded a chunk and "sample the ground at both ends" held; at radius 8 one
+  edge was 270 blocks and the wall ramped into the sky. **Raising a range tests every assumption
+  that was only true at the old one.**
+- **StoryTeller's driving "ice" was entity push — on the client.** It had been measured and ruled
+  out on the *server*, where a push on a player does nothing; the push that moves a player comes from
+  the body's own client tick, and the server's `noPhysics` is never synced. The first fix set it
+  client-side and cured cows but not Cast NPCs, because `Player.tick` resets `noPhysics` before the
+  push runs. **A test rules a cause out only on the side it ran on**, and **setting a vanilla field
+  from outside is only as good as the last thing vanilla does to it** — when a fix works for some
+  entity types and not others, read what the losing class's `tick` does first. Sable diagnosed it
+  from four symptoms before the code was read; the full account is in StoryTeller's `CLAUDE.md`.
+
 ## Gotchas already paid for
 
 - **Static initialisation order.** A `static final` collection declared *after* the fields that
   fill it is null when their initialisers run. It crashed the whole mod during command
   registration with an NPE nowhere near the mistake. `StandardsPermissions` declares `FIXED` first,
   and the comment there says why.
-- **Close Minecraft before `./deploy.sh`** — a running instance holds the jar open, Windows refuses
-  the replace, and you test a stale jar. `deploy.sh` checks and fails loudly.
+- **`./deploy.sh` deploys every CurseForge instance that already carries our jars**, matching each
+  instance's own `minecraftinstance.json` to the `+mc<version>` jar — so build every line you mean
+  to ship first, because it copies whatever is in `build/libs`. `./deploy.sh "<instance>"` targets
+  one. It probes each jar with a **rename** before touching it: a running game's jar can be *written*
+  but not deleted, so a plain copy "succeeds" and corrupts a zip the JVM has mapped, which crashed a
+  world on 2026-09-12. It then verifies with `cmp` and `unzip -t`, and prints the build stamp **read
+  back from the jar in the instance**, not the one it built. Every branch carries the same script.
+- ⚠ **A verdict grep can match the previous run.** `until grep -q "self-test" latest.log` matched a
+  log from two days earlier, instantly, while the new server was dying at boot because an orphaned
+  one still held `world/session.lock`. Move `latest.log` aside before starting, and check the
+  verdict's timestamp as well as its presence.
 - If Gradle hangs on `:compileJava` with no CPU and no class files, that is the known WSL2 `/mnt/d`
   degradation: `wsl --shutdown` from Windows PowerShell, reopen, rebuild.
 - The first build after changing `accesstransformer.cfg` re-runs the neoform runtime and takes
@@ -986,4 +1026,14 @@ check by grepping the sibling repos for the import, not by remembering.
   a client plugin is needed only for click-to-claim and the right-click relations menu. Each mod
   owns its own plugin; there is deliberately no Standards seam, because there is no shared fact for
   one to own.
+- Factions' **solid border grid** — `client/ClaimBorderRenderer`, **released in Factions 1.6.0 on
+  2026-09-13**. The F3+G-style walls and tinted ground a modded client draws instead of particles,
+  and the plainest statement of the client rule, in the owner's words: *"vanilla can always do the
+  same — but modded has it nicer … Same but better."* Drawn with vanilla's `Gizmos` from a
+  `RegisterDebugRenderersEvent` renderer (the only way into a `GizmoCollector`), which is why it
+  ported to both 26.x lines with no new divergence. Reach is the viewer's (`factions-client.toml`)
+  and the cap is the server's (`borders.maxRadiusChunks`). Defaults — 8 chunks of wall, 2 of floor,
+  a 4-block wall step — were chosen by the owner from frame rates measured on a real GPU, never from
+  llvmpipe. Bound to `'`: the owner overrode "unbound by default" after an unbound key had hidden a
+  mistyped command for its whole life.
 - `CROSS-VERSION.md` — the plan for living on several Minecraft lines at once.
