@@ -87,6 +87,7 @@ public final class SelfTest {
         checkCommandsParse(server);
         checkReputation(server);
         checkCapabilityPayload();
+        checkFakePlayerNet(server);
         checkActionSeam();
         checkBuildStamp();
         checkSafeLoc(server);
@@ -1118,6 +1119,28 @@ public final class SelfTest {
                 && backEmpty.active().isEmpty() && backEmpty.hints().isEmpty()
                 && backEmpty.children().isEmpty());
         check("...and reads the buffer dry", !empty.isReadable());
+    }
+
+    /**
+     * {@link Net}'s guard, handed the one player it had never met: a NeoForge fake player.
+     *
+     * <p>A {@code FakePlayer} has a connection object whose netty channel is null, so the old
+     * {@code connection != null} guard passed and {@code hasChannel} threw an NPE out of whatever
+     * event asked. Found by Chronicler's self-test, not ours — ours never had a fake player to
+     * offer, which is exactly the "first real input" gap. So this uses NeoForge's own factory
+     * rather than a stand-in: a hand-built fake would test our idea of one.</p>
+     */
+    private void checkFakePlayerNet(MinecraftServer server) {
+        var fake = net.neoforged.neoforge.common.util.FakePlayerFactory.getMinecraft(server.overworld());
+        try {
+            check("Net.listening says no to a fake player",
+                    !Net.listening(fake, CapabilitiesPayload.TYPE));
+            check("...and sendIfAble reports it did not send",
+                    !Net.sendIfAble(fake, new CapabilitiesPayload(
+                            java.util.Set.of(), java.util.Set.of(), java.util.Map.of(), java.util.Map.of())));
+        } catch (RuntimeException e) {
+            check("Net's guard survives a fake player (threw " + e + ")", false);
+        }
     }
 
     /**

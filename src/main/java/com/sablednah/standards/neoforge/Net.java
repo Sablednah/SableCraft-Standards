@@ -23,15 +23,12 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class Net {
 
     public static boolean sendIfAble(ServerPlayer player, CustomPacketPayload payload) {
-        // The null check is not paranoia: fake players (other mods' automation, headless probes)
-        // sit in the player list with no real connection, and an NPE here has the same blast
-        // radius as the original bug from a different direction.
-        //
         // Returns whether it actually went, so a caller with a text fallback can drive it off what
-        // HAPPENED rather than off a second, separately-fallible prediction. Asking listening() and
-        // then sending is two checks that can disagree, and when the screen fails to open there is
-        // then no way to tell which of them was wrong.
-        if (player.connection != null && player.connection.hasChannel(payload.type())) {
+        // HAPPENED rather than off a second, separately-fallible prediction. The send and its
+        // guard are one call for the same reason: asking listening() and then sending separately
+        // is two checks that can disagree, and when the screen fails to open there is then no way
+        // to tell which of them was wrong.
+        if (listening(player, payload.type())) {
             PacketDistributor.sendToPlayer(player, payload);
             return true;
         }
@@ -40,7 +37,17 @@ public final class Net {
 
     /** Does this player have the mod installed? Decides whether a richer prompt is possible. */
     public static boolean listening(ServerPlayer player, CustomPacketPayload.Type<?> type) {
-        return player.connection != null && player.connection.hasChannel(type);
+        // Asking hasChannel is itself the hazard, not the send. It reads a netty channel
+        // attribute, and a NeoForge FakePlayer HAS a connection object — its FakeConnection simply
+        // has no channel — so a null check on player.connection passes and hasChannel throws an
+        // NPE out of whatever event asked. (Chronicler's self-test hit it when a panel send reached
+        // a fake player; ZombieMod reproduced it headlessly.) isFakePlayer() catches NeoForge's
+        // class and its subclasses; isConnected() catches a mod that hand-rolls a fake ServerPlayer
+        // without it. Other mods' fake players reach this method, since it is public.
+        return player.connection != null
+                && !player.isFakePlayer()
+                && player.connection.getConnection().isConnected()
+                && player.connection.hasChannel(type);
     }
 
     private Net() {}
