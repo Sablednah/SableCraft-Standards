@@ -115,6 +115,13 @@ every self-test.
   keep it in one small class**, so the port is one file rather than a hunt. `ActionBar` is deliberately
   the only class that touches a rendering type.
 
+  **The counter-example, 2026-09-13: world-space drawing ported for free.** Factions' border grid
+  draws with vanilla's `Gizmos` from a `DebugRenderer.SimpleDebugRenderer`, and both are
+  byte-identical on 1.21.11, 26.1 and 26.2 — diffed from the decompiled sources rather than assumed.
+  The whole feature cherry-picked forward with one fix, `ChunkPos` being a record, already on this
+  list. So the split is not "drawing diverges": **GUI screens diverged; vanilla's debug primitives
+  did not.** Borrow vanilla's primitives where they exist and the port is close to free.
+
 ### ⚠ The one that was not a compile error
 
 **26.1 moved every saved-data file — and it moved them twice over.** Both halves matter, and
