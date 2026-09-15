@@ -399,7 +399,6 @@ public final class Lang {
 
         // The gap this whole feature was built around: with a warmup, an accepted request used to
         // sit silent for five seconds at BOTH ends.
-        def("msg.tpa.accepted_by_you", "{term.prefix} &aAccepted&7 — &f{player}&7 is on their way.");
         def("msg.tpa.accepted_by_you_wait", "{term.prefix} &aAccepted&7 — &f{player}&7 arrives in &f{sec}s&7.");
         def("msg.tpa.accepted_you_go", "{term.prefix} &f{player}&7 &aaccepted&7! Teleporting now.");
         def("msg.tpa.accepted_you_wait", "{term.prefix} &f{player}&7 &aaccepted&7! Teleporting in "
@@ -432,6 +431,7 @@ public final class Lang {
         def("msg.tpa.auto_note", "{term.dim}(Answered for you by /tpauto. &f/tpauto off{term.dim} to answer them yourself.)");
         def("msg.tpa.all_sent", "{term.prefix} &7Asked &f{count}&7 player(s) to teleport to you. {term.dim}({sec}s to answer)");
         def("msg.tpa.all_refusing", " {term.dim}{count} not accepting {term.tpas}, and left alone.");
+        def("msg.tpa.all_none_asked", "{term.prefix} &7Nobody was asked.");
         def("msg.tpa.all_nobody", "&7Nobody else is online. The event is just you.");
     }
 
