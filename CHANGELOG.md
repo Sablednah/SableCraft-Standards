@@ -28,6 +28,14 @@
 - **`/tpo` and `/tpohere`** — EssentialsX's names for `/tpx` and `/tphere`. Aliases only:
   `/tptoggle` gates requests and never staff, so there was nothing to override.
 
+### Fixed
+
+- **An instant `/tpa` told the host "on their way" after they had already arrived.** `Teleports`
+  announces a landing inside the teleport itself, so on the instant path — an op, or a server with no
+  warmup — "X has arrived" printed first and "Accepted, X is on their way" beneath it. The host now
+  hears only the arrival. Found by the first two-player run of `/tpauto`, where it was impossible to
+  miss because the host had clicked nothing.
+
 ## 1.8.0 — 2026-09-12
 
 ### Added
