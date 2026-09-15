@@ -136,11 +136,11 @@ public final class TpaCommands {
                     TeleportRequests.find(requester.getUUID(), target.getUUID(), direction);
             if (made.isPresent()) {
                 TeleportRequests.close(made.get());
-                int result = run(server, made.get(), requester, target);
-                // The host clicked nothing and may have forgotten they ever switched it on. Say
-                // so, and how to stop it, rather than let visitors simply appear.
+                // Said FIRST. The host clicked nothing and may have forgotten they ever switched it
+                // on. Sent afterwards, the note landed beneath "TestBuddy has arrived" — after the
+                // very moment it exists to explain.
                 Feedback.chat(target, Lang.get("msg.tpa.auto_note"));
-                return result;
+                return run(server, made.get(), requester, target);
             }
         }
 
@@ -189,8 +189,11 @@ public final class TpaCommands {
             }
         }
         // One summary line, not a line per player — on a full server that would be the whole chat.
-        Feedback.chat(requester, Lang.fmt("msg.tpa.all_sent",
-                "count", asked, "sec", StandardsConfig.TPA_TIMEOUT.get())
+        // No countdown when nobody was asked: "asked 0 player(s), 120s to answer" is a timer on
+        // nothing, which is what the first two-player run printed.
+        Feedback.chat(requester, (asked > 0
+                ? Lang.fmt("msg.tpa.all_sent", "count", asked, "sec", StandardsConfig.TPA_TIMEOUT.get())
+                : Lang.get("msg.tpa.all_none_asked"))
                 + (refusing > 0 ? Lang.fmt("msg.tpa.all_refusing", "count", refusing) : ""));
         return asked;
     }
@@ -344,7 +347,10 @@ public final class TpaCommands {
                     requesterTravels ? "msg.tpa.accepted_you_wait" : "msg.tpa.accepted_here_wait",
                     "player", hostName, "sec", attempt.secondsLeft()));
         } else {
-            Feedback.chat(host, Lang.fmt("msg.tpa.accepted_by_you", "player", travellerName));
+            // Nothing to the host here. An instant teleport has already LANDED by this line —
+            // Teleports fires onArrive inside request() — so the watcher has said "X has arrived",
+            // and "Accepted, X is on their way" printed beneath it read backwards. Found by the
+            // first two-player run, an op's /tpa to a /tpauto player.
             Feedback.chat(traveller, Lang.fmt(
                     requesterTravels ? "msg.tpa.accepted_you_go" : "msg.tpa.accepted_here_go",
                     "player", hostName));
