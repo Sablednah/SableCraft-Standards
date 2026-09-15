@@ -109,6 +109,26 @@ public final class TeleportRequests {
         OPEN.remove(request);
     }
 
+    /** The open request from this requester to this target, in this direction, if there is one. */
+    public static Optional<Request> find(UUID requester, UUID target, Direction direction) {
+        return OPEN.stream()
+                .filter(r -> r.requester().equals(requester) && r.target().equals(target)
+                        && r.direction() == direction)
+                .findFirst();
+    }
+
+    /**
+     * Whether {@code /tpauto} answers this request without asking.
+     *
+     * <p>Only a request that brings somebody <em>to</em> the player who switched it on. Accepting
+     * a {@code /tpahere} unasked would let anyone pull that player anywhere, at any moment, without
+     * a click — into a trap, or into the middle of a fight. A visitor arriving is what they agreed
+     * to by switching it on; being moved is a different thing, so it always asks.</p>
+     */
+    public static boolean autoAccepts(boolean targetAutoAccepts, Direction direction) {
+        return targetAutoAccepts && direction == Direction.TO_TARGET;
+    }
+
     /** Drop every request this player is either end of — on logout, or on /tpacancel all. */
     public static int closeAllInvolving(UUID player) {
         int before = OPEN.size();

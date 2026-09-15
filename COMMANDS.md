@@ -29,10 +29,10 @@ The only column that matters in the morning is what you write in it.
 | `/bottom` | ✓ | ✗ | Lowest block in your column | **DONE** | *Answered: ship it, op-only — "why not complete the set".* Op-only because it is a trivial x-ray for ore near bedrock. |
 | `/tpx` `/tphere` `/tppos` | ✓ | ✓ | Admin teleports | **DONE** | At `/tpx`, **not** `/tp` — merging onto vanilla's literal puts the winner at the mercy of mod load order, decision 10's trap. Gated on a node rather than an op level, so a builder can have them without `/stop`, and `/tppos` takes a dimension without needing `/execute in` first. They go through `Teleports`, so they get safe landing and the `/back` trail. |
 | `/tpa` `/tpahere` `/tpaccept` `/tpdeny` `/tpacancel` `/tpalist` `/tptoggle` | ✓ | ✓ | Request-based teleport | **DONE** | Clickable `[Accept]`/`[Deny]` buttons (vanilla chat click events, so they work unmodded). **Both ends are narrated** — accepted, arriving in N, arrived, cancelled and why, lapsed — plus a ticking action-bar countdown, because a warmed teleport that goes silent for 5s reads as broken. |
-| `/tpaall` `/tpall` | ✓ | ✗ | Mass teleport | YES | Event hosting. Cheap once `/tpa` exists. |
-| `/tpauto` | ✓ | ✗ | Auto-accept requests | YES | One line once `/tpa` exists. |
-| `/tptoggle` | ✓ | ✗ | Refuse all teleports to you | YES | Anti-grief; pairs with `/tpa`. |
-| `/tpo` `/tpohere` | ✓ | ✗ | Override `/tptoggle` | YES | Staff need it or `/tptoggle` becomes a hiding place. |
+| `/tpaall` | ✓ | ✗ | Mass teleport | **DONE** | A `/tpahere` to everyone online, op by default. Respects `/tptoggle` even for staff holding `tpa.override` — an event invitation is not moderation. |
+| `/tpauto` | ✓ | ✗ | Auto-accept requests | **DONE** | A switch, so on/off/toggle. **Only requests to visit you** — a `/tpahere` still asks, or anybody could pull you anywhere without a click. |
+| `/tptoggle` | ✓ | ✗ | Refuse all teleports to you | **DONE** | Gates requests, never staff: `tpa.override` asks anyway, and `/tpx` never consults it. |
+| `/tpo` `/tpohere` | ✓ | ✗ | Override `/tptoggle` | **DONE** | *As aliases of `/tpx` and `/tphere`.* There was nothing to override — `/tptoggle` never gated staff — so these exist for muscle memory. |
 | `/tpoffline` `/otp` | ✓ | ✓ | To a player's last logout spot | **DONE** | *Answered: ship it, op-only.* FTB calls it `teleport_last`. |
 | `/rtp` `/tpr` `/wild` | ✓ | ✓ | Random teleport | **2.0** | *Answered: deferred — whole mods exist that do only this.* Needs its own cooldown, a biome blacklist and a claim-mod check (that instance runs FTB Chunks). |
 | `/settpr` | ✓ | ✗ | Configure the RTP region | **2.0** | Ships with `/rtp`. |
@@ -40,10 +40,10 @@ The only column that matters in the morning is what you write in it.
 | `/spawn` `/setspawn` | ✓(spawn) | ✓ | World spawn | **DONE** | Data layer is already built (`StandardsData.spawn`); commands not wired. |
 | `/playerspawn` | ✗ | ✓ | To your bed/anchor | **DONE** | Nice pairing with `/spawn`. |
 | `/warp` `/warps` `/setwarp` `/delwarp` | ✓ | ✓ | Server-wide named places | **DONE** | |
-| `/warpinfo` | ✓ | ✗ | Where a warp points | YES | Trivial. |
+| `/warpinfo` | ✓ | ✗ | Where a warp points | **DONE** | The place, the distance when you are in the same world, and a **[Go]** button. |
 | `/home` `/sethome` `/delhome` `/homes` | ✓ | ✓ | Personal named places | **DONE** | Limits are numbered permission nodes (`standards.home.limit.5`), EssentialsX-style, so LuckPerms sets them per rank. |
-| `/renamehome` | ✓ | ✗ | Rename a home | YES | Small and people ask for it. |
-| `/home <player>` | ✓ | ✗ | Go to someone else's home | YES | Node exists (`standards.home.others`), command not wired. |
+| `/renamehome` | ✓ | ✗ | Rename a home | **DONE** | Gated on `sethome`. Changing only the case is allowed; taking another home's name is not. |
+| `/home <player> [home]` `/homes <player>` | ✓ | ✗ | Go to someone else's home | **DONE** | Online or offline. Naming only the player **lists their homes as buttons** — never a guess, even with one, because players own several. Your own homes are checked first. |
 
 **Decisions — all three answered (2026-08-19):**
 1. ~~`/bottom` — ship it, op-only, or not at all?~~ → **op-only, ship it.**
@@ -72,8 +72,8 @@ mod: `/fly Steve on` from a LegendQuest skill must not be a coin flip.
 | `/vanish` `/v` | ✓ | ✗ | Hide from other players | **DONE** | *Built.* A switch (so `on`/`off`/`toggle` and `/vanish @a off` come free) plus `PlayerSwitches.setVanished(...)` for the storyteller mod. Hides via the mod's **one mixin** on vanilla's own visibility check, so the entity tracker unpairs and re-pairs correctly; also removes from the tab list and stops mobs targeting them. |
 | `/afk` `/lurk` | ✓ | ✗ | Mark yourself away | **DONE** | *Answered: build it, with a **configurable auto-AFK** timer, and alias `/lurk`.* Auto-detection is what makes it worth having — a manual-only marker is one nobody sets. |
 | `/smite` | ✓ | ✗ | Lightning on a target | **DONE** | *Answered: the one joke command that survived.* Op-gated; bare `/smite` strikes wherever you are looking, so it works as theatre and not only as punishment. |
-| `/gamemode` `/gm` `/gmc` `/gms` | ✓ | ✗ | Change game mode | NO | Vanilla `/gamemode` plus its aliases already exists. Aliases only if you want the muscle memory. |
-| `/ptime` `/pweather` | ✓ | ✗ | Personal time/weather | MAYBE | Charming, needs client packets, nobody misses it. |
+| `/gamemode` `/gm` `/gmc` `/gms` | ✓ | ✗ | Change game mode | **NO** | *Answered: no aliases either.* Vanilla `/gamemode` is enough. |
+| `/ptime` `/pweather` | ✓ | ✗ | Personal time/weather | **NO** | *Answered: not needed.* Charming, needs client packets, nobody misses it. |
 
 **Decisions:**
 4. ~~`/vanish` — worth the cost?~~ → **yes, build it now**, and expose it to other mods: a future
@@ -102,8 +102,8 @@ never learn which ledger answered.
 | `/pay` | ✓ | ✗ | Pay another player | **DONE** | |
 | `/eco give\|take\|set` | ✓ | ✗ | Admin money | **DONE** | Goes through the active provider, never behind its back. |
 | `/paytoggle` `/payconfirmtoggle` | ✓ | ✗ | Refuse / confirm payments | YES | The confirm prompt prevents a real class of typo. |
-| `/worth` `/setworth` | ✓ | ✗ | Item sell values | MAYBE | Only earns its keep with `/sell`. |
-| `/sell` | ✓ | ✗ | Sell your held stack | MAYBE | Server-shop territory. It is a whole feature, not a command. |
+| `/worth` `/setworth` | ✓ | ✗ | Item sell values | **Shops mod** | *Answered: belongs with the shops mod* (decision 7). |
+| `/sell` | ✓ | ✗ | Sell your held stack | **Shops mod** | *Answered: belongs with the shops mod.* It is a whole feature, not a command. |
 | — | | | **Sign shops / chest shops** | **OWN MOD** | *Answered: a follow-up mod, and deliberately so — it becomes the worked example of how to consume the economy API.* |
 | — | | | **ATMs** | **OWN MOD** | *Answered: wanted.* A sign beside a dispenser: click to buy an emerald for ₡100, right-click with an emerald to sell it for ₡100 (configurable both ways). Possibly a purpose-built block later. **This is the important one** — it bridges vanilla's villager/emerald economy to the bank balance, which is what stops a virtual currency feeling like a spreadsheet. |
 | — | | | **`/eco log`** | YES | Every transaction carries an audit `reason` already. Surfacing it costs little and answers "where did the money go", which is the first question every time. |
@@ -123,10 +123,10 @@ never learn which ledger answered.
 | Command | E | F | What it does | Verdict | Notes |
 |---|:-:|:-:|---|---|---|
 | `/msg` `/w` `/tell` `/r` | ✓ | ✗ | Private messages | **DONE** | Vanilla `/msg` exists but has no `/r`, which is the half people use. |
-| `/msgtoggle` `/ignore` | ✓ | ✗ | Block messages | YES | |
-| `/socialspy` | ✓ | ✗ | Staff see private messages | YES | Ships with `/msg`. |
+| `/msgtoggle` `/ignore` | ✓ | ✗ | Block messages | **DONE** | |
+| `/socialspy` | ✓ | ✗ | Staff see private messages | **DONE** | Ships with `/msg`. |
 | `/nick` `/realname` `/whois` | ✓ | ✓ | Nickname | **DONE** | Chat only — tab and the nameplate keep the real name, which is what stops a nickname being a disguise. A nickname may not be another player's real name **or** another player's nickname, checked against the name cache so it covers people who are offline. `~` marker, colour codes behind `standards.nick.color`, and `/realname` open to everyone. |
-| `/realname` | ✓ | ✗ | Who is behind a nickname | YES | Required if `/nick` exists. |
+| `/realname` | ✓ | ✗ | Who is behind a nickname | **DONE** | Required if `/nick` exists. |
 | `/me` | ✓ | ✗ | Emote | NO | Vanilla `/me`. |
 | `/mail` | ✓ | ✗ | Offline messages | **DONE** | *Answered: wanted.* Envisioned with **post box blocks** holding written books — see the block note below. |
 | `/helpop` `/ac` | ✓ | ✗ | Message staff | YES | |
@@ -135,7 +135,7 @@ never learn which ledger answered.
 | `/list` `/who` | ✓ | ✗ | Who is online | NO | Vanilla `/list`. |
 | `/near` | ✓ | ✓ | Who is nearby | YES | |
 | `/seen` | ✓ | ✗ | Last login/logout | YES | The name cache that powers offline `/balance` already has half of this. |
-| `/playtime` | ✓ | ✗ | Time played | YES | Vanilla statistics have the number. |
+| `/playtime` | ✓ | ✗ | Time played | **DONE** | See §8 — counts time not AFK. |
 | `/motd` `/rules` `/info` | ✓ | ✗ | Owner-written text | **DONE** | Numbered runs of message keys (`msg.rules.1`, `.2`, …) printed until one is missing — **no second file format**, since `messages.yml` already handles colours, vocabulary and upgrades. The MOTD also prints on join, last, so it is not pushed off by the other join lines. |
 | `/recording` `/streaming` | ✗ | ✓ | Tell the server you're recording | NO | Very FTB-specific. |
 
@@ -156,7 +156,7 @@ never learn which ledger answered.
 | `/invsee` | ✓ | ✓ | See a player's inventory | **DONE** | A **live** six-row view — items taken really leave the player, since a copy would duplicate them. Laid out as main / hotbar / armour+offhand rather than 42 undifferentiated squares. |
 | `/enderchest` `/ec` | ✓ | ✓ | Open your ender chest | **DONE** | |
 | `/sudo` | ✓ | ✗ | Run a command as someone | **DONE** | *The old note was wrong.* `/execute as` runs with **your** permissions — brigadier checks them at parse time against whoever typed the line. This parses against the target, so **it can fail, and that refusal is the answer**. It is how you test what a rank can really do without asking somebody to log in. Every use logged. |
-| `/whois` | ✓ | ✗ | Player info dump | YES | |
+| `/whois` | ✓ | ✗ | Player info dump | **DONE** | |
 
 **Decision — answered:**
 11. ~~Does Standards go into moderation at all?~~ → **`/tempban`, `/invsee`, `/mute` and stop.**
@@ -183,7 +183,7 @@ never learn which ledger answered.
 | `/powertool` `/pt` | ✓ | ✗ | Bind a command to an item | **DONE** | *Answered: they are different tools.* LQ's `/bind` is a **game** ability on an item, earned and balanced; `/pt` is a **staff** shortcut — a stick that runs `/jump`. Bound per player per item type, and dispatched as the holder with the holder's permissions, so it can never be an escalation. |
 | `/unlimited` | ✓ | ✗ | Infinite placing | NO | |
 | `/enchant` | ✓ | ✗ | Enchant held item | NO | Vanilla `/enchant`. |
-| `/itemdb` `/dura` | ✓ | ✗ | Item id / durability | MAYBE | Modern clients show this. |
+| `/itemdb` `/dura` | ✓ | ✗ | Item id / durability | **NO** | *Answered: little use on a person.* Modern clients show this. |
 
 **Decision — answered, and the reasoning is the good part:**
 12. ~~Portable stations — all, a few, or none?~~ → **`/craft`, `/enderchest`, `/trashcan`,
@@ -242,7 +242,8 @@ EssentialsX carries these for history. They are the reason "essentials" sounds u
 all of them — with the possible exception of `/ping`, which people do use.
 
 **Decision:**
-14. Confirm: drop the joke commands?
+14. ~~Confirm: drop the joke commands?~~ → **dropped, `/ping` included.** `/tps` already answers
+    "is the server responding", and says how well. `/smite` stays (decision 6).
 
 ---
 
@@ -296,10 +297,14 @@ checks passing on a real dedicated server.
 | Post box blocks | with `/mail`, once the block question is settled — §9b |
 | Bans, kicks, jails | vanilla's and LuckPerms' job — decision 11 |
 | Joke commands | dropped — decision 6, `/smite` excepted |
+| `/worth` `/setworth` `/sell` | the shops mod, with the shops — decided 2026-09-15 |
 
-**Still open, small:** `/warpinfo`, `/renamehome`, `/home <player>`, `/seen`, `/playtime`,
-`/near`, `/getpos`, `/broadcast`, `/helpop`, `/motd` + `/rules`, `/nick` + `/realname`,
-`/hat`, `/skull`, `/condense`, `/remove` (entity clearing), `/editsign`, `/paytoggle`, `/tpaall`,
-`/tpauto`, `/tpo`.
+**Still open, small** — checked against the registered commands on 2026-09-15: `/seen`,
+`/near`, `/getpos`, `/broadcast`, `/helpop`, `/hat`, `/skull`, `/editsign`, `/paytoggle`,
+`/extinguish`, `/kitreset`.
 
 None of those need a decision — they are all "yes, when there is an evening for it".
+
+This list had rotted: `/nick`, `/realname`, `/whois`, `/condense`, `/playtime`, `/motd` and
+`/rules` had all shipped while still listed here, and several rows above said YES long after they
+were DONE. When in doubt, ask the command tree rather than this document.

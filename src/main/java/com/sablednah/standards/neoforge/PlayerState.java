@@ -38,6 +38,7 @@ public class PlayerState {
             Codec.BOOL.optionalFieldOf("backWasDeath", false).forGetter(PlayerState::backWasDeath),
             Codec.BOOL.optionalFieldOf("deathNotRecorded", false).forGetter(PlayerState::deathNotRecorded),
             Codec.BOOL.optionalFieldOf("refusingTeleports", false).forGetter(PlayerState::refusingTeleports),
+            Codec.BOOL.optionalFieldOf("autoAcceptTeleports", false).forGetter(PlayerState::autoAcceptTeleports),
             Codec.BOOL.optionalFieldOf("vanished", false).forGetter(PlayerState::vanished),
             Codec.FLOAT.optionalFieldOf("walkSpeed", 1.0F).forGetter(PlayerState::walkSpeed),
             Codec.FLOAT.optionalFieldOf("flySpeed", 1.0F).forGetter(PlayerState::flySpeed),
@@ -68,6 +69,9 @@ public class PlayerState {
     /** {@code /tptoggle} — refuse all incoming teleport requests. Persisted, because a player who
      *  set it wants it to still be set tomorrow. */
     private boolean refusingTeleports;
+    /** {@code /tpauto} — people asking to visit arrive without a click. Persisted, like
+     *  {@code /tptoggle}, and for the same reason. */
+    private boolean autoAcceptTeleports;
     /** {@code /vanish}. Persisted, so staff stay hidden across a relog rather than
      *  popping into existence in front of whoever they were watching. */
     private boolean vanished;
@@ -88,7 +92,8 @@ public class PlayerState {
     private PlayerState(boolean fly, boolean god, List<Waypoint> back, List<String> backLabels,
             boolean backWasDeath,
             boolean deathNotRecorded,
-            boolean refusingTeleports, boolean vanished, float walkSpeed, float flySpeed,
+            boolean refusingTeleports, boolean autoAcceptTeleports, boolean vanished,
+            float walkSpeed, float flySpeed,
             boolean refusingMessages, boolean socialSpy, List<java.util.UUID> ignored) {
         this.fly = fly;
         this.god = god;
@@ -102,6 +107,7 @@ public class PlayerState {
         this.backWasDeath = backWasDeath;
         this.deathNotRecorded = deathNotRecorded;
         this.refusingTeleports = refusingTeleports;
+        this.autoAcceptTeleports = autoAcceptTeleports;
         this.vanished = vanished;
         this.walkSpeed = walkSpeed;
         this.flySpeed = flySpeed;
@@ -145,6 +151,14 @@ public class PlayerState {
 
     public void setRefusingTeleports(boolean value) {
         this.refusingTeleports = value;
+    }
+
+    public boolean autoAcceptTeleports() {
+        return autoAcceptTeleports;
+    }
+
+    public void setAutoAcceptTeleports(boolean value) {
+        this.autoAcceptTeleports = value;
     }
 
     public boolean vanished() {

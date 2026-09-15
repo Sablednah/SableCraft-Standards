@@ -1,5 +1,6 @@
 package com.sablednah.standards.neoforge.commands;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -14,6 +15,7 @@ import com.sablednah.standards.StandardsConfig;
 import com.sablednah.standards.core.Waypoint;
 import com.sablednah.standards.neoforge.Feedback;
 import com.sablednah.standards.neoforge.Lang;
+import com.sablednah.standards.neoforge.StandardsAttachments;
 import com.sablednah.standards.neoforge.StandardsPermissions;
 import com.sablednah.standards.neoforge.TeleportRequests;
 import com.sablednah.standards.neoforge.TeleportRequests.Direction;
@@ -94,6 +96,12 @@ public final class TpaCommands {
                 .executes(TpaCommands::list);
     }
 
+    public static LiteralArgumentBuilder<CommandSourceStack> tpaAll() {
+        return Commands.literal("tpaall")
+                .requires(StandardsPermissions.require(StandardsPermissions.TPA_ALL))
+                .executes(TpaCommands::askEveryone);
+    }
+
     // --- asking ---
 
     private static int ask(CommandContext<CommandSourceStack> ctx, Direction direction)
@@ -120,14 +128,79 @@ public final class TpaCommands {
             default -> { }
         }
 
-        int timeout = StandardsConfig.TPA_TIMEOUT.get();
-        String requesterName = requester.getName().getString();
+        // /tpauto answers before anybody is told a request is waiting. Otherwise the requester reads
+        // "asked, waiting for an answer" immediately followed by the answer.
+        if (TeleportRequests.autoAccepts(
+                StandardsAttachments.of(target).autoAcceptTeleports(), direction)) {
+            Optional<Request> made =
+                    TeleportRequests.find(requester.getUUID(), target.getUUID(), direction);
+            if (made.isPresent()) {
+                TeleportRequests.close(made.get());
+                int result = run(server, made.get(), requester, target);
+                // The host clicked nothing and may have forgotten they ever switched it on. Say
+                // so, and how to stop it, rather than let visitors simply appear.
+                Feedback.chat(target, Lang.get("msg.tpa.auto_note"));
+                return result;
+            }
+        }
+
         Feedback.chat(requester, Lang.fmt(
                 direction == Direction.TO_TARGET ? "msg.tpa.sent" : "msg.tpa.sent_here",
-                "player", targetName, "sec", timeout));
+                "player", targetName, "sec", StandardsConfig.TPA_TIMEOUT.get()));
+        prompt(requester, target, direction);
+        return 1;
+    }
 
-        // The prompt, with buttons. Naming the requester in the command means clicking the right
-        // button answers the right request when several are open at once.
+    /**
+     * {@code /tpaall}: a {@code /tpahere} to everyone online, for gathering a server for an event.
+     *
+     * <p>Respects {@code /tptoggle} even for staff holding the override. The override exists so a
+     * player cannot hide from moderation; an event invitation is not moderation, and somebody who
+     * switched requests off did it precisely to be spared the mass ones.</p>
+     *
+     * <p>Never auto-accepted — see {@link TeleportRequests#autoAccepts}. Each person gets the prompt a
+     * single {@code /tpahere} would have sent, so the answer stays theirs.</p>
+     */
+    private static int askEveryone(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer requester = ctx.getSource().getPlayerOrException();
+        MinecraftServer server = requester.level().getServer();
+        List<ServerPlayer> others = server.getPlayerList().getPlayers().stream()
+                .filter(p -> !p.getUUID().equals(requester.getUUID()))
+                .toList();
+        if (others.isEmpty()) {
+            Feedback.chat(requester, Lang.get("msg.tpa.all_nobody"));
+            return 0;
+        }
+        int asked = 0;
+        int refusing = 0;
+        for (ServerPlayer target : others) {
+            if (StandardsAttachments.of(target).refusingTeleports()) {
+                refusing++;
+                continue;
+            }
+            switch (TeleportRequests.open(server, requester, target, Direction.TO_REQUESTER)) {
+                case NONE -> {
+                    prompt(requester, target, Direction.TO_REQUESTER);
+                    asked++;
+                }
+                // Already holding one from us: asked, and not asked twice.
+                case ALREADY_PENDING -> asked++;
+                default -> { }
+            }
+        }
+        // One summary line, not a line per player — on a full server that would be the whole chat.
+        Feedback.chat(requester, Lang.fmt("msg.tpa.all_sent",
+                "count", asked, "sec", StandardsConfig.TPA_TIMEOUT.get())
+                + (refusing > 0 ? Lang.fmt("msg.tpa.all_refusing", "count", refusing) : ""));
+        return asked;
+    }
+
+    /**
+     * The answering end's prompt, with buttons. Naming the requester in the command means clicking
+     * the right button answers the right request when several are open at once.
+     */
+    private static void prompt(ServerPlayer requester, ServerPlayer target, Direction direction) {
+        String requesterName = requester.getName().getString();
         Feedback.chatWithButtons(target,
                 Lang.fmt(direction == Direction.TO_TARGET
                         ? "msg.tpa.received" : "msg.tpa.received_here", "player", requesterName),
@@ -137,7 +210,6 @@ public final class TpaCommands {
                 Feedback.button(Lang.get("msg.tpa.button_deny"),
                         "/tpdeny " + requesterName,
                         Lang.fmt("msg.tpa.button_deny_tip", "player", requesterName)));
-        return 1;
     }
 
     // --- answering ---

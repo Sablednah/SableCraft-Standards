@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`/home <player> [home]` and `/homes <player>`.** Staff holding `standards.home.others` reach
+  anybody's homes, online or not. A player can own several, so naming only the player lists theirs
+  as buttons rather than guessing — even when there is exactly one, since a mistyped home name that
+  matched a player would otherwise drop staff into somebody's bedroom unasked. Your own homes are
+  asked first, so a home named after a friend still goes to the home.
+
+  A second argument rather than EssentialsX's `player:home`, because a colon is exactly the
+  punctuation `word()` refuses.
+
+- **`/renamehome <name> <new>`**, gated on `sethome` — renaming is setting a home under another name.
+  Changing only the case is allowed; taking another home's name is not.
+
+- **`/warpinfo <name>`** — where a warp points, how far away it is, and a **[Go]** button.
+
+- **`/tpauto [on|off|toggle]`** — requests to *visit* you are accepted without a click. A `/tpahere`
+  still asks, because accepting those unasked would let anybody pull you anywhere. The host is told
+  each time it answered for them, since visitors who simply appear look like a bug.
+
+- **`/tpaall`** — a `/tpahere` to everyone online, for events. Op by default. It respects
+  `/tptoggle` even for staff holding `tpa.override`: an invitation is not moderation.
+
+- **`/tpo` and `/tpohere`** — EssentialsX's names for `/tpx` and `/tphere`. Aliases only:
+  `/tptoggle` gates requests and never staff, so there was nothing to override.
+
 ## 1.8.0 — 2026-09-12
 
 ### Added
