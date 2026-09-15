@@ -88,6 +88,7 @@ public final class SelfTest {
         checkReputation(server);
         checkCapabilityPayload();
         checkFakePlayerNet(server);
+        checkHomeRename(server);
         checkActionSeam();
         checkBuildStamp();
         checkSafeLoc(server);
@@ -1144,6 +1145,43 @@ public final class SelfTest {
     }
 
     /**
+     * {@code /renamehome} against the real store: the rename, both refusals, and case. Uses an
+     * owner nobody can log in as, and removes every home it made afterwards.
+     */
+    private void checkHomeRename(MinecraftServer server) {
+        StandardsData data = StandardsData.get(server);
+        UUID owner = UUID.nameUUIDFromBytes("selftest-renamer".getBytes());
+        var here = new com.sablednah.standards.core.Waypoint(
+                server.overworld().dimension(), 0, 64, 0, 0F, 0F);
+        try {
+            data.setHome(owner, "alpha", here);
+            data.setHome(owner, "beta", here);
+            data.setHome(owner, "gamma", here);
+            check("/renamehome renames",
+                    data.renameHome(owner, "beta", "den") == StandardsData.Rename.DONE
+                            && data.home(owner, "den").isPresent()
+                            && data.home(owner, "beta").isEmpty());
+            check("...finding the home case-insensitively, as /home does",
+                    data.renameHome(owner, "ALPHA", "first") == StandardsData.Rename.DONE
+                            && data.home(owner, "first").isPresent());
+            check("/renamehome refuses a name another home already has",
+                    data.renameHome(owner, "first", "GAMMA") == StandardsData.Rename.TAKEN
+                            && data.home(owner, "first").isPresent());
+            check("...but a home may change only the case of its own name",
+                    data.renameHome(owner, "gamma", "Gamma") == StandardsData.Rename.DONE
+                            && data.homesOf(owner).containsKey("Gamma"));
+            check("/renamehome reports a home that does not exist",
+                    data.renameHome(owner, "nowhere", "somewhere") == StandardsData.Rename.MISSING);
+            check("...and never adds or loses a home doing any of it",
+                    data.homesOf(owner).size() == 3);
+        } finally {
+            for (String home : List.copyOf(data.homesOf(owner).keySet())) {
+                data.deleteHome(owner, home);
+            }
+        }
+    }
+
+    /**
      * The reputation seam: normalisation, the clamp, bands, and that the commands can be typed.
      *
      * <p>Exercised through the real facade and the real provider rather than a copy of either. The
@@ -1249,11 +1287,13 @@ public final class SelfTest {
                 "god", "god on", "god @a off",
                 "top", "jump", "j", "back", "back 2", "back list",
                 "home", "sethome", "sethome base", "delhome base", "homes",
-                "warp", "warps", "setwarp spawnpoint", "delwarp spawnpoint",
+                "home Steve", "home Steve base", "homes Steve", "renamehome base den",
+                "warp", "warps", "setwarp spawnpoint", "delwarp spawnpoint", "warpinfo spawnpoint",
                 "tpa Steve", "call Steve", "tpahere Steve",
                 "tpaccept", "tpaccept Steve", "tpyes", "tpdeny", "tpdeny Steve", "tpno",
                 "tpacancel", "tpalist",
                 "tptoggle", "tptoggle on", "tptoggle off",
+                "tpauto", "tpauto on", "tpauto off", "tpaall", "tpo Steve", "tpohere @a",
                 "vanish", "vanish on", "vanish off", "v", "v @a off",
                 "smite", "smite Steve",
                 "tempban Steve 2h", "tempban Steve 2h being rude",
@@ -1418,6 +1458,14 @@ public final class SelfTest {
                 server.getCommands().getDispatcher().parse("fly sideways backwards", console);
         check("garbage arguments are rejected",
                 !nonsense.getExceptions().isEmpty() || nonsense.getReader().canRead());
+
+        // /renamehome needs both names. A tree that ran on the first alone would rename a home to
+        // nothing, or to whatever default a later edit quietly gave the missing argument.
+        ParseResults<CommandSourceStack> halfRename =
+                server.getCommands().getDispatcher().parse("renamehome base", console);
+        check("/renamehome with only one name does not run",
+                !halfRename.getExceptions().isEmpty() || halfRename.getReader().canRead()
+                        || boundCommand(halfRename) == null);
 
         // Vanilla's own /tp must still work: we deliberately did NOT merge onto it, and a
         // regression there would be invisible until an admin reached for it under pressure.
@@ -1873,6 +1921,15 @@ public final class SelfTest {
         check("traveller and host are always different",
                 !toTarget.traveller().equals(toTarget.host())
                         && !toRequester.traveller().equals(toRequester.host()));
+
+        // /tpauto: a visitor is let in, being moved always asks. Both ways round, because the
+        // dangerous half is the one that would pass unnoticed.
+        check("/tpauto accepts a /tpa",
+                TeleportRequests.autoAccepts(true, TeleportRequests.Direction.TO_TARGET));
+        check("/tpauto never accepts a /tpahere",
+                !TeleportRequests.autoAccepts(true, TeleportRequests.Direction.TO_REQUESTER));
+        check("...and accepts nothing while it is off",
+                !TeleportRequests.autoAccepts(false, TeleportRequests.Direction.TO_TARGET));
     }
 
     /**

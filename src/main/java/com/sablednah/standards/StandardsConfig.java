@@ -145,7 +145,7 @@ public final class StandardsConfig {
         ENABLE_HOMES = BUILDER.define("homes", true);
         ENABLE_WARPS = BUILDER.define("warps", true);
         ENABLE_TPA = BUILDER
-                .comment("/tpa, /tpahere, /tpaccept, /tpdeny, /tpacancel and /tptoggle.")
+                .comment("/tpa, /tpahere, /tpaall, /tpaccept, /tpdeny, /tpacancel, /tptoggle and /tpauto.")
                 .define("tpa", true);
         ENABLE_VANISH = BUILDER
                 .comment("/vanish and /v. Also exposed to other mods via the PlayerSwitches API.")
@@ -280,7 +280,7 @@ public final class StandardsConfig {
                         "which is what you want if a dedicated economy mod is installed.")
                 .define("economy", true);
         ENABLE_ADMIN_TP = BUILDER
-                .comment("/tpx, /tphere and /tppos. Vanilla has /tp; these exist because they are",
+                .comment("/tpx, /tphere and /tppos, with /tpo and /tpohere as aliases. Vanilla has /tp; these exist because they are",
                         "gated on a permission node instead of an op level, so a builder can be",
                         "given them without also being given /stop — and because /tppos takes a",
                         "dimension without needing '/execute in' first.",

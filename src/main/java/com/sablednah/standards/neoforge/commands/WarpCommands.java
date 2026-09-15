@@ -58,6 +58,14 @@ public final class WarpCommands {
                         .executes(WarpCommands::setWarp));
     }
 
+    public static LiteralArgumentBuilder<CommandSourceStack> warpInfo() {
+        return Commands.literal("warpinfo")
+                .requires(StandardsPermissions.require(StandardsPermissions.WARP))
+                .then(Commands.argument("name", StringArgumentType.word())
+                        .suggests(WarpCommands::suggestWarps)
+                        .executes(WarpCommands::warpInfo));
+    }
+
     public static LiteralArgumentBuilder<CommandSourceStack> delWarp() {
         return Commands.literal("delwarp")
                 .requires(StandardsPermissions.require(StandardsPermissions.SETWARP))
@@ -125,6 +133,41 @@ public final class WarpCommands {
             return 0;
         }
         Feedback.reply(ctx.getSource(), Lang.fmt("msg.warp.deleted", "name", name), true);
+        return 1;
+    }
+
+    /**
+     * Where a warp points, without going there. Open to anyone who may use warps: the place is
+     * disclosed the moment they arrive anyway, and knowing first is how you decide whether to.
+     */
+    private static int warpInfo(CommandContext<CommandSourceStack> ctx) {
+        String name = StringArgumentType.getString(ctx, "name");
+        StandardsData data = StandardsData.get(ctx.getSource().getServer());
+        Optional<Waypoint> found = data.warp(name);
+        if (found.isEmpty()) {
+            var known = data.warpNames();
+            Feedback.fail(ctx.getSource(), known.isEmpty()
+                    ? Lang.fmt("msg.warp.unknown_none", "name", name)
+                    : Lang.fmt("msg.warp.unknown", "name", name, "list", String.join(", ", known)));
+            return 0;
+        }
+        Waypoint where = found.get();
+        String shown = data.warpNames().stream()
+                .filter(n -> n.equalsIgnoreCase(name)).findFirst().orElse(name);
+        String distance = "";
+        if (ctx.getSource().getEntity() instanceof ServerPlayer player
+                && player.level().dimension().equals(where.dimension())) {
+            distance = Lang.fmt("msg.warp.info_distance", "blocks",
+                    Math.round(Math.sqrt(player.distanceToSqr(where.x(), where.y(), where.z()))));
+        }
+        String line = Lang.fmt("msg.warp.info",
+                "name", shown, "place", where.describe(), "distance", distance);
+        if (ctx.getSource().getEntity() instanceof ServerPlayer player) {
+            Feedback.chatWithButtons(player, line, Feedback.button(Lang.get("msg.warp.button_go"),
+                    "/warp " + shown, Lang.fmt("msg.warp.button_go_tip", "name", shown)));
+        } else {
+            Feedback.reply(ctx.getSource(), line, false);
+        }
         return 1;
     }
 
