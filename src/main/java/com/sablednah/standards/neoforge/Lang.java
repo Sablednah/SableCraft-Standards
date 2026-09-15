@@ -428,6 +428,11 @@ public final class Lang {
         def("msg.tpa.list_row", " &7-&r &f{player} {term.dim}({dir}, {sec}s left)");
         def("msg.tpa.dir_to_you", "to you");
         def("msg.tpa.dir_to_them", "you to them");
+        def("msg.tpa.auto_name", "Auto-accepting {term.tpas}");
+        def("msg.tpa.auto_note", "{term.dim}(Answered for you by /tpauto. &f/tpauto off{term.dim} to answer them yourself.)");
+        def("msg.tpa.all_sent", "{term.prefix} &7Asked &f{count}&7 player(s) to teleport to you. {term.dim}({sec}s to answer)");
+        def("msg.tpa.all_refusing", " {term.dim}{count} not accepting {term.tpas}, and left alone.");
+        def("msg.tpa.all_nobody", "&7Nobody else is online. The event is just you.");
     }
 
     // --- msg.home.* ---
@@ -445,6 +450,14 @@ public final class Lang {
         def("msg.home.name_rules", "&c{term.home} names: 1-32 letters, numbers, _ or -.");
         def("msg.home.went", "{term.prefix} &7Home to &f{name}&7.");
         def("msg.home.unlimited", "unlimited");
+        def("msg.home.renamed", "{term.prefix} &7{term.home} &f{from}&7 is now &f{to}&7.");
+        def("msg.home.rename_taken", "&cYou already have a {term.home} called &f{to}&c. &7Rename or delete that one first.");
+        def("msg.home.no_player", "&cNobody called &f{name}&c has ever played here.");
+        def("msg.home.others_none", "&f{player}&7 has no {term.homes}.");
+        def("msg.home.others_pick", "&f{player}&7's {term.homes} {term.dim}({count}, click one)");
+        def("msg.home.others_unknown", "&f{player}&7 has no {term.home} called &f{name}&7. {term.dim}(click one)");
+        def("msg.home.go_to_other", "&7Go to &f{player}&7's &f{name}");
+        def("msg.home.went_other", "{term.prefix} &7To &f{player}&7's {term.home} &f{name}&7.");
     }
 
     // --- msg.warp.* ---
@@ -459,6 +472,10 @@ public final class Lang {
         def("msg.warp.list", "{term.prefix} &7{term.warps} {term.dim}({count})&7: &f{list}");
         def("msg.warp.went", "{term.prefix} &7Warped to &f{name}&7.");
         def("msg.warp.name_rules", "&c{term.warp} names: 1-32 letters, numbers, _ or -.");
+        def("msg.warp.info", "{term.prefix} &7{term.warp} &f{name}&7 is at &f{place}{distance}");
+        def("msg.warp.info_distance", " {term.dim}({blocks} blocks away)");
+        def("msg.warp.button_go", "&a&l[Go]");
+        def("msg.warp.button_go_tip", "Warp to {name}");
     }
 
     // --- msg.eco.* ---

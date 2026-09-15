@@ -541,6 +541,25 @@ public final class StandardsData extends SavedData {
         return true;
     }
 
+    /** How a {@link #renameHome} went. */
+    public enum Rename { DONE, MISSING, TAKEN }
+
+    public Rename renameHome(UUID owner, String from, String to) {
+        Map<String, Waypoint> mine = homes.get(owner);
+        if (mine == null) return Rename.MISSING;
+        String key = mine.keySet().stream()
+                .filter(k -> k.equalsIgnoreCase(from)).findFirst().orElse(null);
+        if (key == null) return Rename.MISSING;
+        // A clash with a DIFFERENT home. Its own name is not a clash, so 'base' can become 'Base'.
+        boolean taken = mine.keySet().stream()
+                .anyMatch(k -> !k.equals(key) && k.equalsIgnoreCase(to));
+        if (taken) return Rename.TAKEN;
+        Waypoint where = mine.remove(key);
+        mine.put(to, where);
+        setDirty();
+        return Rename.DONE;
+    }
+
     // --- warps ---
 
     public Optional<Waypoint> warp(String name) {

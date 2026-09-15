@@ -64,7 +64,7 @@ whole mod follows from taking those two complaints seriously.**
 | | |
 |---|---|
 | **Economy** | A built-in ledger, and a **provider API** so a dedicated economy mod displaces it without either side knowing the other exists. Balances live in save data, so `/eco give` works on a sleeping player and `/baltop` answers about everyone. |
-| **Homes, warps and spawn** | Per-player home limits by permission node, named warps, a server spawn, safe-landing searches that will not drop you in lava or drown you. |
+| **Homes, warps and spawn** | Per-player home limits by permission node, named warps, a server spawn, safe-landing searches that will not drop you in lava or drown you. Staff can reach anybody's homes, online or not. |
 | **Teleports** | Warmups with a live countdown, cooldowns, cancel-on-damage, cancel-on-move — all of it available to other mods, so anything that teleports a player inherits the lot. |
 | **Groups** | A lightweight built-in group system — shared homes, chat tags, group teleports — *and* a seam other mods register into, so a faction and a party can coexist without either arbitrating. |
 | **Chat** | Name decorators contributed by several mods at once and ordered by closeness to the name, plus a channel router that cannot be used to sidestep a mute. |

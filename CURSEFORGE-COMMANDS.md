@@ -27,8 +27,8 @@ gets the everyone-nodes and operators get the op-gated ones.
 
 | Default | Nodes |
 |---|---|
-| **Everyone** | `top` `back` `home` `sethome` `delhome` `spawn` `gc` `kit` `mail` `afk` `msg` `tpa` `tpahere` `tptoggle` `warp` `balance` `baltop` `pay` `group` |
-| **Operators** | `combat.bypass` `fly` `god` `vanish` `smite` `jump` `bottom` `heal` `feed` `rest` `speed` `setspawn` `setkit` `setwarp` `tpoffline` `socialspy` `tempban` `mute` `invsee` `eco` `admin`, every `.others` variant, `msg.override` `tpa.override` `afk.exempt` `home.limit.unlimited` `teleport.instant` `teleport.nocooldown` |
+| **Everyone** | `top` `back` `home` `sethome` `delhome` `spawn` `gc` `kit` `mail` `afk` `msg` `tpa` `tpahere` `tptoggle` `tpauto` `warp` `balance` `baltop` `pay` `group` |
+| **Operators** | `combat.bypass` `fly` `god` `vanish` `smite` `jump` `bottom` `heal` `feed` `rest` `speed` `setspawn` `setkit` `setwarp` `tpoffline` `tpaall` `socialspy` `tempban` `mute` `invsee` `eco` `admin`, every `.others` variant, `msg.override` `tpa.override` `afk.exempt` `home.limit.unlimited` `teleport.instant` `teleport.nocooldown` |
 | **Nobody, including operators** | `craft` `anvil` `grindstone` `enderchest` `trashcan` `back.ondeath` |
 
 That last row is deliberate. **A workbench you can open anywhere is an ability to be granted, not a
@@ -81,21 +81,31 @@ respawn anchor.
 
 ## Homes and warps
 
-### `/home [name]` · `/homes` · `/sethome <name>` · `/delhome <name>`
+### `/home [name]` · `/homes` · `/sethome <name>` · `/delhome <name>` · `/renamehome <name> <new>`
 
-With exactly one home, `/home` needs no name. With several it asks which rather than guessing.
-`/sethome` over an existing name refuses and tells you how to overwrite, because losing a base to a
-typo is not recoverable.
+With exactly one home, `/home` needs no name. With several it asks which rather than guessing, with
+a button per home. `/sethome` over an existing name moves that home to where you stand, and says so.
+
+`/renamehome` needs `sethome`. Changing only the case of a name is fine; taking another home's name
+is refused.
 
 Limits come from numbered permission nodes; see above.
 
-### `/warp <name>` · `/warps` · `/setwarp <name>` · `/delwarp <name>`
+### `/home <player> [home]` · `/homes <player>`
 
-Server-wide named destinations. `/setwarp` is op by default.
+Staff with `home.others` can reach anybody's homes, **online or not**. Naming only the player lists
+their homes as buttons — never a guess, even when they have one, because a mistyped home name that
+matched a player would otherwise drop you into somebody's bedroom unasked. Your own homes are
+checked first, so a home named after a friend still goes to the home.
+
+### `/warp <name>` · `/warps` · `/setwarp <name>` · `/delwarp <name>` · `/warpinfo <name>`
+
+Server-wide named destinations. `/setwarp` is op by default. `/warpinfo` says where one points and
+how far away it is, with a **[Go]** button, for anyone who may use warps.
 
 ## Teleport requests
 
-### `/tpa <player>` · `/tpahere <player>` · `/tpaccept` · `/tpdeny` · `/tpacancel` · `/tpalist`
+### `/tpa <player>` · `/tpahere <player>` · `/tpaall` · `/tpaccept` · `/tpdeny` · `/tpacancel` · `/tpalist`
 
 Aliases: `/call` for `/tpa`, `/tpyes` and `/tpno` for accept and deny.
 
@@ -109,9 +119,18 @@ cancelled **with the reason**, because "they did not make it" invites an identic
 
 Prompts carry clickable **[Accept]** and **[Deny]** buttons that work on a vanilla client.
 
+`/tpaall` sends a `/tpahere` to everyone online, for events. Op by default. Players with `/tptoggle`
+on are left alone, even by staff holding `tpa.override` — an invitation is not moderation.
+
 ### `/tptoggle [on|off|toggle]`
 
-Refuse incoming requests.
+Refuse incoming requests. Staff are not affected: `tpa.override` asks anyway, and `/tpx` never asks.
+
+### `/tpauto [on|off|toggle]`
+
+Accept requests to **visit you** without a click. A `/tpahere` or `/tpaall` still asks — accepting
+those unasked would let anybody pull you anywhere. You are told each time it answers for you, and how
+to switch it off.
 
 ### `/tpoffline <player>`
 

@@ -166,6 +166,10 @@ public final class StandardsPermissions {
      * hide from moderation rather than from strangers.
      */
     public static final PermissionNode<Boolean> TPA_OVERRIDE = node("tpa.override", Default.OPS);
+    /** {@code /tpaall} — a {@code /tpahere} to everyone online. Event hosting, so staff. */
+    public static final PermissionNode<Boolean> TPA_ALL = node("tpaall", Default.OPS);
+    /** {@code /tpauto} — let people who ask to visit you arrive without a click. */
+    public static final PermissionNode<Boolean> TPAUTO = node("tpauto", Default.EVERYONE);
 
     // --- warps ---
     public static final PermissionNode<Boolean> WARP = node("warp", Default.EVERYONE);

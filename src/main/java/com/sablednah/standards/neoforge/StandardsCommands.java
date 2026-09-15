@@ -158,6 +158,7 @@ public final class StandardsCommands {
             dispatcher.register(HomeCommands.homes());
             dispatcher.register(HomeCommands.setHome());
             dispatcher.register(HomeCommands.delHome());
+            dispatcher.register(HomeCommands.renameHome());
         }
 
         // --- teleport requests ---
@@ -171,6 +172,7 @@ public final class StandardsCommands {
             dispatcher.register(TpaCommands.deny("tpno"));
             dispatcher.register(TpaCommands.cancel());
             dispatcher.register(TpaCommands.list());
+            dispatcher.register(TpaCommands.tpaAll());
 
             // /tptoggle is a switch like any other, so it gets on/off/toggle for free — and the
             // switch is named for what it controls ("Accepting teleport requests"), not for the
@@ -187,6 +189,13 @@ public final class StandardsCommands {
                     player -> !StandardsAttachments.of(player).refusingTeleports(),
                     (player, accepting) ->
                             StandardsAttachments.of(player).setRefusingTeleports(!accepting)));
+
+            // /tpauto answers requests to VISIT you and nothing else; TeleportRequests.autoAccepts
+            // says why being moved always asks. A gerund again, for the reason given above.
+            dispatcher.register(SwitchCommand.build("tpauto", "msg.tpa.auto_name",
+                    StandardsPermissions.TPAUTO, StandardsPermissions.ADMIN,
+                    player -> StandardsAttachments.of(player).autoAcceptTeleports(),
+                    (player, on) -> StandardsAttachments.of(player).setAutoAcceptTeleports(on)));
         }
 
         // --- warps ---
@@ -195,6 +204,7 @@ public final class StandardsCommands {
             dispatcher.register(WarpCommands.warps());
             dispatcher.register(WarpCommands.setWarp());
             dispatcher.register(WarpCommands.delWarp());
+            dispatcher.register(WarpCommands.warpInfo());
         }
 
         if (StandardsConfig.ENABLE_AFK.get()) {
@@ -261,6 +271,10 @@ public final class StandardsCommands {
         if (StandardsConfig.ENABLE_ADMIN_TP.get()) {
             dispatcher.register(AdminTeleportCommands.tp("tpx"));
             dispatcher.register(AdminTeleportCommands.tpHere("tphere"));
+            // EssentialsX's names, for the muscle memory. Not a separate override: none of these
+            // consult /tptoggle in the first place, which gates requests and never staff.
+            dispatcher.register(AdminTeleportCommands.tp("tpo"));
+            dispatcher.register(AdminTeleportCommands.tpHere("tpohere"));
             dispatcher.register(AdminTeleportCommands.tpPos("tppos"));
         }
 

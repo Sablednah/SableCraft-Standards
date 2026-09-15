@@ -2,7 +2,7 @@
 
 **Generated from the source — do not edit by hand.** `python3 scripts/nodes.py` rebuilds it from `StandardsPermissions.java`, which is the only place a node is really declared.
 
-91 declared nodes, plus the runtime ones described at the bottom.
+93 declared nodes, plus the runtime ones described at the bottom.
 
 Standards asks NeoForge's `PermissionAPI` for every one of these, so they work with LuckPerms, with Standards' own handler (`/rank`, see [`PERMISSIONS.md`](PERMISSIONS.md)), or with nothing installed at all — in which case the **Default** column is the whole answer.
 
@@ -94,7 +94,9 @@ Standards asks NeoForge's `PermissionAPI` for every one of these, so they work w
 |---|---|---|
 | `standards.tpa` | `everyone` | Use `/tpa`. |
 | `standards.tpa.override` | `ops` | Ask someone who has /tptoggle on anyway. Staff need it, or /tptoggle becomes a place to hide from moderation rather than from strangers. |
+| `standards.tpaall` | `ops` | `/tpaall` — a `/tpahere` to everyone online. Event hosting, so staff. |
 | `standards.tpahere` | `everyone` | Use `/tpahere`. |
+| `standards.tpauto` | `everyone` | `/tpauto` — let people who ask to visit you arrive without a click. |
 | `standards.tptoggle` | `everyone` | Use `/tptoggle`. |
 
 ## Warps
