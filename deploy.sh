@@ -120,6 +120,13 @@ fails=0
 for inst in "${targets[@]}"; do
     mods="$inst/mods"
     label="$(basename "$inst")"
+    # A family convention: an instance whose root holds .sablecraft-no-deploy takes released
+    # CurseForge jars only (a modpack's export refers to CurseForge file ids), so it is never
+    # deployed to -- found by the scan or named outright.
+    if [ -e "$inst/.sablecraft-no-deploy" ]; then
+        echo ">> Skipping '$label': it is marked .sablecraft-no-deploy (released jars only)."
+        continue
+    fi
     [ -d "$mods" ] || { echo ">> $label: no mods folder, skipped"; continue; }
 
     mc="$(mc_version_of "$inst")"
