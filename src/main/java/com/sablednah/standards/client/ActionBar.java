@@ -3,6 +3,8 @@ package com.sablednah.standards.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -175,9 +177,9 @@ public final class ActionBar {
      */
     private static void position(InventoryScreen screen) {
         AbstractContainerScreen<?> container = screen;
-        int left = container.getGuiLeft();
-        int top = container.getGuiTop() + container.getYSize() + GAP * 2;
-        int perRow = Math.max(1, container.getXSize() / (SIZE + GAP));
+        int left = container.getLeftPos();
+        int top = container.getTopPos() + container.getImageHeight() + GAP * 2;
+        int perRow = Math.max(1, container.getImageWidth() / (SIZE + GAP));
 
         // How many rows this will take, worked out before placing anything, so the whole block
         // can be lifted if it would run off the bottom. A second mod's row appearing half off the
@@ -206,7 +208,7 @@ public final class ActionBar {
             entry.button().setPosition(left + column * (SIZE + GAP), top + row * (SIZE + GAP));
             column++;
         }
-        layoutChildren(screen, left, top + (row + 1) * (SIZE + GAP), container.getXSize());
+        layoutChildren(screen, left, top + (row + 1) * (SIZE + GAP), container.getImageWidth());
     }
 
     /**
@@ -228,7 +230,11 @@ public final class ActionBar {
         }
         // A left click on an open child runs it. Checked before the right-click work below, so a
         // child cannot be shadowed by whatever button happens to sit behind it.
-        if (event.getButton() == 0) {
+        // ⚠ Named constants, never 0/1: 26.3 swapped GLFW for SDL, which numbers the mouse
+        // left=1 right=3. InputConstants tracks its own backend, so this is right on every
+        // line — comparing against a literal made a left click read as a right click here,
+        // which cancelled the event and left vanilla's own button press unreachable.
+        if (event.getButton() == InputConstants.MOUSE_BUTTON_LEFT) {
             for (Kid kid : CHILDREN) {
                 if (event.getMouseX() >= kid.x() && event.getMouseX() < kid.x() + kid.width()
                         && event.getMouseY() >= kid.y()
@@ -241,7 +247,7 @@ public final class ActionBar {
             }
             return;
         }
-        if (event.getButton() != 1) {
+        if (event.getButton() != InputConstants.MOUSE_BUTTON_RIGHT) {
             return;
         }
         for (Entry entry : DRAWN) {
