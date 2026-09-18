@@ -122,6 +122,68 @@ every self-test.
   list. So the split is not "drawing diverges": **GUI screens diverged; vanilla's debug primitives
   did not.** Borrow vanilla's primitives where they exist and the port is close to free.
 
+### 26.3 — what actually moved
+
+**Minecraft 26.3 "Wilderness Bound" is a full release (2026-09-15); NeoForge is the beta**, at
+`26.3.0.3-beta`, with no 26.2→26.3 primer published. Java stays 25; MDG 2.0.144 → 2.0.147.
+CurseForge already listed 26.3, so the "publishing right after a release fails" caveat did not
+apply. **3 API changes, 19 sites.**
+
+- **Four screen accessors were RENAMED, not removed** — `getGuiLeft/getGuiTop/getXSize/getYSize` →
+  `getLeftPos/getTopPos/getImageWidth/getImageHeight`. 16 sites in `ActionBar` and `PanelHost`.
+  Because it is a rename, **the access transformer is untouched** — which matters, since an AT edit
+  forces a 10-minute NeoForm re-run.
+- **`drop(stack, bool)` → `drop(stack, bool, Prediction)`**, and `Player`'s two-argument form is
+  gone. ⚠ **`SERVER_ONLY` is the right constant** where the inventory was full and the item goes on
+  the floor — taken from vanilla's own server-initiated sites (`AbstractContainerMenu`,
+  `BeaconMenu`, `AdvancementRewards`). `PREDICTED` is for a drop the client already drew. The names
+  invite the wrong pick and it compiles either way.
+- **JourneyMap's API is per line**: `journeymap_api_version` → `26.3-2.0.0`. ⚠ An *optional*
+  dependency whose range is unmet still refuses to load, so a wrong floor stops the mod rather than
+  dropping the layer.
+
+**Everything version-fragile came back clean, measured from the jars rather than read off a
+changelog:** all mixins apply, the AT target `leftPos` survives, and **`SavedDataStorage` is
+byte-identical** — no repeat of 26.1 silently moving saved data.
+
+### ⚠ 26.3 replaced GLFW with SDL, and SDL renumbers the mouse
+
+**The first behavioural 26.3-only divergence, and it broke every modded click while compiling
+perfectly.** SDL says left=**1**, middle=2, right=**3** where GLFW said 0/1/2.
+`ScreenEvent.getButton()` and `getMouseButton()` hand that raw value straight through — identical
+source on every line — so any comparison against a literal `0` or `1` breaks on 26.3 alone.
+
+Symptoms, none of them reachable by `SelfTest`, which has no client:
+
+- the Factions panel **drew perfectly and nothing in it was clickable** (`mouseClicked` opens with
+  `if (button != 0) return false`);
+- an action-bar category **toggled on a left click and ignored a right one**, because the `!= 1`
+  right-click branch caught the left click (1) and cancelled the event, so vanilla's own
+  `Button.onPress` never ran;
+- claiming from JourneyMap's map was **exactly reversed**.
+
+**Vanilla hit the same wall**: 26.3 adds `AbstractContainerScreen.getContainerClickButton`
+(`case 1 -> 0; case 3 -> 1;`), absent on 26.1 and 26.2. Read it as the authoritative translation.
+
+✅ **The fix needs no per-branch divergence, because the constants track their own backend:**
+`InputConstants.MOUSE_BUTTON_LEFT` is **0** on 1.21.11/26.1/26.2 and **1** on 26.3 — verified from
+all four jars. So the named constant is one expression correct everywhere, and the identity where
+nothing moved. Standards normalises **once** in `PanelHost` to the domain `InventoryPanel` now
+documents (0 left, 1 right, 2 middle), which also repaired **LegendQuest's already-shipped pane**
+without touching its source.
+
+⚠ `static final int` is **inlined by javac**, so each line's jar hardcodes its own backend's number.
+Compile-time correct per line, not adaptive — which the source does not read like.
+
+**The general rule, and it is worth more than the five fixes: a platform-supplied integer compared
+against a literal is a latent version break.** And the lesson that cost the most: I checked that
+`InputConstants`, `UNKNOWN` and `KEY_APOSTROPHE` still *existed* on 26.3 and declared keybindings
+safe. **Existence is not semantics.**
+
+⚠ **One correction owed to this document**: it records `GuiGraphics` → `GuiGraphicsExtractor` as a
+**26.2** change, but Factions' `FactionPanel` uses `GuiGraphicsExtractor`/`text` on **mc26.1**. One
+of those is wrong about when that rename landed; settle it before trusting either in a port.
+
 ### ⚠ The one that was not a compile error
 
 **26.1 moved every saved-data file into a namespaced folder.** `SavedDataType`'s id resolves as
@@ -187,13 +249,13 @@ Measured tonight, the whole mod's contact with `net.minecraft` is:
 | Teleporting | `Teleports` | Medium — `teleportTo`'s signature has changed before |
 | Save data + codecs | `StandardsData`, `Waypoint` | Low, but a codec change is a data-loss change, not a compile error |
 | Block state reads | `SafeLoc` | Low — three method calls |
-| **Mixins** | `ServerPlayerVanishMixin`, `LivingEntityVanishMixin` | **Highest in the mod.** Two `@Inject`s, both for `/vanish`: `ServerPlayer.broadcastToPlayer` (who can see you) and `LivingEntity.isPushable` (who can shove you). Both methods are public, short and long-stable, but a mixin that stops applying is the worst failure mode here — see below. |
+| **Mixins** | `ServerPlayerVanishMixin`, `LivingEntityVanishMixin`, `ServerLevelFireMixin`, `FireBlockMixin` | **Highest in the mod.** Five `@Inject`s across four classes: two for `/vanish` (`ServerPlayer.broadcastToPlayer`, `LivingEntity.isPushable`) and three for fire in claims (`ServerLevel.canSpreadFireAround`, and `FireBlock`'s private `checkBurnOut` and `getIgniteOdds`). A mixin that stops applying is the worst failure mode here — see below. ⚠ `checkBurnOut`'s trailing `Direction face` is a **NeoForge patch**: vanilla's own jar has five parameters, the patched one six. Read the patched sources, never the vanilla jar. |
 
 So the honest expectation is **a handful of call sites per drop**, not a port.
 
 ### The mixins deserve their own paragraph
 
-Standards has two, both belonging to `/vanish`, because hiding a player from *some* observers is
+Standards has four. Two belong to `/vanish`, because hiding a player from *some* observers is
 inherently invasive and vanilla exposes no events for it:
 
 | Mixin | Injects | Stops |
