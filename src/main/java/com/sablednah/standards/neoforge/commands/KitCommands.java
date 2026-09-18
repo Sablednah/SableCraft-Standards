@@ -172,7 +172,7 @@ public final class KitCommands {
             // Anything that will not fit goes on the floor rather than vanishing. Silently eating
             // half a kit because the player had a full inventory is the classic complaint.
             if (!player.getInventory().add(copy)) {
-                player.drop(copy, false);
+                player.drop(copy, false, net.minecraft.util.Prediction.SERVER_ONLY);
                 dropped++;
             }
         }

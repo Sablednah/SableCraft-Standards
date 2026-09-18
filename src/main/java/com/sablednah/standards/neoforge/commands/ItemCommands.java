@@ -89,7 +89,7 @@ public final class ItemCommands {
             // Drop what will not fit rather than binning it. A command that reports giving 640
             // cobblestone and quietly discards half is worse than one that refuses outright.
             if (!player.getInventory().add(stack)) {
-                player.drop(stack, false);
+                player.drop(stack, false, net.minecraft.util.Prediction.SERVER_ONLY);
             }
             given += size;
         }
