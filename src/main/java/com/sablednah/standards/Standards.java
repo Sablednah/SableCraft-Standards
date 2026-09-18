@@ -56,6 +56,7 @@ public class Standards {
                     // commands the config left registered.
                     com.sablednah.standards.neoforge.StandardsActions.registerAll();
                     com.sablednah.standards.neoforge.Vanish.install();
+                    com.sablednah.standards.neoforge.FireProtection.install();
                     com.sablednah.standards.neoforge.StandardsEvents.installChatGates();
                     installCombat();
                 }));
