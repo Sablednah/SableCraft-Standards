@@ -180,9 +180,25 @@ against a literal is a latent version break.** And the lesson that cost the most
 `InputConstants`, `UNKNOWN` and `KEY_APOSTROPHE` still *existed* on 26.3 and declared keybindings
 safe. **Existence is not semantics.**
 
-⚠ **One correction owed to this document**: it records `GuiGraphics` → `GuiGraphicsExtractor` as a
-**26.2** change, but Factions' `FactionPanel` uses `GuiGraphicsExtractor`/`text` on **mc26.1**. One
-of those is wrong about when that rename landed; settle it before trusting either in a port.
+⚠ **NeoForge ADDS the new name early and REMOVES the old one later — so "renamed in version X" is
+the wrong shape entirely.** Read from the patched sources of all four lines:
+
+| | `getGuiLeft` / `getXSize` | `getLeftPos` / `getImageWidth` |
+|---|---|---|
+| 1.21.11 | ✔ | — |
+| 26.1 | ✔ | **✔** |
+| 26.2 | ✔ | **✔** |
+| 26.3 | **—** | ✔ |
+
+Both pairs coexist on 26.1 and 26.2; only 26.3 drops the old one. That is why the button fix
+cherry-picked cleanly onto 26.1 and 26.2 and conflicted on 1.21.11 — correct in both cases, though
+it looked like a silent breakage until the branches were compiled.
+
+It also explains `GuiGraphicsExtractor` appearing on **mc26.1** rather than 26.2: the same
+add-then-remove, not a documentation error. An earlier revision of this file claimed one; that claim
+was itself wrong, which is the point worth keeping — **a two-point reading of "when did this
+change?" will invent a rename that never happened.** Read every supported line before writing the
+substitution down.
 
 ### ⚠ The one that was not a compile error
 
