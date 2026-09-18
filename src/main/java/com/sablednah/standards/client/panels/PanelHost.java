@@ -1,5 +1,6 @@
 package com.sablednah.standards.client.panels;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -103,7 +104,7 @@ public final class PanelHost {
      * which is what {@code PANELS-API.md} §4 is about.</p>
      */
     public static boolean occluded(AbstractContainerScreen<?> screen) {
-        int at = screen.getGuiLeft();
+        int at = screen.getLeftPos();
         return at != naturalLeft(screen) && at != shiftedLeft(screen) && at != shiftedTo;
     }
 
@@ -118,7 +119,7 @@ public final class PanelHost {
         // Restored to where vanilla wants it *at this moment* rather than to a hardcoded centre:
         // if the recipe book has opened meanwhile, centred is the wrong answer and asking the book
         // is the right one.
-        if (screen.getGuiLeft() == shiftedTo) {
+        if (screen.getLeftPos() == shiftedTo) {
             moveTo(screen, naturalLeft(screen));
         }
         shiftedTo = Integer.MIN_VALUE;
@@ -156,7 +157,7 @@ public final class PanelHost {
     /** Keep vanilla's recipe button with the inventory, wherever the inventory has got to. */
     private static void positionRecipeButton(AbstractContainerScreen<?> screen) {
         if (recipeButton != null) {
-            recipeButton.setX(screen.getGuiLeft() + recipeButtonOffset);
+            recipeButton.setX(screen.getLeftPos() + recipeButtonOffset);
         }
     }
 
@@ -263,7 +264,7 @@ public final class PanelHost {
             // Too narrow for vanilla to shift, so we do not either. The pane overlays the margin
             // that is there, clamped — the same fallback the recipe book takes below 379px.
             unshift(container);
-            int room = container.getGuiLeft() - GAP - MARGIN;
+            int room = container.getLeftPos() - GAP - MARGIN;
             if (room < 60) {
                 return;
             }
@@ -275,18 +276,18 @@ public final class PanelHost {
         }
         // Clamped rather than allowed off the left edge, which is what LegendQuest does too — on a
         // window barely over 379px the shift does not buy a full panel's width.
-        x = Math.max(MARGIN, container.getGuiLeft() - width - GAP);
+        x = Math.max(MARGIN, container.getLeftPos() - width - GAP);
         // ⚠ Asked EVERY FRAME and never cached — see InventoryPanel#preferredHeight. A panel's
         // height may depend on what it is showing this instant, so a host that remembered would
         // draw the wrong size the moment a tab or a picker changed, and slide it up against a
         // stale number.
         int wantHeight = safeHeight(showing.panel());
-        height = Math.min(wantHeight > 0 ? wantHeight : container.getYSize(),
+        height = Math.min(wantHeight > 0 ? wantHeight : container.getImageHeight(),
                 screen.height - V_MARGIN * 2);
         // LegendQuest's rule verbatim: anchor at the inventory's top, slide up only as far as
         // needed, never above the top margin, always leaving one at the bottom.
         y = Math.max(V_MARGIN,
-                Math.min(container.getGuiTop(), screen.height - height - V_MARGIN));
+                Math.min(container.getTopPos(), screen.height - height - V_MARGIN));
         drawn = true;
     }
 
@@ -346,7 +347,8 @@ public final class PanelHost {
             return;
         }
         try {
-            showing.panel().mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton());
+            showing.panel().mouseClicked(event.getMouseX(), event.getMouseY(),
+                    canonical(event.getButton()));
         } catch (RuntimeException | LinkageError e) {
             Standards.LOGGER.warn("Standards: panel '{}' failed on a click ({})",
                     showing.id(), e.toString());
@@ -378,7 +380,7 @@ public final class PanelHost {
         }
         try {
             if (showing.panel().mouseDragged(event.getMouseX(), event.getMouseY(),
-                    event.getMouseButton(), event.getDragX(), event.getDragY())) {
+                    canonical(event.getMouseButton()), event.getDragX(), event.getDragY())) {
                 event.setCanceled(true);
             }
         } catch (RuntimeException | LinkageError e) {
@@ -412,7 +414,7 @@ public final class PanelHost {
         }
         try {
             if (showing.panel().mouseReleased(event.getMouseX(), event.getMouseY(),
-                    event.getButton())) {
+                    canonical(event.getButton()))) {
                 event.setCanceled(true);
             }
         } catch (RuntimeException | LinkageError e) {
@@ -464,7 +466,7 @@ public final class PanelHost {
                     && listener instanceof net.minecraft.client.gui.components.ImageButton button
                     && button.getWidth() == 20 && button.getHeight() == 18) {
                 recipeButton = button;
-                recipeButtonOffset = button.getX() - screen.getGuiLeft();
+                recipeButtonOffset = button.getX() - screen.getLeftPos();
             } else if (listener
                     instanceof net.minecraft.client.gui.screens.recipebook.RecipeBookComponent<?> b) {
                 recipeBook = b;
@@ -481,8 +483,8 @@ public final class PanelHost {
      */
     private static int naturalLeft(AbstractContainerScreen<?> screen) {
         return recipeBook != null
-                ? recipeBook.updateScreenPosition(screen.width, screen.getXSize())
-                : (screen.width - screen.getXSize()) / 2;
+                ? recipeBook.updateScreenPosition(screen.width, screen.getImageWidth())
+                : (screen.width - screen.getImageWidth()) / 2;
     }
 
     /**
@@ -500,8 +502,38 @@ public final class PanelHost {
      */
     private static int shiftedLeft(AbstractContainerScreen<?> screen) {
         return screen.width >= 379
-                ? 177 + (screen.width - screen.getXSize() - 200) / 2
+                ? 177 + (screen.width - screen.getImageWidth() - 200) / 2
                 : naturalLeft(screen);
+    }
+
+    /**
+     * The raw mouse button as this Minecraft line numbers it, mapped to the domain
+     * {@link InventoryPanel} promises: 0 left, 1 right, 2 middle.
+     *
+     * <p>⚠ <b>26.3 replaced GLFW with SDL and SDL numbers the mouse differently</b> — left is 1
+     * and right is 3, where GLFW said 0 and 1. {@code ScreenEvent}'s {@code getButton()} hands the
+     * raw value straight through on every line, so a pane comparing it against 0 refused every
+     * left click on 26.3 and drew perfectly while doing it. Vanilla hit the same wall and added
+     * {@code AbstractContainerScreen.getContainerClickButton} to translate; this is that, for the
+     * seam.</p>
+     *
+     * <p>Written against {@code InputConstants} rather than literals because those constants track
+     * their own backend — 0/1/2 on GLFW lines, 1/3/2 on SDL — so this one expression is correct on
+     * every branch and the mapping is the identity where nothing moved. Normalising HERE rather
+     * than in each panel is what fixes consumers that were compiled before any of this, including
+     * LegendQuest's shipped pane, without their source changing.</p>
+     */
+    private static int canonical(int raw) {
+        if (raw == InputConstants.MOUSE_BUTTON_LEFT) {
+            return 0;
+        }
+        if (raw == InputConstants.MOUSE_BUTTON_RIGHT) {
+            return 1;
+        }
+        if (raw == InputConstants.MOUSE_BUTTON_MIDDLE) {
+            return 2;
+        }
+        return raw;
     }
 
     private static boolean within(double mouseX, double mouseY) {

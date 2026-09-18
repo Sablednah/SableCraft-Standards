@@ -94,7 +94,16 @@ public interface InventoryPanel {
             int x, int y, int width, int height, int mouseX, int mouseY);
 
     /**
-     * A left click landed inside you.
+     * A click landed inside you.
+     *
+     * <p><b>{@code button} is 0 left, 1 right, 2 middle</b>, whatever the Minecraft line underneath
+     * numbers them as. The host normalises it before calling you, so compare against those and
+     * never against a raw event value.</p>
+     *
+     * <p>⚠ This was undocumented until 26.3 made it matter: that release swapped GLFW for SDL,
+     * which calls left 1 and right 3, and a pane testing {@code button != 0} then refused every
+     * left click while still drawing perfectly. The domain is stated here so nobody has to
+     * rediscover it from a dead panel.</p>
      *
      * @return true if you used it, which stops it reaching the screen underneath
      */
