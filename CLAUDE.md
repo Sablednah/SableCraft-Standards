@@ -249,7 +249,7 @@ the requester. `Request.traveller()`/`host()` own that, and `SelfTest` asserts b
 it is invisible until two real people try it, at which point one of them is somewhere they never
 asked to be.
 
-### 9. Exactly one mixin, and it is `/vanish`
+### 9. Four mixins: two hide a player, two stop fire crossing a claim line
 
 `ServerPlayerVanishMixin` injects into `ServerPlayer.broadcastToPlayer`, which is the question
 vanilla's own entity tracker asks every pass:
@@ -267,9 +267,21 @@ The rejected alternative was packets — `ClientboundRemoveEntitiesPacket` to ev
 streaming movement packets), flickers on re-track, and requires reimplementing every correctness
 case by hand. `StartTracking` is not cancellable, so it can only undo, never prevent.
 
-**This is the mod's only version-fragile surface — treat it as such.** `defaultRequire: 1` makes a
+**Mixins are the mod's most version-fragile surface — treat them as such.** `defaultRequire: 1` makes a
 non-applying mixin fail loudly; without it, vanish would silently stop hiding anyone and look like
-a permissions bug. Don't add a second mixin without the same level of justification.
+a permissions bug.
+
+**There are four now, and the bar did not move — each one had to clear it.** Two for `/vanish`
+(`ServerPlayer.broadcastToPlayer`, `LivingEntity.isPushable`) and two for fire in claimed land
+(`ServerLevel.canSpreadFireAround`, and `FireBlock`'s `checkBurnOut` plus `getIgniteOdds`). The fire
+pair earned it the same way vanish did: **there is no event**. Fire consuming a block is not a
+player break, so `BreakBlockEvent` — which is player-only — never fires; `FireBlock.checkBurnOut` is
+private with no NeoForge hook patched into it; and `EntityMobGriefingEvent` needs an entity that
+spreading fire does not have. Every alternative was a worse mixin or a guess.
+
+The rule that replaces "don't add a second" is the one those four actually share: **a mixin needs a
+question vanilla already asks and no event exposes.** Anything else is a mixin because reaching for
+one was easier than looking.
 
 **The mixin touches `core/VanishGate` and nothing else, and that is load-bearing.** A mixin runs
 during class transformation, so everything it references loads right then — along with everything
