@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.10.0 — 2026-09-18
+
+### Added
+
+- **Claimed land does not burn.** Fire no longer spreads into, or destroys blocks in, any claimed
+  chunk — whoever provides the claims. Fire was the one grief needing neither a player nor a mob, so
+  a claim that stopped both still burned down, and there is no event for it: fire consuming a block
+  is not a player break, `FireBlock.checkBurnOut` is private with no hook, and mob-griefing needs a
+  mob. Hence mixins, and the justification is in each class.
+
+  A side effect chosen deliberately rather than tolerated: **fire inside a claim never burns out**,
+  so a lit fireplace stays lit. Fire outside a claim behaves exactly as vanilla, including right up
+  against the border — it simply cannot cross.
+
+  `claims.protectClaimsFromFire`, on by default, needs a claims provider to do anything.
+
+### Fixed
+
+- **Minecraft 26.3 support.** Three API changes: the renamed screen accessors, `drop`'s new
+  `Prediction` argument, and JourneyMap's per-line API.
+- **Nothing on a modded client was clickable on 26.3.** 26.3 swapped GLFW for SDL, which numbers the
+  mouse left=1 right=3 where GLFW said 0 and 1, so panes comparing against a literal refused every
+  click while still drawing. Button codes are now normalised once, to a domain `InventoryPanel`
+  documents — which also repairs panels compiled against earlier versions without their source
+  changing.
+
 ## 1.9.0 — 2026-09-15
 
 ### Added
