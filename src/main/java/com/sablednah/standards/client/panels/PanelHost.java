@@ -1,5 +1,7 @@
 package com.sablednah.standards.client.panels;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -345,7 +347,8 @@ public final class PanelHost {
             return;
         }
         try {
-            showing.panel().mouseClicked(event.getMouseX(), event.getMouseY(), event.getButton());
+            showing.panel().mouseClicked(event.getMouseX(), event.getMouseY(),
+                    canonical(event.getButton()));
         } catch (RuntimeException | LinkageError e) {
             Standards.LOGGER.warn("Standards: panel '{}' failed on a click ({})",
                     showing.id(), e.toString());
@@ -377,7 +380,7 @@ public final class PanelHost {
         }
         try {
             if (showing.panel().mouseDragged(event.getMouseX(), event.getMouseY(),
-                    event.getMouseButton(), event.getDragX(), event.getDragY())) {
+                    canonical(event.getMouseButton()), event.getDragX(), event.getDragY())) {
                 event.setCanceled(true);
             }
         } catch (RuntimeException | LinkageError e) {
@@ -411,7 +414,7 @@ public final class PanelHost {
         }
         try {
             if (showing.panel().mouseReleased(event.getMouseX(), event.getMouseY(),
-                    event.getButton())) {
+                    canonical(event.getButton()))) {
                 event.setCanceled(true);
             }
         } catch (RuntimeException | LinkageError e) {
@@ -501,6 +504,33 @@ public final class PanelHost {
         return screen.width >= 379
                 ? 177 + (screen.width - screen.getXSize() - 200) / 2
                 : naturalLeft(screen);
+    }
+
+    /**
+     * The raw mouse button as this Minecraft line numbers it, mapped to the domain
+     * {@link InventoryPanel} promises: 0 left, 1 right, 2 middle.
+     *
+     * <p>⚠ <b>On this line it is the identity</b>, and it is here anyway. 26.3 replaced GLFW with
+     * SDL, which calls left 1 and right 3 where GLFW said 0 and 1, and {@code ScreenEvent} hands the
+     * raw value through on every line — so a pane comparing against 0 refused every left click there
+     * while drawing perfectly. Written against {@code InputConstants}, whose constants track their
+     * own backend, this one expression is correct on all four lines: a no-op here, a real
+     * translation on 26.3, and already right whenever the next backend moves.</p>
+     *
+     * <p>Normalising HERE rather than in each panel is what repairs consumers compiled before any of
+     * this, including LegendQuest's shipped pane, without their source changing.</p>
+     */
+    private static int canonical(int raw) {
+        if (raw == InputConstants.MOUSE_BUTTON_LEFT) {
+            return 0;
+        }
+        if (raw == InputConstants.MOUSE_BUTTON_RIGHT) {
+            return 1;
+        }
+        if (raw == InputConstants.MOUSE_BUTTON_MIDDLE) {
+            return 2;
+        }
+        return raw;
     }
 
     private static boolean within(double mouseX, double mouseY) {

@@ -3,6 +3,8 @@ package com.sablednah.standards.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -228,7 +230,11 @@ public final class ActionBar {
         }
         // A left click on an open child runs it. Checked before the right-click work below, so a
         // child cannot be shadowed by whatever button happens to sit behind it.
-        if (event.getButton() == 0) {
+        // ⚠ Named constants, never 0/1. This line is GLFW, where left IS 0 — but 26.3 swapped
+        // in SDL, which numbers left=1 right=3, and a literal here was what made a left click run
+        // the right-click branch there. InputConstants tracks its own backend, so this is correct
+        // on every line and the identity on this one.
+        if (event.getButton() == InputConstants.MOUSE_BUTTON_LEFT) {
             for (Kid kid : CHILDREN) {
                 if (event.getMouseX() >= kid.x() && event.getMouseX() < kid.x() + kid.width()
                         && event.getMouseY() >= kid.y()
@@ -241,7 +247,7 @@ public final class ActionBar {
             }
             return;
         }
-        if (event.getButton() != 1) {
+        if (event.getButton() != InputConstants.MOUSE_BUTTON_RIGHT) {
             return;
         }
         for (Entry entry : DRAWN) {
