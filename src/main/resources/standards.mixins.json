@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ServerPlayerVanishMixin",
-    "LivingEntityVanishMixin"
+    "LivingEntityVanishMixin",
+    "ServerLevelFireMixin",
+    "FireBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1
