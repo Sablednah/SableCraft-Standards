@@ -16,6 +16,7 @@ import com.sablednah.standards.neoforge.InventoryView;
 import com.sablednah.standards.neoforge.commands.MoveCommands;
 import com.sablednah.standards.core.Money;
 import com.sablednah.standards.core.Toggle;
+import com.sablednah.standards.core.FireGate;
 import com.sablednah.standards.core.VanishGate;
 import com.sablednah.standards.core.Waypoint;
 
@@ -71,6 +72,7 @@ public final class SelfTest {
         checkToggleLogic();
         checkStateSentence();
         checkVanishGate();
+        checkFireGate();
         checkTopCeiling();
         checkChatLine();
         checkNoTermInflection();
@@ -344,6 +346,53 @@ public final class SelfTest {
             // lingering id would quietly break the real feature for the rest of the run.
             VanishGate.hold(subject, "selftest", false);
             Vanish.install();
+        }
+    }
+
+    /**
+     * The fire gate: claimed land does not burn.
+     *
+     * <p>Exercises {@link FireGate} directly rather than lighting a fire, because the mixin cannot
+     * be reached without a burning block and a tick — and the gate is where every decision is
+     * actually made. What this cannot prove is that the mixin APPLIES; {@code defaultRequire: 1}
+     * is what makes that fail loudly instead, and the launch log names it.</p>
+     */
+    private void checkFireGate() {
+        Object level = new Object();
+        try {
+            // ⚠ Cleared FIRST, and the failed run that taught me: FireProtection.install()
+            // runs on FMLCommonSetupEvent, ten seconds before ServerStartedEvent reaches here, so
+            // the REAL check is already installed by the time this runs. Asserting an empty gate
+            // as a precondition failed on the very first run - 1 of 632 - and the assertion was
+            // wrong, not the feature. Establish the state you need; never assume it.
+            FireGate.clear();
+            check("clearing leaves no fire check installed", !FireGate.active());
+            check("...so nothing is blocked", !FireGate.blocked(level, 1, 64, 1));
+
+            // A stand-in for a claims provider: chunk 0,0 protected and nowhere else.
+            FireGate.install((lvl, x, y, z) -> (x >> 4) == 0 && (z >> 4) == 0);
+            check("the gate reports itself installed", FireGate.active());
+            check("fire is blocked inside a claim", FireGate.blocked(level, 5, 64, 5));
+            // Both directions, because a gate that blocked everywhere would pass the line above
+            // and would also stop every fire on the server.
+            check("and not blocked in the wilderness", !FireGate.blocked(level, 500, 64, 500));
+            check("the position is what decides, not the level",
+                    FireGate.blocked(level, 0, 0, 0) && !FireGate.blocked(level, 16, 64, 0));
+
+            // Fails OPEN on a broken check: a defect in our own glue must not quietly stop fire
+            // working on every server. The claims seam fails CLOSED on a throwing provider, which
+            // is the opposite default and deliberately so - see FireGate#blocked.
+            FireGate.install((lvl, x, y, z) -> {
+                throw new IllegalStateException("deliberate");
+            });
+            check("a throwing check leaves fire vanilla rather than propagating",
+                    !FireGate.blocked(level, 5, 64, 5));
+        } finally {
+            // Leave nothing behind: this runs on a live server, so a stubbed check would break
+            // the real feature for the rest of the run.
+            FireGate.clear();
+            check("the fire gate fixture is gone", !FireGate.active());
+            FireProtection.install();
         }
     }
 

@@ -42,6 +42,7 @@ public final class StandardsConfig {
     public static final ModConfigSpec.ConfigValue<String> STATION_ACCESS;
     public static final ModConfigSpec.ConfigValue<String> BACK_ON_DEATH_ACCESS;
     public static final ModConfigSpec.BooleanValue ENABLE_GROUPS;
+    public static final ModConfigSpec.BooleanValue PROTECT_CLAIMS_FROM_FIRE;
     public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> CHAT_GROUP_KINDS;
     public static final ModConfigSpec.IntValue GROUP_INVITE_TIMEOUT;
     public static final ModConfigSpec.IntValue GROUP_HOME_LIMIT;
@@ -539,6 +540,24 @@ public final class StandardsConfig {
                         "nodes must be enumerated up front rather than parsed from what is granted.",
                         "Raise it if you want to grant a bigger number than this.")
                 .defineInRange("maxLimitNode", 32, 1, 1_000);
+        BUILDER.pop();
+
+        BUILDER.comment("Claimed land, wherever the claims come from.").push("claims");
+        PROTECT_CLAIMS_FROM_FIRE = BUILDER
+                .comment("Stop fire spreading into, and destroying blocks in, claimed land.",
+                        "Needs a claims provider (Factions, or any mod that registers one) to do",
+                        "anything at all: with none installed nothing is claimed and fire is",
+                        "entirely vanilla.",
+                        "Named for the behaviour rather than its negation, so 'false' reads the",
+                        "same way whichever end you approach it from.",
+                        "Two things worth knowing before turning it off. Fire is the one grief that",
+                        "needs no player and no mob, so a claim that stops both still burns down;",
+                        "there is no event for it, which is why this is one of the mod's very few",
+                        "mixins. And a side effect the owner chose deliberately: fire inside a",
+                        "claim never burns out either, so a lit fireplace stays lit.",
+                        "Setup-time only, like the command switches: /standards reload is messages",
+                        "only, so a change here needs a restart.")
+                .define("protectClaimsFromFire", true);
         BUILDER.pop();
 
         BUILDER.comment("The built-in economy. Standards is a fallback, not a land grab: if another",
