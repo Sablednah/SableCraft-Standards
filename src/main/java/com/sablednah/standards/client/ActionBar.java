@@ -14,6 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ContainerScreenEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 
 import com.sablednah.standards.api.actions.Action;
@@ -334,14 +335,35 @@ public final class ActionBar {
      * <p>Every frame rather than once, because the recipe book can open without the screen being
      * re-initialised on every version, and a bar that has slid under the inventory is worse than
      * no bar. It is arithmetic on a handful of buttons; the cost is not measurable.</p>
+     *
+     * <p>⚠ The container's {@code Render.Foreground}, NOT {@code ScreenEvent.Render.Post}. The GUI draws in strata now, and
+     * tooltips are deferred to a stratum of their own at the end of the screen's render; Post fires
+     * after that, so everything drawn here landed ON TOP of every tooltip — a lower row's icons over
+     * the row above's tooltip, and over item tooltips from the inventory. Foreground fires after
+     * the contents and before the carried stack and the tooltips, which is the layer a row of
+     * buttons belongs in.</p>
      */
     @SubscribeEvent
-    static void onRender(ScreenEvent.Render.Post event) {
-        if (DRAWN.isEmpty() || !(event.getScreen() instanceof InventoryScreen screen)) {
+    static void onRender(ContainerScreenEvent.Render.Foreground event) {
+        if (DRAWN.isEmpty() || !(event.getContainerScreen() instanceof InventoryScreen screen)) {
             return;
         }
-        position(screen);
+        // This line has no ScreenEvent.Render.Foreground (it arrived in 26.2). The container's
+        // Foreground fires at the same point - after the contents, before the carried stack and
+        // the tooltips - but inside the screen's translate to its top-left corner, so undo that
+        // rather than re-deriving every position below.
         GuiGraphics graphics = event.getGuiGraphics();
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(-screen.getGuiLeft(), -screen.getGuiTop());
+        try {
+            draw(screen, graphics);
+        } finally {
+            graphics.pose().popMatrix();
+        }
+    }
+
+    private static void draw(InventoryScreen screen, GuiGraphics graphics) {
+        position(screen);
         renderChildren(graphics);
         for (Entry entry : DRAWN) {
             ItemStack icon = iconFor(entry.action());

@@ -35,7 +35,10 @@ import net.minecraft.server.level.ServerPlayer;
  *                   rather than an {@code ItemStack} so registration cannot depend on registry
  *                   timing, and so a dedicated server never touches item rendering
  * @param tooltipKey a {@code Lang} key. Contributed by your own mod's catalogue, so an owner can
- *                   rewrite it like every other string
+ *                   rewrite it like every other string — in {@code /actions}, which is server-side.
+ *                   ⚠ The client bar cannot see the catalogue: its tooltip is the key's LAST
+ *                   segment, prettified ({@code "action.chronicler.quest_journal"} → "Quest
+ *                   journal"), so name that segment for what the button says
  * @param command    what to run, without the leading slash
  * @param available  whether to offer it to this player at all. Evaluated <b>server-side</b> and
  *                   sent as a list of ids, because the client cannot be trusted to know and must
