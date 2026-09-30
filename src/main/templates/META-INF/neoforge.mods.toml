@@ -46,7 +46,7 @@ config="standards.mixins.json"
 [[dependencies.${mod_id}]]
     modId="neoforge"
     type="required"
-    versionRange="[${neo_version_min},)"
+    versionRange="[${neo_version_min},${neo_version_max})"
     ordering="NONE"
     side="BOTH"
 
