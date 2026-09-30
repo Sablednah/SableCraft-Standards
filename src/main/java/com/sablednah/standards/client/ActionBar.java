@@ -335,9 +335,16 @@ public final class ActionBar {
      * <p>Every frame rather than once, because the recipe book can open without the screen being
      * re-initialised on every version, and a bar that has slid under the inventory is worse than
      * no bar. It is arithmetic on a handful of buttons; the cost is not measurable.</p>
+     *
+     * <p>⚠ {@code Render.Foreground}, NOT {@code Render.Post}. The GUI draws in strata now, and
+     * tooltips are deferred to a stratum of their own at the end of the screen's render; Post fires
+     * after that, so everything drawn here landed ON TOP of every tooltip — a lower row's icons over
+     * the row above's tooltip, and over item tooltips from the inventory. Foreground fires after
+     * the contents and before the carried stack and the tooltips, which is the layer a row of
+     * buttons belongs in.</p>
      */
     @SubscribeEvent
-    static void onRender(ScreenEvent.Render.Post event) {
+    static void onRender(ScreenEvent.Render.Foreground event) {
         if (DRAWN.isEmpty() || !(event.getScreen() instanceof InventoryScreen screen)) {
             return;
         }
