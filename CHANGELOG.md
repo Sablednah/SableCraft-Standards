@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.10.1 — 2026-10-01
+
+### Fixed
+
+- **The inventory action bar drew over tooltips.** Its icons landed on top of every tooltip —
+  an item's, and the bar's own when a lower row sat under the one you were hovering. The bar now
+  draws before the tooltip layer, so tooltips cover it as they cover everything else. Found on 26.3
+  and present on every line; fixed on all four.
+- **Minecraft 26.3 only: NeoForge 26.3.0.37-beta and later are refused with a clear message** rather
+  than a crash. That NeoForge renamed the config types every mod registers, so this jar cannot run
+  there; it declares `[26.3, 26.3.0.37-beta)` until NeoForge 26.3 is stable and Standards is ported.
+
 ## 1.10.0 — 2026-09-18
 
 ### Added
