@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.10.2 — 2026-10-08
+
+### Changed
+
+- **Minecraft 26.3 now needs NeoForge 26.3.0.58-beta or later**, and no longer runs on .33–.36.
+  NeoForge renamed the config types every mod registers, and the 26.3 jar is now built for the new
+  names. Your existing `standards-common.toml` is still the file it reads — nothing to move or
+  re-set. Update NeoForge before Standards.
+- The 1.21.11, 26.1 and 26.2 files are unchanged apart from the version number.
+
 ## 1.10.1 — 2026-10-01
 
 ### Fixed
