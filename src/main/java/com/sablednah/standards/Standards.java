@@ -38,7 +38,11 @@ public class Standards {
         // quote, and the only record of what actually ran.
         LOGGER.info("SableCraft Standards {}", BuildInfo.describe());
 
-        modContainer.registerConfig(ModConfig.Type.COMMON, StandardsConfig.SPEC);
+        // LOCAL, not COMMON: FML 12.0.8 renamed the types. And the file name is given explicitly,
+        // because LOCAL would otherwise name it standards-local.toml and every existing server
+        // would silently start from defaults.
+        modContainer.registerConfig(ModConfig.Type.LOCAL, StandardsConfig.SPEC,
+                "standards-common.toml");
 
         // Mod bus: attachments and the optional network channel.
         StandardsAttachments.register(modEventBus);
