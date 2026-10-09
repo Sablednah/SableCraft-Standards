@@ -59,6 +59,16 @@ public final class MailCommands {
             return 0;
         }
         String text = Feedback.stripCodes(StringArgumentType.getString(ctx, "message"));
+        // A letter is read later and by one person, so there is no per-viewer copy to keep: it
+        // is stored as the recipient would have seen it.
+        com.sablednah.standards.api.chat.Screening screening =
+                com.sablednah.standards.api.chat.Chat.screen(from, text,
+                        com.sablednah.standards.api.chat.MessageFilter.MAIL);
+        if (screening.blocked()) {
+            screening.reason().ifPresent(from::sendSystemMessage);
+            return 0;
+        }
+        text = screening.text(text);
         if (!Mailbox.get(server).send(to.get(), from.getUUID(), from.getName().getString(), text)) {
             Feedback.chat(from, Lang.fmt("msg.mail.full", "player", name));
             return 0;

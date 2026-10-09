@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **A message-filter seam for other mods** — `Chat.registerFilter` / `MessageFilter` / `Screening`.
+  A chat filter can now censor or stop what players say on every path Standards delivers itself:
+  formatted chat, routed party and faction channels, `/msg`, `/r`, `/me` and `/mail`. Before this,
+  a filter that worked on plain vanilla chat was quietly undone the moment Standards formatted a
+  line. A censor can be per viewer — the sender, or staff, can still see the original — and the
+  console log always keeps the original. Built for ChatFilter ReForged; see `CHAT-API.md`.
+
 ## 1.10.2 — 2026-10-08
 
 ### Changed
