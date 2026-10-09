@@ -135,6 +135,13 @@ public final class MessageCommands {
             screening.reason().ifPresent(from::sendSystemMessage);
             return 0;
         }
+        if (screening.shadowed()) {
+            Feedback.chat(from, Lang.fmt("msg.chat.emote", "player",
+                    com.sablednah.standards.neoforge.ChatFormatter.displayName(from),
+                    "action", action));
+            Standards.LOGGER.info("[me] (shadowed) {} {}", from.getName().getString(), action);
+            return 1;
+        }
 
         // Nicknamed, like ordinary chat: /me is a chat line by another door, and a player whose
         // name is one thing when they talk and another when they emote is nobody at all.
@@ -171,10 +178,13 @@ public final class MessageCommands {
         ServerPlayer from = ctx.getSource().getPlayerOrException();
         String text = Feedback.stripCodes(MessageArgument.getMessage(ctx, "message").getString());
         int delivered = 0;
+        // One verdict for the whole send, shared across targets: /msg @a is one message, and a
+        // filter that counts strikes must not count it once per recipient.
+        Screening[] verdict = new Screening[1];
         // Plural, because vanilla's argument is plural — /msg @a works, and taking that away
         // while claiming to replace /msg would be a downgrade.
         for (ServerPlayer to : EntityArgument.getPlayers(ctx, "targets")) {
-            delivered += deliver(from, to, text);
+            delivered += deliver(from, to, text, verdict);
         }
         return delivered;
     }
@@ -189,10 +199,15 @@ public final class MessageCommands {
                     ? "msg.pm.nobody_to_reply" : "msg.pm.reply_gone"));
             return 0;
         }
-        return deliver(from, to, StringArgumentType.getString(ctx, "message"));
+        return deliver(from, to, StringArgumentType.getString(ctx, "message"), new Screening[1]);
     }
 
-    private static int deliver(ServerPlayer from, ServerPlayer to, String text) {
+    /**
+     * @param verdict a one-slot holder for the filters' verdict, filled by the first target that
+     *                gets as far as screening and reused by the rest
+     */
+    private static int deliver(ServerPlayer from, ServerPlayer to, String text,
+            Screening[] verdict) {
         MinecraftServer server = from.level().getServer();
         String fromName = from.getName().getString();
         String toName = to.getName().getString();
@@ -229,10 +244,23 @@ public final class MessageCommands {
 
         // Screened last, after every refusal that has nothing to do with what was said: a message
         // that was never going to be delivered should not cost anyone a filter strike.
-        Screening screening = Chat.screen(from, text, MessageFilter.PRIVATE);
+        boolean firstAsk = verdict[0] == null;
+        if (firstAsk) {
+            verdict[0] = Chat.screen(from, text, MessageFilter.PRIVATE);
+        }
+        Screening screening = verdict[0];
         if (screening.blocked()) {
-            screening.reason().ifPresent(from::sendSystemMessage);
+            if (firstAsk) {
+                screening.reason().ifPresent(from::sendSystemMessage); // once, not per target
+            }
             return 0;
+        }
+        if (screening.shadowed()) {
+            // Looks sent from their side, /r included, and goes nowhere. Spies still see it.
+            Feedback.chat(from, Lang.fmt("msg.pm.sent", "player", toName, "message", text));
+            LAST_CONTACT.put(from.getUUID(), to.getUUID());
+            spy(server, from, to, fromName, toName, text);
+            return 1;
         }
 
         // Deliberately indistinguishable from a delivered message. See the class notes.

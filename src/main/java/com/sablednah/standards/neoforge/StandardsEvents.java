@@ -593,6 +593,16 @@ public final class StandardsEvents {
             screening.reason().ifPresent(player::sendSystemMessage);
             return;
         }
+        if (screening.shadowed()) {
+            // The sender's own line, rendered exactly as everyone else would have seen it; nobody
+            // else gets it. Not routed — see Screening.shadow — and logged so a moderator can see
+            // what was held back.
+            event.setCanceled(true);
+            Component line = ChatFormatter.format(player, raw).orElseGet(() -> plainLine(player, raw));
+            player.sendSystemMessage(line);
+            Standards.LOGGER.info("[chat] (shadowed) {}: {}", player.getName().getString(), raw);
+            return;
+        }
         // A router renders the line itself and has no per-viewer hook, so it gets the censored
         // form — the sender included. Only Standards' own delivery below can do better.
         java.util.Optional<String> claimed = Chat.route(player, screening.text(raw));
@@ -628,23 +638,19 @@ public final class StandardsEvents {
             return;
         }
         event.setCanceled(true);
+        Component original = formatted.orElseGet(() -> plainLine(player, raw));
         if (!screening.censored()) {
-            deliver(server, player, formatted.orElseGet(() -> plainLine(player, raw)));
+            deliver(server, player, viewer -> original, original);
             return;
         }
-        // Censored: two renderings, each viewer gets the one the filter says is theirs. The
+        // Censored: two renderings, and each viewer gets the one the filter says is theirs. The
         // console gets the original, because the log is where a moderator goes afterwards.
         String censoredText = screening.text(raw);
-        Component original = formatted.orElseGet(() -> plainLine(player, raw));
         Component censored = ChatFormatter.format(player, censoredText)
                 .orElseGet(() -> plainLine(player, censoredText));
-        for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
-            if (StandardsAttachments.of(viewer).ignores(player.getUUID())) {
-                continue;
-            }
-            viewer.sendSystemMessage(screening.textFor(viewer, raw).equals(raw) ? original : censored);
-        }
-        server.sendSystemMessage(original);
+        deliver(server, player,
+                viewer -> screening.textFor(viewer, raw).equals(raw) ? original : censored,
+                original);
     }
 
     /** The undecorated line, used when the only reason to take delivery over was a filter or an ignore. */
@@ -817,14 +823,21 @@ public final class StandardsEvents {
      * vanilla's job a moment ago and is ours now, and the line still has to reach the console or
      * chat vanishes from the server log entirely.</p>
      */
-    private static void deliver(MinecraftServer server, ServerPlayer from, Component line) {
+    /**
+     * Send a chat line to everyone who has not ignored its sender, and to the console.
+     *
+     * @param lineFor what each viewer sees — one line for all, or per viewer when a filter censored
+     * @param console what the log keeps, which is always the original
+     */
+    private static void deliver(MinecraftServer server, ServerPlayer from,
+            java.util.function.Function<ServerPlayer, Component> lineFor, Component console) {
         for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
             if (StandardsAttachments.of(viewer).ignores(from.getUUID())) {
                 continue;
             }
-            viewer.sendSystemMessage(line);
+            viewer.sendSystemMessage(lineFor.apply(viewer));
         }
-        server.sendSystemMessage(line);
+        server.sendSystemMessage(console);
     }
 
 /**

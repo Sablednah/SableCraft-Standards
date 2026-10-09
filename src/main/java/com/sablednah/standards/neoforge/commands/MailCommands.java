@@ -68,6 +68,11 @@ public final class MailCommands {
             screening.reason().ifPresent(from::sendSystemMessage);
             return 0;
         }
+        if (screening.shadowed()) {
+            // Reported as sent, and never stored: the letter the sender believes they posted.
+            Feedback.chat(from, Lang.fmt("msg.mail.sent", "player", name));
+            return 1;
+        }
         text = screening.text(text);
         if (!Mailbox.get(server).send(to.get(), from.getUUID(), from.getName().getString(), text)) {
             Feedback.chat(from, Lang.fmt("msg.mail.full", "player", name));

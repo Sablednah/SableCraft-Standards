@@ -604,6 +604,10 @@ public final class SelfTest {
                 t -> t.contains("spam")
                         ? com.sablednah.standards.api.chat.Screening.block(null)
                         : com.sablednah.standards.api.chat.Screening.pass());
+        com.sablednah.standards.api.chat.MessageFilter shady = testFilter("test:shadow", 50, order,
+                t -> t.contains("shady")
+                        ? com.sablednah.standards.api.chat.Screening.shadow()
+                        : com.sablednah.standards.api.chat.Screening.pass());
         com.sablednah.standards.api.chat.MessageFilter thrower = testFilter("test:throw", 200, order,
                 t -> { throw new IllegalStateException("deliberate"); });
         try {
@@ -612,11 +616,12 @@ public final class SelfTest {
             com.sablednah.standards.api.chat.Chat.registerFilter(stars);
             com.sablednah.standards.api.chat.Chat.registerFilter(blocker);
             com.sablednah.standards.api.chat.Chat.registerFilter(thrower);
+            com.sablednah.standards.api.chat.Chat.registerFilter(shady);
 
             var clean = com.sablednah.standards.api.chat.Chat.screen(null, "hello", "chat");
             check("a clean line passes every filter", clean.passed());
             check("filters are asked highest priority first",
-                    order.equals(List.of("test:throw", "test:block", "test:stars")));
+                    order.equals(List.of("test:throw", "test:block", "test:shadow", "test:stars")));
 
             var censored = com.sablednah.standards.api.chat.Chat.screen(null, "oh darn it", "chat");
             check("a censoring filter censors", censored.censored()
@@ -631,12 +636,25 @@ public final class SelfTest {
             check("a block ends the chain", blocked.blocked() && !order.contains("test:stars"));
             check("a silent block has no reason", blocked.reason().isEmpty());
 
+            // Shadow sits between censor and block, whichever filter speaks first. Both orders
+            // matter: the censoring filter runs AFTER the shadowing one here, and must not
+            // soften it back into a censor.
+            var shadowed = com.sablednah.standards.api.chat.Chat.screen(null, "shady darn", "chat");
+            check("a shadow outranks a censor", shadowed.shadowed() && !shadowed.censored());
+            check("...and the sender keeps what they typed",
+                    shadowed.textFor(null, "shady darn").equals("shady darn"));
+            var both = com.sablednah.standards.api.chat.Chat.screen(null, "shady spam", "chat");
+            check("a block outranks a shadow", both.blocked());
+            check("a shadow is neither a pass nor a block",
+                    !shadowed.passed() && !shadowed.blocked());
+
             var exempt = com.sablednah.standards.api.chat.Screening.censor("x", v -> true);
             check("an exempt viewer sees the original", exempt.textFor(null, "orig").equals("orig"));
         } finally {
             com.sablednah.standards.api.chat.Chat.unregisterFilter(stars);
             com.sablednah.standards.api.chat.Chat.unregisterFilter(blocker);
             com.sablednah.standards.api.chat.Chat.unregisterFilter(thrower);
+            com.sablednah.standards.api.chat.Chat.unregisterFilter(shady);
         }
         check("the test filters are gone again",
                 com.sablednah.standards.api.chat.Chat.filters().stream()
