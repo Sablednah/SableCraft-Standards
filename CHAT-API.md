@@ -196,6 +196,23 @@ Chat.registerFilter(new MessageFilter() {
 
 `Screening.block(reason)` stops the line; a `null` reason says nothing to the sender.
 
+`Screening.shadow()` lets the sender believe it went out: they see their line exactly as a
+delivered one would look — the same decorations, the same `/msg` confirmation, a letter reported
+"sent" — and nobody else receives anything. The console and social spy still see it. Standards does
+this rather than the filter because a hand-built copy of a decorated line is never quite the same
+line, and that difference is the giveaway.
+
+When filters disagree the **harsher verdict wins**: block, then shadow, then censor, then pass. Two
+censors compose — the second filter sees the first one's text, and a viewer sees the original only
+if both would have let them.
+
+⚠ A shadowed line that a router would have claimed is **not routed**: the sender sees it as an
+ordinary chat line, because routers render their own lines and have no per-viewer hook. Giving
+routers one is the open question if a party channel ever needs a convincing shadow.
+
+A `/msg` to several targets is **one** message: it is screened once, at the first recipient it
+could actually reach, so a filter counting strikes counts it once.
+
 ### Leaving a line to vanilla
 
 When nothing decorates a line and nobody ignores its sender, Standards normally leaves chat entirely

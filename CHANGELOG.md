@@ -11,6 +11,10 @@
   line. A censor can be per viewer — the sender, or staff, can still see the original — and the
   console log always keeps the original. Built for ChatFilter ReForged; see `CHAT-API.md`.
 
+  A filter can also **shadow** a message: the sender sees it go out exactly as it would have
+  looked, and nobody else receives it. Only Standards can render that copy identically, so a filter
+  faking it would give itself away the moment chat is decorated.
+
 ## 1.10.2 — 2026-10-08
 
 ### Changed
