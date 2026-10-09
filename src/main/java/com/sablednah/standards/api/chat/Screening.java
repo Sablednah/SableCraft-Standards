@@ -7,19 +7,23 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * A {@link MessageFilter}'s verdict on one message: let it through, censor it, or stop it.
+ * A {@link MessageFilter}'s verdict on one message: let it through, censor it, shadow it, or stop
+ * it.
  *
  * <p>A censor is <b>per viewer</b>. Standards already delivers its formatted lines one recipient at
  * a time, so it costs nothing to let a filter say who still sees the original — the sender
  * themselves, for a "silent" filter that does not tell anyone they were caught, or staff with a
  * see-everything permission. Paths that cannot do per-viewer (mail, a routed channel) get the
  * censored text.</p>
+ *
+ * <p>When filters disagree the harsher verdict wins: block, then shadow, then censor, then pass.</p>
  */
 public final class Screening {
 
     private static final Screening PASS = new Screening(Kind.PASS, null, null, v -> true, false);
 
-    private enum Kind { PASS, CENSOR, BLOCK }
+    // Declared mildest first: chaining keeps whichever ranks higher.
+    private enum Kind { PASS, CENSOR, SHADOW, BLOCK }
 
     private final Kind kind;
     private final String censored;
@@ -61,6 +65,22 @@ public final class Screening {
     }
 
     /**
+     * Let the sender believe it went out, and deliver it to nobody else.
+     *
+     * <p>Standards renders the sender's copy exactly as a delivered line would look — same
+     * decorations, same nickname, same {@code /msg} confirmation — which only Standards can do. A
+     * filter faking this with a block and a hand-built copy gives itself away the moment a server
+     * decorates chat. A letter reports "sent" and is not stored. The console and social spy still
+     * see it.</p>
+     *
+     * <p>⚠ A line a {@link ChatRouter} would have claimed is not routed: the sender sees it as an
+     * ordinary chat line, because routers render their own lines and have no per-viewer hook.</p>
+     */
+    public static Screening shadow() {
+        return new Screening(Kind.SHADOW, null, null, v -> false, false);
+    }
+
+    /**
      * Marks a censor as already arranged for vanilla's own delivery — through the client's chat
      * filter mask, say — so a line Standards would otherwise leave untouched can stay a signed
      * vanilla message. Without this, Standards rewrites the body of such a line itself, and every
@@ -81,6 +101,11 @@ public final class Screening {
 
     public boolean censored() {
         return kind == Kind.CENSOR;
+    }
+
+    /** Delivered to the sender alone. See {@link #shadow()}. */
+    public boolean shadowed() {
+        return kind == Kind.SHADOW;
     }
 
     /** Whether a vanilla-delivered line already carries this censor. Always false unless censored. */
@@ -107,12 +132,12 @@ public final class Screening {
     }
 
     /**
-     * Chain a later filter's verdict onto this one. A block wins; two censors compose, and a
-     * viewer sees the original only if both filters would have let them.
+     * Chain a later filter's verdict onto this one. The harsher kind wins; two censors compose,
+     * and a viewer sees the original only if both filters would have let them.
      */
     Screening then(Screening next) {
-        if (kind == Kind.BLOCK || next.kind == Kind.PASS) return this;
-        if (next.kind == Kind.BLOCK || kind == Kind.PASS) return next;
+        if (next.kind.ordinal() > kind.ordinal()) return next;
+        if (kind != Kind.CENSOR || next.kind != Kind.CENSOR) return this;
         Predicate<ServerPlayer> both = seesOriginal.and(next.seesOriginal);
         return new Screening(Kind.CENSOR, next.censored, null, both,
                 vanillaHandled && next.vanillaHandled);
