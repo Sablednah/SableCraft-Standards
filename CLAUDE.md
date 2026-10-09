@@ -462,9 +462,14 @@ unzip -oq ../build/moddev/artifacts/neoforge-21.11.42-sources.jar 'net/neoforged
 
 ## The second machine, and the thing it can do that Windows cannot
 
-`ssh -i ~/.ssh/vivo_ed25519 sable@192.168.7.102` — "Vivo", an 8-core/18GB Ubuntu laptop beside the
+`ssh -i ~/.ssh/vivo_ed25519 sable@192.168.7.246` — "Vivo", an 8-core/18GB Ubuntu laptop beside the
 desktop, set up by the LegendQuest session. Its own write-up is `~/dev/README.md` **on that machine**
 and is the authority; this is only what Standards needs.
+
+> **2026-09-24: Vivo's address is fixed at `192.168.7.246`** (it was `.102`, then `.105`). ⚠ Fixed by the
+> router, not the laptop: on 2026-10-09 Vivo's own Wi-Fi (`wlo1`) still took `.246` as a DHCP lease and
+> both NetworkManager profiles say `auto`. So if it ever moves, look at the router's reservation before
+> editing the laptop. `ssh -i ~/.ssh/vivo_ed25519 sable@192.168.7.246`.
 
 **The point is not spare capacity, it is that a client can be driven.** On Windows,
 `SetForegroundWindow` is refused to a background process and `PostMessage` does not reach GLFW, so
