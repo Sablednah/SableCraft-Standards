@@ -28,6 +28,7 @@ public final class Chat {
 
     private static final List<NameDecorator> DECORATORS = new ArrayList<>();
     private static final List<ChatRouter> ROUTERS = new ArrayList<>();
+    private static final List<MessageFilter> FILTERS = new ArrayList<>();
 
     /**
      * Answers "may this player speak, and if not, why not" — installed by Standards at setup.
@@ -109,6 +110,58 @@ public final class Chat {
             }
         }
         return java.util.Optional.empty();
+    }
+
+    /**
+     * Add a filter that screens what players say. Call during setup, guarded by a
+     * {@code standards} loaded check. See {@link MessageFilter}: filters chain, highest priority
+     * first, and the first block ends it.
+     */
+    public static synchronized void registerFilter(MessageFilter filter) {
+        FILTERS.add(filter);
+        FILTERS.sort(Comparator.comparingInt(MessageFilter::priority).reversed());
+        LOG.info("Standards: message filter '{}' registered at priority {} ({} total)",
+                filter.id(), filter.priority(), FILTERS.size());
+    }
+
+    /** Remove a filter. Mainly for the self-test, which must not leave its fixtures behind. */
+    public static synchronized void unregisterFilter(MessageFilter filter) {
+        FILTERS.remove(filter);
+    }
+
+    public static synchronized List<MessageFilter> filters() {
+        return List.copyOf(FILTERS);
+    }
+
+    /**
+     * Run a player's words past every registered filter.
+     *
+     * <p>Standards calls this itself for chat, {@code /msg}, {@code /r}, {@code /me} and
+     * {@code /mail}. Another mod publishing a player's words through its own door — a sign, a
+     * book, a shop label — should call it too, after {@link #speechBlocked}, for the same reason
+     * that check exists: a filter that only covers some doors is a suggestion.</p>
+     *
+     * @return {@link Screening#pass()} when no filter is registered
+     */
+    public static Screening screen(ServerPlayer sender, String text, String channel) {
+        Screening verdict = Screening.pass();
+        String current = text;
+        for (MessageFilter filter : filters()) {
+            try {
+                Screening next = filter.screen(sender, current, channel);
+                if (next == null) continue;
+                verdict = verdict.then(next);
+                if (verdict.blocked()) {
+                    return verdict;
+                }
+                current = verdict.text(current);
+            } catch (RuntimeException e) {
+                // A thrown filter has judged nothing. Letting the line through is the same rule
+                // the decorators and routers follow: one broken mod must not cost everyone chat.
+                LOG.error("Standards: message filter '{}' threw; skipping it", filter.id(), e);
+            }
+        }
+        return verdict;
     }
 
     /** Add a decorator. Call during setup, guarded by a {@code standards} loaded check. */

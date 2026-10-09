@@ -152,3 +152,59 @@ That last default matters: with no decorator mods installed, Standards changes c
   on the decorator side, and is the first real consumer of `ChatRouter` — its faction and ally
   channels go through the seam rather than cancelling `ServerChatEvent` themselves, which is what
   stops a muted player switching channel and talking.
+
+## Filtering what players say
+
+`api/chat/MessageFilter` and `Screening`. The third seam in this package, and it borrows from both
+of the others: filters are **additive** like decorators (every filter gets a turn, each seeing the
+text the last one left) with the router's **early exit** for the one verdict that cannot be merged
+— the first `block` ends it.
+
+### Why it exists
+
+Standards delivers a lot of player text that never passes through `ServerChatEvent`'s message body:
+a decorated line is cancelled and re-sent from `getRawText()`, a routed party line is handed to its
+channel from the raw text, and `/msg`, `/r`, `/me` and `/mail` are commands with delivery of their
+own. A filter that only changed the event's message worked on a vanilla server and silently stopped
+working the day Standards formatted its first line. ChatFilter ReForged found exactly that.
+
+### Where Standards asks
+
+| Path | Channel | Per-viewer? |
+|---|---|---|
+| Public chat, before any router | `chat` | yes, on Standards' own delivery; routers get the censored text |
+| `/msg`, `/w`, `/tell`, `/pm`, `/m`, `/r`, `/reply` | `private` | yes — sender and recipient each get their copy |
+| `/me` | `emote` | yes |
+| `/mail send` | `mail` | no — stored as the recipient would see it |
+
+Always **after** the mute gate (a muted player is told about the mute, not the filter) and, for
+`/msg`, after every refusal that has nothing to do with what was said, so an undeliverable message
+costs nobody a strike. Social spy and the console log see the original.
+
+### Contributing one
+
+```java
+Chat.registerFilter(new MessageFilter() {
+    public String id() { return "chatfilter:words"; }
+    public Screening screen(ServerPlayer sender, String text, String channel) {
+        if (!rude(text)) return Screening.pass();
+        // Silent: the sender still sees what they typed; everyone else sees stars.
+        return Screening.censor(starred(text), viewer -> viewer == sender);
+    }
+});
+```
+
+`Screening.block(reason)` stops the line; a `null` reason says nothing to the sender.
+
+### Leaving a line to vanilla
+
+When nothing decorates a line and nobody ignores its sender, Standards normally leaves chat entirely
+alone, signed and with its hover card. A censor changes that: Standards rewrites the message body so
+the censored text is what goes out. A filter that has **already** arranged vanilla's delivery — by
+supplying the client's chat filter mask, as ChatFilter does — marks its verdict
+`.vanillaHandled()`, and Standards then leaves the line alone.
+
+### Other mods publishing a player's words
+
+A sign, a book, a shop label: call `Chat.screen(player, text, "yourmod:thing")` after
+`Chat.speechBlocked(player)`, for the same reason that check exists.

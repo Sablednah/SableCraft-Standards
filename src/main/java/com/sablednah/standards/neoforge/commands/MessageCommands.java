@@ -10,6 +10,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.sablednah.standards.Standards;
+import com.sablednah.standards.api.chat.Chat;
+import com.sablednah.standards.api.chat.MessageFilter;
+import com.sablednah.standards.api.chat.Screening;
 import com.sablednah.standards.core.Duration;
 import com.sablednah.standards.neoforge.Feedback;
 import com.sablednah.standards.neoforge.Lang;
@@ -126,16 +129,22 @@ public final class MessageCommands {
             return 0;
         }
 
+        // Screened like chat, because it is chat by another door.
+        Screening screening = Chat.screen(from, action, MessageFilter.EMOTE);
+        if (screening.blocked()) {
+            screening.reason().ifPresent(from::sendSystemMessage);
+            return 0;
+        }
+
         // Nicknamed, like ordinary chat: /me is a chat line by another door, and a player whose
         // name is one thing when they talk and another when they emote is nobody at all.
-        String line = Lang.fmt("msg.chat.emote",
-                "player", com.sablednah.standards.neoforge.ChatFormatter.displayName(from),
-                "action", action);
+        String who = com.sablednah.standards.neoforge.ChatFormatter.displayName(from);
         for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
             if (StandardsAttachments.of(viewer).ignores(from.getUUID())) {
                 continue;
             }
-            Feedback.chat(viewer, line);
+            Feedback.chat(viewer, Lang.fmt("msg.chat.emote",
+                    "player", who, "action", screening.textFor(viewer, action)));
         }
         Standards.LOGGER.info("[me] {} {}", from.getName().getString(), action);
         return 1;
@@ -218,12 +227,22 @@ public final class MessageCommands {
             return 0;
         }
 
+        // Screened last, after every refusal that has nothing to do with what was said: a message
+        // that was never going to be delivered should not cost anyone a filter strike.
+        Screening screening = Chat.screen(from, text, MessageFilter.PRIVATE);
+        if (screening.blocked()) {
+            screening.reason().ifPresent(from::sendSystemMessage);
+            return 0;
+        }
+
         // Deliberately indistinguishable from a delivered message. See the class notes.
         boolean ignored = theirState.ignores(from.getUUID());
 
-        Feedback.chat(from, Lang.fmt("msg.pm.sent", "player", toName, "message", text));
+        Feedback.chat(from, Lang.fmt("msg.pm.sent", "player", toName,
+                "message", screening.textFor(from, text)));
         if (!ignored) {
-            Feedback.chat(to, Lang.fmt("msg.pm.received", "player", fromName, "message", text));
+            Feedback.chat(to, Lang.fmt("msg.pm.received", "player", fromName,
+                    "message", screening.textFor(to, text)));
             // Reply targets are set on both sides, and only on a delivered message — /r should
             // never answer into a conversation the other person never saw.
             LAST_CONTACT.put(to.getUUID(), from.getUUID());

@@ -78,6 +78,7 @@ public final class SelfTest {
         checkNoTermInflection();
         checkColourCodes();
         checkChatRouters();
+        checkMessageFilters();
         checkGroups();
         checkClaims();
         checkTeleportRelief();
@@ -586,6 +587,74 @@ public final class SelfTest {
         check("the test routers are gone again",
                 com.sablednah.standards.api.chat.Chat.routers().stream()
                         .noneMatch(r -> r.id().startsWith("test:")));
+    }
+
+    /**
+     * The filter seam. Real filters, registered and removed again, with the order deliberately
+     * wrong at registration so a seam that ignored priority would fail.
+     */
+    private void checkMessageFilters() {
+        var order = new ArrayList<String>();
+        com.sablednah.standards.api.chat.MessageFilter stars = testFilter("test:stars", 0, order,
+                t -> t.contains("darn")
+                        ? com.sablednah.standards.api.chat.Screening.censor(
+                                t.replace("darn", "****"), v -> false)
+                        : com.sablednah.standards.api.chat.Screening.pass());
+        com.sablednah.standards.api.chat.MessageFilter blocker = testFilter("test:block", 100, order,
+                t -> t.contains("spam")
+                        ? com.sablednah.standards.api.chat.Screening.block(null)
+                        : com.sablednah.standards.api.chat.Screening.pass());
+        com.sablednah.standards.api.chat.MessageFilter thrower = testFilter("test:throw", 200, order,
+                t -> { throw new IllegalStateException("deliberate"); });
+        try {
+            check("nothing is screened with no filters",
+                    com.sablednah.standards.api.chat.Chat.screen(null, "darn", "chat").passed());
+            com.sablednah.standards.api.chat.Chat.registerFilter(stars);
+            com.sablednah.standards.api.chat.Chat.registerFilter(blocker);
+            com.sablednah.standards.api.chat.Chat.registerFilter(thrower);
+
+            var clean = com.sablednah.standards.api.chat.Chat.screen(null, "hello", "chat");
+            check("a clean line passes every filter", clean.passed());
+            check("filters are asked highest priority first",
+                    order.equals(List.of("test:throw", "test:block", "test:stars")));
+
+            var censored = com.sablednah.standards.api.chat.Chat.screen(null, "oh darn it", "chat");
+            check("a censoring filter censors", censored.censored()
+                    && censored.text("oh darn it").equals("oh **** it"));
+            check("a censor with no exemption reaches every viewer censored",
+                    censored.textFor(null, "oh darn it").equals("oh **** it"));
+            check("a censor is not vanilla-handled unless it says so",
+                    !censored.isVanillaHandled());
+
+            order.clear();
+            var blocked = com.sablednah.standards.api.chat.Chat.screen(null, "darn spam", "chat");
+            check("a block ends the chain", blocked.blocked() && !order.contains("test:stars"));
+            check("a silent block has no reason", blocked.reason().isEmpty());
+
+            var exempt = com.sablednah.standards.api.chat.Screening.censor("x", v -> true);
+            check("an exempt viewer sees the original", exempt.textFor(null, "orig").equals("orig"));
+        } finally {
+            com.sablednah.standards.api.chat.Chat.unregisterFilter(stars);
+            com.sablednah.standards.api.chat.Chat.unregisterFilter(blocker);
+            com.sablednah.standards.api.chat.Chat.unregisterFilter(thrower);
+        }
+        check("the test filters are gone again",
+                com.sablednah.standards.api.chat.Chat.filters().stream()
+                        .noneMatch(f -> f.id().startsWith("test:")));
+    }
+
+    private static com.sablednah.standards.api.chat.MessageFilter testFilter(String id, int priority,
+            List<String> order,
+            java.util.function.Function<String, com.sablednah.standards.api.chat.Screening> verdict) {
+        return new com.sablednah.standards.api.chat.MessageFilter() {
+            public String id() { return id; }
+            public int priority() { return priority; }
+            public com.sablednah.standards.api.chat.Screening screen(
+                    ServerPlayer sender, String text, String channel) {
+                order.add(id);
+                return verdict.apply(text);
+            }
+        };
     }
 
     private static com.sablednah.standards.api.chat.ChatRouter testRouter(
