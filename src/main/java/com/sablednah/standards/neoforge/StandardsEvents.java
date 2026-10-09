@@ -586,7 +586,20 @@ public final class StandardsEvents {
         // Deliberately AFTER the mute gate and the AFK note above: a channel that could bypass
         // those would make a mute a lie, which is the entire reason this seam exists rather than
         // channel mods cancelling the event themselves. See ChatRouter.
-        java.util.Optional<String> claimed = Chat.route(player, event.getRawText());
+        //
+        // Screened before routing, and for the same reason the mute gate is: a party channel is
+        // still somebody talking, and a filter a channel can step around is a suggestion.
+        String raw = event.getRawText();
+        com.sablednah.standards.api.chat.Screening screening = Chat.screen(player, raw,
+                com.sablednah.standards.api.chat.MessageFilter.CHAT);
+        if (screening.blocked()) {
+            event.setCanceled(true);
+            screening.reason().ifPresent(player::sendSystemMessage);
+            return;
+        }
+        // A router renders the line itself and has no per-viewer hook, so it gets the censored
+        // form — the sender included. Only Standards' own delivery below can do better.
+        java.util.Optional<String> claimed = Chat.route(player, screening.text(raw));
         if (claimed.isPresent()) {
             event.setCanceled(true);
             Standards.LOGGER.debug("chat claimed by router '{}'", claimed.get());
@@ -607,17 +620,44 @@ public final class StandardsEvents {
         // the leak exposed that it had never worked on its own.
         boolean hiddenFromSomeone = anyoneIgnoring(server, player);
 
-        java.util.Optional<Component> formatted = ChatFormatter.format(player, event.getRawText());
+        java.util.Optional<Component> formatted = ChatFormatter.format(player, raw);
         if (formatted.isEmpty() && !hiddenFromSomeone) {
-            return; // nothing to add and nobody to hide it from: leave vanilla entirely alone
+            // Nothing to add and nobody to hide it from: leave vanilla alone — unless a filter
+            // censored the line and has not already arranged vanilla's delivery of that (through
+            // the client's filter mask). Then the body is rewritten for everyone, which keeps the
+            // line vanilla chat and costs only the per-viewer copy.
+            if (screening.censored() && !screening.isVanillaHandled()) {
+                event.setMessage(Component.literal(screening.text(raw)));
+            }
+            return;
         }
         event.setCanceled(true);
-        deliver(server, player, formatted.orElseGet(() -> Feedback.colored(
-                Lang.fmt("msg.chat.plain",
-                        // The nickname, not the real name: this is the same chat line, reached
-                        // when the only reason to take delivery over was somebody's ignore list.
-                        "player", ChatFormatter.displayName(player),
-                        "message", Feedback.stripCodes(event.getRawText())))));
+        if (!screening.censored()) {
+            deliver(server, player, formatted.orElseGet(() -> plainLine(player, raw)));
+            return;
+        }
+        // Censored: two renderings, each viewer gets the one the filter says is theirs. The
+        // console gets the original, because the log is where a moderator goes afterwards.
+        String censoredText = screening.text(raw);
+        Component original = formatted.orElseGet(() -> plainLine(player, raw));
+        Component censored = ChatFormatter.format(player, censoredText)
+                .orElseGet(() -> plainLine(player, censoredText));
+        for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
+            if (StandardsAttachments.of(viewer).ignores(player.getUUID())) {
+                continue;
+            }
+            viewer.sendSystemMessage(screening.textFor(viewer, raw).equals(raw) ? original : censored);
+        }
+        server.sendSystemMessage(original);
+    }
+
+    /** The undecorated line, used when the only reason to take delivery over was a filter or an ignore. */
+    private static Component plainLine(ServerPlayer player, String text) {
+        return Feedback.colored(Lang.fmt("msg.chat.plain",
+                // The nickname, not the real name: this is the same chat line, reached when the
+                // only reason to take delivery over was somebody's ignore list.
+                "player", ChatFormatter.displayName(player),
+                "message", Feedback.stripCodes(text)));
     }
 
     /** Whether anybody online has this player on their ignore list. */
