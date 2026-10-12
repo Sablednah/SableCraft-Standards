@@ -8,6 +8,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -91,7 +92,8 @@ public final class ActionBar {
         // Closed on every screen open. An expansion is a transient answer to "which home", not a
         // setting, and finding one still open next time would be a small mystery.
         expanded = null;
-        if (!(event.getScreen() instanceof InventoryScreen screen)) {
+        AbstractContainerScreen<?> screen = host(event.getScreen());
+        if (screen == null) {
             return;
         }
         // Nothing to draw is the ordinary case: a server without Standards, or a player granted
@@ -176,7 +178,7 @@ public final class ActionBar {
      * mods follow in the order their highest-priority action would have come. Within a row the
      * priority order the seam already guarantees is kept.</p>
      */
-    private static void position(InventoryScreen screen) {
+    private static void position(AbstractContainerScreen<?> screen) {
         AbstractContainerScreen<?> container = screen;
         int left = container.getGuiLeft();
         int top = container.getGuiTop() + container.getYSize() + GAP * 2;
@@ -271,8 +273,9 @@ public final class ActionBar {
         expanded = id.equals(expanded) ? null : id;
         CHILDREN.clear();
         var screen = net.minecraft.client.Minecraft.getInstance().screen;
-        if (screen instanceof InventoryScreen inventory) {
-            position(inventory);
+        AbstractContainerScreen<?> host = host(screen);
+        if (host != null) {
+            position(host);
         }
     }
 
@@ -283,7 +286,7 @@ public final class ActionBar {
      * {@code the-far-mine} want different widths, and equal boxes would either truncate the second
      * or waste space on the first.</p>
      */
-    private static void layoutChildren(InventoryScreen screen, int left, int belowY, int maxWidth) {
+    private static void layoutChildren(AbstractContainerScreen<?> screen, int left, int belowY, int maxWidth) {
         CHILDREN.clear();
         if (expanded == null) {
             return;
@@ -323,6 +326,51 @@ public final class ActionBar {
         return rows;
     }
 
+    /**
+     * The screen as one the bar belongs on, or null: the inventory, and anything standing in for
+     * it.
+     *
+     * <p>⚠ <b>Curios replaces the inventory with a screen of its own</b> — {@code CuriosScreen},
+     * not an {@code InventoryScreen} — so opening its slots made the whole bar vanish, which a
+     * player reads as the buttons breaking rather than as a different screen. It is the same
+     * inventory with a panel down the left, and the bar sits underneath, which is nobody's
+     * territory on it either. Found in the ZARP pack.</p>
+     *
+     * <p>Matched by the marker interface Curios' API puts on that screen, and by <em>name</em>, so
+     * Standards neither compiles against Curios nor loads a class of it. Panes are deliberately
+     * not carried across: Curios' slots already hold the left, and a panel button pressed here
+     * still reports its state honestly and shows the pane back on the inventory.</p>
+     */
+    private static AbstractContainerScreen<?> host(Screen screen) {
+        if (screen instanceof InventoryScreen inventory) {
+            return inventory;
+        }
+        if (screen instanceof AbstractContainerScreen<?> container
+                && STANDS_IN.get(container.getClass())) {
+            return container;
+        }
+        return null;
+    }
+
+    /** Interfaces whose screens are the inventory by another name. */
+    private static final java.util.Set<String> INVENTORY_MARKERS =
+            java.util.Set.of("top.theillusivec4.curios.api.client.ICuriosScreen");
+
+    /** Cached per class: asked every frame, and a class's interfaces never change. */
+    private static final ClassValue<Boolean> STANDS_IN = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> type) {
+            for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+                for (Class<?> i : c.getInterfaces()) {
+                    if (INVENTORY_MARKERS.contains(i.getName())) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    };
+
     /** The mod an action belongs to. Standards' own ids are bare, which is the owner's one liberty. */
     private static String modOf(String id) {
         int colon = id.indexOf(':');
@@ -345,7 +393,9 @@ public final class ActionBar {
      */
     @SubscribeEvent
     static void onRender(ContainerScreenEvent.Render.Foreground event) {
-        if (DRAWN.isEmpty() || !(event.getContainerScreen() instanceof InventoryScreen screen)) {
+        AbstractContainerScreen<?> screen =
+                DRAWN.isEmpty() ? null : host(event.getContainerScreen());
+        if (screen == null) {
             return;
         }
         // This line has no ScreenEvent.Render.Foreground (it arrived in 26.2). The container's
@@ -362,7 +412,7 @@ public final class ActionBar {
         }
     }
 
-    private static void draw(InventoryScreen screen, GuiGraphics graphics) {
+    private static void draw(AbstractContainerScreen<?> screen, GuiGraphics graphics) {
         position(screen);
         renderChildren(graphics);
         for (Entry entry : DRAWN) {
