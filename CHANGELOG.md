@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.11.1 — 2026-10-15
+
+### Fixed
+
+- **The action buttons vanished when Curios' slots were opened.** Curios swaps the inventory for a
+  screen of its own, and the bar only knew the vanilla one. It now stays under the inventory on
+  Curios' screen too. Side panes such as the Factions panel still open on the ordinary inventory,
+  because Curios' slots already sit where a pane goes.
+
 ## 1.11.0 — 2026-10-09
 
 ### Added
