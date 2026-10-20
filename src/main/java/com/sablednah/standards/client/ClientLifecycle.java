@@ -16,6 +16,9 @@ public final class ClientLifecycle {
     @SubscribeEvent
     static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         ClientCapabilities.clear();
+        // The client outlives the world. A pane left open at quit-to-title would otherwise be
+        // marked open in the next world too, holding the inventory's left side for nobody.
+        com.sablednah.standards.client.panels.Panels.close();
     }
 
     /**

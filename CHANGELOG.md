@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.11.2 — unreleased
+
+### Fixed
+
+- **Group tags doubled in a second world.** In singleplayer, quitting to the title screen and
+  opening another world without restarting the game showed `[TAG] [TAG] Name`, and three tags in
+  the world after that. The tag was registered again at every server start. Registering a chat
+  decorator, chat router, message filter or harm provider whose id is already present now replaces
+  it, so this can't happen to other mods' registrations either.
+- **An open side pane stayed marked open in the next world.** It now closes when you disconnect.
+
 ## 1.11.1 — 2026-10-15
 
 ### Fixed
