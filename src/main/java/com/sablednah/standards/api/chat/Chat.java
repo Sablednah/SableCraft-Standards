@@ -75,6 +75,7 @@ public final class Chat {
      * unlike decorators these are <b>not</b> additive: the first to claim a message ends it.</p>
      */
     public static synchronized void registerRouter(ChatRouter router) {
+        ROUTERS.removeIf(r -> r.id().equals(router.id()));
         ROUTERS.add(router);
         // Descending: the highest priority is offered the message first.
         ROUTERS.sort(Comparator.comparingInt(ChatRouter::priority).reversed());
@@ -118,6 +119,7 @@ public final class Chat {
      * first, and the first block ends it.
      */
     public static synchronized void registerFilter(MessageFilter filter) {
+        FILTERS.removeIf(f -> f.id().equals(filter.id()));
         FILTERS.add(filter);
         FILTERS.sort(Comparator.comparingInt(MessageFilter::priority).reversed());
         LOG.info("Standards: message filter '{}' registered at priority {} ({} total)",
@@ -164,8 +166,20 @@ public final class Chat {
         return verdict;
     }
 
-    /** Add a decorator. Call during setup, guarded by a {@code standards} loaded check. */
+    /**
+     * Add a decorator. Call during setup, guarded by a {@code standards} loaded check.
+     *
+     * <h3>Registering an id twice replaces it</h3>
+     *
+     * <p>The same holds for routers and filters. A decorator registered from
+     * {@code ServerStartedEvent} rather than setup is registered again by every world opened in
+     * the same game. Singleplayer does exactly that: quit to title, open another world, and the
+     * group tag rendered {@code [TAG] [TAG] Name}. Standards' own {@code GroupTags} did it. An id
+     * is stable by contract, so a second registration under it is a re-registration, never a
+     * second decorator.</p>
+     */
     public static synchronized void register(NameDecorator decorator) {
+        DECORATORS.removeIf(d -> d.id().equals(decorator.id()));
         DECORATORS.add(decorator);
         DECORATORS.sort(Comparator.comparingInt(NameDecorator::priority));
         LOG.info("Standards: chat decorator '{}' registered at priority {} ({} total)",
