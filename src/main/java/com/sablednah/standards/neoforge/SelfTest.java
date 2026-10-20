@@ -2166,6 +2166,20 @@ public final class SelfTest {
             check("assembles the intended line",
                     String.join("", only(prefixes, "[FACTION]", "[PARTY]", "Lord"))
                             .equals("[FACTION][PARTY]Lord"));
+
+            // A second world in the same game registers everything from ServerStartedEvent
+            // again. Same id replaces, so the tag is not doubled: [TAG] [TAG] Name.
+            NameDecorator party2 = new Fixed("selftest:party", 10, "[PARTY]", "-party");
+            Chat.register(party2);
+            check("re-registering an id replaces it rather than adding a second",
+                    Chat.all().stream().filter(d -> d.id().equals("selftest:party")).count() == 1);
+            Chat.unregister(party2);
+            // And the real offender, through the real code: installing twice, as world B does.
+            GroupTags.install();
+            GroupTags.install();
+            check("group tags installed twice leave one decorator per kind",
+                    Chat.all().stream().filter(d -> d.id().startsWith("standards:grouptag/"))
+                            .count() == com.sablednah.standards.StandardsConfig.CHAT_GROUP_KINDS.get().size());
         } finally {
             // MUST come out again. Left registered, these decorate every real chat line on the
             // server for the rest of its life — which also drags every message onto the

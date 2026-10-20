@@ -41,10 +41,16 @@ public final class Harm {
     private static final Logger LOG = LogUtils.getLogger();
     private static final List<HarmProvider> PROVIDERS = new CopyOnWriteArrayList<>();
 
+    /**
+     * Add a provider. Registering an id that is already present replaces it, as the chat seam
+     * does: a provider registered from {@code ServerStartedEvent} is registered again by every
+     * world opened in the same game.
+     */
     public static void register(HarmProvider provider) {
         if (provider == null) {
             return;
         }
+        PROVIDERS.removeIf(p -> p.id().equals(provider.id()));
         PROVIDERS.add(provider);
         LOG.info("Standards: harm provider '{}' registered ({} total)", provider.id(),
                 PROVIDERS.size());
