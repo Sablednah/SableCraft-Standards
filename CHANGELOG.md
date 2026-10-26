@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.0 — unreleased
+
+### Added
+
+- **`api/places/Places`**: read-only warps and `/spawn` for mods that show them somewhere else.
+  SableCraft Diorama puts them on its web map. Homes are deliberately not included. See
+  `PLACES-API.md`.
+
 ## 1.11.2 — 2026-10-20
 
 ### Fixed
