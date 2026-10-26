@@ -961,6 +961,9 @@ check by grepping the sibling repos for the import, not by remembering.
 - `COMMANDS.md` — the full EssentialsX/FTB catalogue with keep/skip recommendations. **This is the
   open decision list**; the owner is working through it.
 - `ECONOMY-API.md` — how LegendQuest and ZombieMod hook the economy.
+- `PLACES-API.md` — **built 2026-10-26 (1.12.0), consumed by SableCraft Diorama** (`../Diorama`, the
+  isometric web map). Read-only warps and `/spawn`. Homes are absent on purpose — a public map of
+  where people sleep — so do not "complete" it by adding them.
 - `REPUTATION-API.md` — **built 2026-09-06 and consumed the same day by Chronicler.** What named groups think of a
   player, shaped like the economy: one provider wins outright, because a standing is a single fact.
   Built because *two* mods wanted to grant it — Chronicler's quest rewards and StoryTeller's
